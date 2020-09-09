@@ -54,11 +54,12 @@ Use tip dates auto-configure.
 
 #### Clock Model
 
-| Strick Clock  |                | Modified     |
-| ------------- | :-------:      | :----------: |
-| **Parameter** | **Value**      | **estimate** |
-| Clock Rate    | 0.0008 (fixed) |              |
+| Strick Clock  |                      | Modified     |
+| ------------- | :------------------: | :----------: |
+| **Parameter** | **Value**            | **estimate** |
+| Clock Rate    | 0.0008 (fixed) *[1]* |              |
 
+*[1] Automatic set clock rate Mode disabled*
 
 #### Priors
 
@@ -76,7 +77,7 @@ Use tip dates auto-configure.
 | Values ALL                | 1.0 		         | x          |              |
 | **Sampling proportion**                        
 | Number of change times    | 2                    |
-| Change times              | 0.12 0.205 *[1]*     |            |              |
+| Change times              | 0.12 0.205 *[2]*     |            |              |
 | Time as ages              | true                 |
 | Values  F G H I O         | E1: 1.0E-5 1.0E-5 0.0 1.0E-5 1.0E-5 <br> E2:  1.0E-5 1.0E-5 1.0E-5 1.0E-5 1.0E-5 <br> E3: 0.0 0.0 0.0 0.0 0.0 | | x |
 | **Rho Sampling**                        
@@ -86,7 +87,7 @@ Use tip dates auto-configure.
 | Values ALL                | 1.0 			     | x          |              |
 | **Migration Rte**                        
 | Number of change times    | 0                    |
-| Values  F G H I O         | -- 0.1 0.0 0.1 0.1 <br> 0.1 -- 0.0 0.1 0.1 <br> 0.1 0.1 -- 0.1 0.1 <br> 0.1 0.1 0.0 -- 0.1 <br> 0.1 0.1 0.0 0.1 -- <br> *[2]* | | x |
+| Values  F G H I O         | -- 0.1 0.0 0.1 0.1 <br> 0.1 -- 0.0 0.1 0.1 <br> 0.1 0.1 -- 0.1 0.1 <br> 0.1 0.1 0.0 -- 0.1 <br> 0.1 0.1 0.0 0.1 -- <br> *[3]* | | x |
 | **R0Among Demes**                        
 | Number of change times    | 0                    |
 | Values ALL                | 1.0 				    | x          |              |
@@ -166,6 +167,29 @@ Use tip dates auto-configure.
 | Upper                    | 1.0             | 
 | Offset                   | 0.0             |
 
+The **sampling proportion prior** is manually modified afterwards:
+
+- Upper bounds based on # seqs/confirmed cases according to WHO situation reports 
+unless otherwise noted. This is done using function `feast.function.Slice` with a uniform distribution 
+0-upperbound and removing the prior set in BEAUti. Lines 262-308 of xml.
+
+| deme          | last_seq   | upper bound            |
+| ------------- | ---------- | ---------------------- |
+| France        | 08.03.2020 | 66/706 = 0.093         |
+| Germany       | 03.03.2020 | 15/157 = 0.10          |
+| Hubei         | 18.01.2020 | 10/66 = 0.15 *[4]*     |
+| Italy	        | 04.03.2020 | 13/2502 = 0.005        |
+| OtherEuropean	| 08.03.2020 | 41 / 714 = 0.057 *[5]* |
+
+*[4] Source: https://www.statista.com/statistics/1103040/cumulative-coronavirus-covid19-cases-number-worldwide-by-day/*
+
+*[5] Source: https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Europe and linked country pages*
+
+
+- Enforce that sampling proportion should be the same before and after the Jan 23 
+ breakpoint for all demes except Hubei. We have to modify the sampling proportion 
+operator scaler for each deme to be equal between Epochs 2 and 3. We do it with 
+the operator `feast.operators.BlockScaleOperator`. Lines 349-368 of xml.
 
 #### MCMC
 
