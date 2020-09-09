@@ -62,43 +62,43 @@ Use tip dates auto-configure.
 
 #### Priors
 
-| Tree Prior              |                      |            | Modified     |
-| ----------------------- | :------------------: | :---------:| :----------: |
-| **Parameter**           | **Value**            | **scalar** | **estimate** |
-| Tree                    | BDMMPrime            | 
-| Parameterization        | Epi Parameterization |
-| Set locations           | Autoconfigure        |
+| Tree Prior                |                      |            | Modified     |
+| ------------------------- | :------------------: | :---------:| :----------: |
+| **Parameter**             | **Value**            | **scalar** | **estimate** |
+| Tree                      | BDMMPrime            | 
+| Parameterization          | Epi Parameterization |
+| Set locations             | Autoconfigure        |
 | **R0**                        
-| Number of change times  | 0                    |
-| Values F G H I O        | 1.0 1.0 1.0 1.0 1.0  |            | x            |
+| Number of change times    | 0                    |
+| Values F G H I O          | 1.0 1.0 1.0 1.0 1.0  |            | x            |
 | **Become Uninfectious Rate**                        
-| Number of change times  | 0                    |
-| Values ALL              | 1.0 				    | x          |              |
+| Number of change times    | 0                    |
+| Values ALL                | 1.0 		         | x          |              |
 | **Sampling proportion**                        
-| Number of change times  | 2                    |
-| Change times            | 0.12 0.205 *[1]*     |            |              |
-| Time as ages            | true                 |
-| Values  F G H I O       | E1: 1.0E-5 1.0E-5 0.0 1.0E-5 1.0E-5 <br> E2:  1.0E-5 1.0E-5 1.0E-5 1.0E-5 1.0E-5 <br> E3: 0.0 0.0 0.0 0.0 0.0 | | x |
+| Number of change times    | 2                    |
+| Change times              | 0.12 0.205 *[1]*     |            |              |
+| Time as ages              | true                 |
+| Values  F G H I O         | E1: 1.0E-5 1.0E-5 0.0 1.0E-5 1.0E-5 <br> E2:  1.0E-5 1.0E-5 1.0E-5 1.0E-5 1.0E-5 <br> E3: 0.0 0.0 0.0 0.0 0.0 | | x |
 | **Rho Sampling**                        
-| Number of elements      | 0                    |
+| Number of elements        | 0                    |
 | **Removal Prob**                        
-| Number of change times  | 0                    |
-| Values ALL              | 1.0 				    | x          |              |
+| Number of change times    | 0                    |
+| Values ALL                | 1.0 			     | x          |              |
 | **Migration Rte**                        
-| Number of change times  | 0                    |
-| Values  F G H I O       | -- 0.1 0.0 0.1 0.1 <br> 0.1 -- 0.0 0.1 0.1 <br> 0.1 0.1 -- 0.1 0.1 <br> 0.1 0.1 0.0 -- 0.1 <br> 0.1 0.1 0.0 0.1 -- <br> *[2]* | | x |
+| Number of change times    | 0                    |
+| Values  F G H I O         | -- 0.1 0.0 0.1 0.1 <br> 0.1 -- 0.0 0.1 0.1 <br> 0.1 0.1 -- 0.1 0.1 <br> 0.1 0.1 0.0 -- 0.1 <br> 0.1 0.1 0.0 0.1 -- <br> *[2]* | | x |
 | **R0Among Demes**                        
-| Number of change times  | 0                    |
-| Values ALL              | 1.0 				    | x          |              |
-| **Origin**              | 10.0                 |            | x            |
-| **Final Sample Offset** | ?                    |
-| **Frequencies**         | 0.0 0.0 1.0 0.0 0.0  |
-| Condition on Survival   | False?               |
-| Use Analytical ST sol   | True?                |
-| Rel Tolerance           | 1.0E-7               |
-| Abs Tolerance           | 1.0E-100             |
-| Parallelize             | True?                |
-| Parallelization Factor  | 0.1                  |
+| Number of change times    | 0                    |
+| Values ALL                | 1.0 				    | x          |              |
+| **Origin**                | 10.0                 |            | x            |
+| **Final Sample Offset**   | ?                    |
+| **Frequencies** F G H I O | 0.0 0.0 1.0 0.0 0.0  |
+| Condition on Survival     | False?               |
+| Use Analytical ST sol     | True?                |
+| Rel Tolerance             | 1.0E-7               |
+| Abs Tolerance             | 1.0E-100             |
+| Parallelize               | True?                |
+| Parallelization Factor    | 0.1                  |
 
 *[1] 0.12 (just after Jan 23, when I stop sampling in Hubei) and 0.205 (~Dec 23, just before 1st sample that could have been selected)*
 
