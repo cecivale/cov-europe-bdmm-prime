@@ -74,7 +74,7 @@ Use tip dates auto-configure.
 | Values F G H I O          | 1.0 1.0 1.0 1.0 1.0  |            | x            |
 | **Become Uninfectious Rate**                        
 | Number of change times    | 0                    |
-| Values ALL                | 1.0 		         | x          |              |
+| Values ALL                | 36.5  		       | x          |              |
 | **Sampling proportion**                        
 | Number of change times    | 2                    |
 | Change times              | 0.12 0.205 *[2]*     |            |              |
@@ -90,7 +90,7 @@ Use tip dates auto-configure.
 | Values  F G H I O         | -- 0.1 0.0 0.1 0.1 <br> 0.1 -- 0.0 0.1 0.1 <br> 0.1 0.1 -- 0.1 0.1 <br> 0.1 0.1 0.0 -- 0.1 <br> 0.1 0.1 0.0 0.1 -- <br> *[3]* | | x |
 | **R0Among Demes**                        
 | Number of change times    | 0                    |
-| Values ALL                | 1.0 				    | x          |              |
+| Values ALL                | 0.0 		           | x          |              |
 | **Origin**                | 10.0                 |            | x            |
 | **Final Sample Offset**   | ?                    |
 | **Frequencies** F G H I O | 0.0 0.0 1.0 0.0 0.0  |
