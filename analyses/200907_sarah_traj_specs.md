@@ -30,7 +30,7 @@ Assign demes, filter to date of Lombardy lockdown and downsample within demes.
 
 - Created using BEAUti and modify afterwards
 - Template: BEAUti BDMM-prime?
-- File: [200907_sarah_traj.xml](https://cevo-git.ethz.ch/ceciliav/sars-cov-2-eu-phylodynamics/-/blob/master/analyses/200904_sarah_europe_demes.xml)
+- File: [200907_sarah_traj.xml](https://cevo-git.ethz.ch/ceciliav/sars-cov-2-eu-phylodynamics/-/blob/master/analyses/200904_sarah.xml)
 
 #### Tip Dates
 Use tip dates auto-configure.
