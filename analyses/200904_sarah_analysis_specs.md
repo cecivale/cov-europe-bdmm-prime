@@ -4,7 +4,7 @@
 
 **LOCATION**: `/maceci/code/mt-analysis/200904_sarah`
 
-**STATUS**: In progress
+**STATUS**: Finished
 
 Rerun Sarah BDMM-prime analysis `2020-05-18_european_origins` (the one from the paper *Sarah Nadeau et al. doi:10.1101/2020.06.10.20127738*) with same `.xml` file.
 

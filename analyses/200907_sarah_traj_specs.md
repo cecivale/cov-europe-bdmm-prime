@@ -1,19 +1,17 @@
 # Analysis 200907_sarah_traj
 
-**DATE**: 2020-09-04
+**DATE**: 2020-09-07
 
-**LOCATION**: `/maceci/code/mt-analysis/200904_sarah`
+**LOCATION**: `/maceci/code/mt-analysis/200907_sarah_traj`
 
-**STATUS**: In progress
+**STATUS**: Finished
 
-Rerun Sarah BDMM-prime analysis `2020-05-18_european_origins` (the one from the paper *Sarah Nadeau et al. doi:10.1101/2020.06.10.20127738*) with same `.xml` file.
-
-All the files are found in the `2019-nCov Data` gitlab repository. Analysis notes in `2020-05-18_european_origins/analysis_notes.txt`.
-
+Rerun Sarah BDMM-prime analysis `2020-05-18_european_origins` (the one from the paper *Sarah Nadeau et al. doi:10.1101/2020.06.10.20127738*) with same `.xml` file but adding trajectory logger BDMM-Prime.
 
 ## Data Alignment
 
-File: `2019-ncov-data/analyses/2020-04-19_europe_bdmm_prime/europe_demes.fasta` 
+File: `2019-ncov-data/analyses/2020-04-19_europe_bdmm_prime/europe_demes.fasta` , [sarah_europe_demes.fasta ](https://cevo-git.ethz.ch/ceciliav/sars-cov-2-eu-phylodynamics/-/blob/master/data/sarah_europe_demes.fasta)
+
 Sarah's alignment based on data available on GISAID as of 2020-04-01. 
 
 
@@ -32,7 +30,7 @@ Assign demes, filter to date of Lombardy lockdown and downsample within demes.
 
 - Created using BEAUti and modify afterwards
 - Template: BEAUti BDMM-prime?
-- File: `europe_demes.xml`, Remake `200904_sarah_europe_demes.xml`, not used.
+- File: [200907_sarah_traj.xml](https://cevo-git.ethz.ch/ceciliav/sars-cov-2-eu-phylodynamics/-/blob/master/analyses/200904_sarah_europe_demes.xml)
 
 #### Tip Dates
 Use tip dates auto-configure.
@@ -218,8 +216,8 @@ the operator `feast.operators.BlockScaleOperator`. Lines 349-368 of xml.
 
 ## Analysis
 
-- Analysis run using *BEAST v2.6.3* in local BDMM-Prime IntelliJ project.
-- Final chain length: 12000, too slow for an initial analysis, it is better to downsample the sequences.
+- Analysis run using *BEAST v2.6.3* on EULER with BDMM-prime.jar 
+- Final chain length: 12000, too slow for an initial analysis, stopped. It is better to downsample the sequences.
 - Time: - seconds
 - Files raw results: `200907_sarah_traj.log, 200907_sarah_traj.trees, 200907_sarah_traj.typed.trees, 200907_sarah_traj.typed.node.trees, 200907_sarah_traj.xml.state`
 
