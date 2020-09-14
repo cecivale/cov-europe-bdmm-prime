@@ -219,6 +219,7 @@ the operator `feast.operators.BlockScaleOperator`. Lines 349-368 of xml.
 ## Analysis
 
 - Analysis run using *BEAST v2.6.3* in local BDMM-Prime IntelliJ project.
+- Final chain length: 12000, too slow for an initial analysis, it is better to downsample the sequences.
 - Time: - seconds
 - Files raw results: `200907_sarah_traj.log, 200907_sarah_traj.trees, 200907_sarah_traj.typed.trees, 200907_sarah_traj.typed.node.trees, 200907_sarah_traj.xml.state`
 
