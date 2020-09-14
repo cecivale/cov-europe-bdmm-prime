@@ -193,6 +193,13 @@ the operator `feast.operators.BlockScaleOperator`. Lines 349-368 of xml.
 
 - Add trajectory logger (BDDM-Prime)
 
+| Sampled Trajectory |           |              
+| ------------------ | :-------: |
+| **Parameter**      | **Value** |
+| nParticles         | 1000      |
+| useTauLeaping      | True      |              
+| stepsPerInterval   | 10        |              
+| typeLabel          | type      |       
 
 #### MCMC
 
@@ -204,15 +211,19 @@ the operator `feast.operators.BlockScaleOperator`. Lines 349-368 of xml.
 | Num Init Attempts      | 10       | 
 | tracelog Every         | 1000     | 
 | screenlog Every        | 1000     | 
-| treelog Every          | 1000    | 
-| typedTreeLog Every     | 1000    |     
-| nodeTypedTreeLog Every | 1000    |        
+| treelog Every          | 1000     | 
+| typedTreeLog Every     | 1000     |     
+| nodeTypedTreeLog Every | 1000     |        
 
 
 ## Analysis
 
 - Analysis run using *BEAST v2.6.3* in local BDMM-Prime IntelliJ project.
 - Time: - seconds
-- Files raw results: `europe_demes.log, europe_demes.trees, europe_demes.europe_demes.typed.trees, europe_demes.europe_demes.typed.node.trees, europe_demes.xml.state`
+- Files raw results: `200907_sarah_traj.log, 200907_sarah_traj.trees, 200907_sarah_traj.typed.trees, 200907_sarah_traj.typed.node.trees, 200907_sarah_traj.xml.state`
 
-TODO
+## Notes
+
+Analysis with trajectories done before BDMM-Prime bug in number of events was fixed, 
+before several events recorded but just one executed resultin in an underestimate of population size.
+
