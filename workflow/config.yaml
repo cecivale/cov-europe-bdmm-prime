@@ -1,0 +1,59 @@
+# Modified Nextrain workflow from 2020-09-11
+# MIT License
+# Copyright (c) 2020 Nextstrain, full text https://github.com/nextstrain/ncov/blob/master/LICENSE
+
+
+# This file contains defaults for the "config" object used in the Snakefile.
+# To temporarily override or provide a value, you can use snakemake's --config
+# or --configfile options.
+---
+
+# conda environment file to use by default
+conda_environment: "/envs/nextstrain.yaml"
+
+# Set the maximum number of cores you want Snakemake to use for this pipeline.
+cores: 2
+
+# Always print the commands that will be run to the screen for debugging.
+printshellcmds: True
+
+# These are the two main starting files for the run
+sequences: "data/200911_sequences.fasta"
+metadata: "data/200911_metadata.tsv"
+
+# Define files used for external configuration. Common examples consist of a
+# list of strains to include and exclude from analyses, a reference sequence to
+# align sequences to.
+files:
+  include: "files/include.txt"
+  exclude: "files/exclude.txt"
+  reference: "files/reference_seq.gb"
+
+# Filter settings
+filter:
+  # Require nearly full-length genomes.
+  min_length: 27000
+
+  # Omit sequences with incomplete date annotations, and USA seqs without a state.
+  exclude_where: "division='USA' date='2020' date='2020-01-XX' date='2020-02-XX' date='2020-03-XX' date='2020-04-XX' date='2020-05-XX' date='2020-06-XX' date='2020-01' date='2020-02' date='2020-03' date='2020-04' date='2020-05' date='2020-06'"
+
+
+# Alignment settings
+# Alignments are partitioned into smaller groups to speed up the overall alignment process.
+# The number of sequences per group determines the run time of a single alignment job.
+partition_sequences:
+  sequences_per_group: 150
+
+# Mask settings determine how the multiple sequence alignment is masked prior to phylogenetic inference.
+mask:
+  # Number of bases to mask from the beginning and end of the alignment. These regions of the genome
+  # are difficult to sequence accurately.
+  mask_from_beginning: 100
+  mask_from_end: 50
+
+  # Specific sites to mask in the reference genome's coordinates.
+  # These are 1-indexed coordinates of sites that have been identified as prone to sequencing errors.
+  # 13402, 24389 and 24390 are restricted to Belgian samples
+  mask_sites: "13402 24389 24390"
+
+
