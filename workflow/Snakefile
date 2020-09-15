@@ -13,8 +13,7 @@ wildcard_constraints:
 
 rule all:
   input:
-#    "results/masked.fasta"
-    "results/filtered.fasta"
+    "results/masked.fasta"
 
 rule load:
     message: "Loading sequences and metadata from files"
