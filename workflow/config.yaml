@@ -11,15 +11,11 @@
 # conda environment file to use by default
 conda_environment: "/envs/nextstrain.yaml"
 
-# Set the maximum number of cores you want Snakemake to use for this pipeline.
-cores: 2
-
-# Always print the commands that will be run to the screen for debugging.
-printshellcmds: True
-
 # These are the two main starting files for the run
+# Files are previously downloaded from GISAID database, Downloads > nextmeta and nextfasta to the data folder
 sequences: "data/200911_sequences.fasta"
 metadata: "data/200911_metadata.tsv"
+
 
 # Define files used for external configuration. Common examples consist of a
 # list of strains to include and exclude from analyses, a reference sequence to
@@ -55,5 +51,67 @@ mask:
   # These are 1-indexed coordinates of sites that have been identified as prone to sequencing errors.
   # 13402, 24389 and 24390 are restricted to Belgian samples
   mask_sites: "13402 24389 24390"
+
+
+# This is where we define which builds we'd like to run.
+# Each build needs a name, a defined subsampling process, and geographic attributes used for subsampling.
+# Geography is specified by build attributes (e.g., `region`, `country`, `division`, `location`) that are referenced from subsampling schemes.
+builds:
+  # This build focuses on Europe samples
+  europe:
+    subsampling_scheme: region_grouped_by_country
+    region: europe
+
+# # Define subsampling scheme
+# subsampling:
+#   region:
+#     group_by: "country year month"
+#     seq_per_group: 10
+#     exclude: "--exclude-where 'region!={region}'"
+
+# Custom subsampling logic for regions like Europe where grouping by country
+# is the smallest resolution required.
+subsampling:
+  region_grouped_by_country:
+    # Focal samples for region
+    region:
+      #group_by: "country year month"
+      group_by: "country year month"
+      #seq_per_group: 64
+      seq_per_group: 5
+      exclude: "--exclude-where 'region!={region}'"
+    # # Contextual samples for region from the rest of the world
+    # global:
+    #   group_by: "country year month"
+    #   seq_per_group: 6
+    #   exclude: "--exclude-where 'region={region}'"
+    #   priorities:
+    #     type: "proximity"
+    #     focus: "region"
+
+tree:
+  tree-builder-args: "'-ninit 10 -n 4'"
+
+# TreeTime settings
+refine:
+  root: "Wuhan/Hu-1/2019 Wuhan/WH01/2019" #EPI_ISL_402125  EPI_ISL_406798
+  clock_rate: 0.0008
+  clock_std_dev: 0.0004
+  coalescent: "skyline"
+  date_inference: "marginal"
+  divergence_unit: "mutations"
+  clock_filter_iqd: 4
+
+
+# BEAST2 analysis settings
+beast:
+  # XML file for analysis
+  xml:  "200914_europe1.xml"
+  # BEAST2 jar file path
+  jar: "/cluster/home/ceciliav/BDMM-Prime.jar"
+  # Number of parallel analysis to run 
+  n_analysis: 2
+  # Burnin percentage when combining log files
+  burnin: 10
 
 

@@ -2,7 +2,14 @@
 # MIT License
 # Copyright (c) 2020 Nextstrain, full text https://github.com/nextstrain/ncov/blob/master/LICENSE
 
+from snakemake.utils import validate
+
+
 configfile: "config.yaml"
+validate(config, schema="schemas/config.schema.yaml")
+
+BUILD_NAMES = list(config["builds"].keys())
+ANALYSIS_NAME = config["beast"]["xml"][:-4]
 
 # Define patterns we expect for wildcards.
 wildcard_constraints:
@@ -11,9 +18,25 @@ wildcard_constraints:
     build_name = r'(?:[_a-zA-Z-](?!(tip-frequencies|gisaid|zh)))+',
     date = r"[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]"
 
+localrules: load
+
 rule all:
   input:
-    "results/masked.fasta"
+    #alignment = expand("results/{build_name}/subsampled_alignment.fasta", build_name=BUILD_NAMES)
+    #tree = expand("results/{build_name}/tree.nwk", build_name=BUILD_NAMES)
+    comb_log = expand("results/{build_name}/bdmm-prime/{analysis}.combined.log", build_name=BUILD_NAMES, analysis=ANALYSIS_NAME)
+
+# rule clean:
+#     message: "Removing directories: {params}"
+#     params:
+#         "results",
+#         "logs",
+#         "benchmarks"
+#     shell:
+#         "rm -rfv {params}"
+
+# Include small, shared functions that help build inputs and parameters.
+include: "common.smk"
 
 rule load:
     message: "Loading sequences and metadata from files"
@@ -157,6 +180,7 @@ rule diagnostic:
             --output-exclusion-list {output.to_exclude} 2>&1 | tee {log}
         """
 
+
 rule refilter:
     message:
         """
@@ -211,169 +235,321 @@ rule mask:
             --output {output.alignment} 2>&1 | tee {log}
         """
 
-# def _get_subsampling_settings(wildcards):
-#     # Allow users to override default subsampling with their own settings keyed
-#     # by location type and name. For example, "region_europe" or
-#     # "country_iceland". Otherwise, default to settings for the location type.
-#     subsampling_scheme = _get_subsampling_scheme_by_build_name(wildcards.build_name)
-#     subsampling_settings = config["subsampling"][subsampling_scheme]
+def _get_subsampling_settings(wildcards):
+    # Allow users to override default subsampling with their own settings keyed
+    # by location type and name. For example, "region_europe" or
+    # "country_iceland". Otherwise, default to settings for the location type.
+    subsampling_scheme = _get_subsampling_scheme_by_build_name(wildcards.build_name)
+    subsampling_settings = config["subsampling"][subsampling_scheme]
 
-#     if hasattr(wildcards, "subsample"):
-#         return subsampling_settings[wildcards.subsample]
-#     else:
-#         return subsampling_settings
-
-
-# def get_priorities(wildcards):
-#     subsampling_settings = _get_subsampling_settings(wildcards)
-
-#     if "priorities" in subsampling_settings and subsampling_settings["priorities"]["type"] == "proximity":
-#         return f"results/{wildcards.build_name}/proximity_{subsampling_settings['priorities']['focus']}.tsv"
-#     else:
-#         # TODO: find a way to make the list of input files depend on config
-#         return config["files"]["include"]
+    if hasattr(wildcards, "subsample"):
+        return subsampling_settings[wildcards.subsample]
+    else:
+        return subsampling_settings
 
 
-# def get_priority_argument(wildcards):
-#     subsampling_settings = _get_subsampling_settings(wildcards)
+def get_priorities(wildcards):
+    subsampling_settings = _get_subsampling_settings(wildcards)
 
-#     if "priorities" in subsampling_settings and subsampling_settings["priorities"]["type"] == "proximity":
-#         return "--priority " + get_priorities(wildcards)
-#     else:
-#         return ""
+    if "priorities" in subsampling_settings and subsampling_settings["priorities"]["type"] == "proximity":
+        return f"results/{wildcards.build_name}/proximity_{subsampling_settings['priorities']['focus']}.tsv"
+    else:
+        # TODO: find a way to make the list of input files depend on config
+        return config["files"]["include"]
 
 
-# def _get_specific_subsampling_setting(setting, optional=False):
-#     def _get_setting(wildcards):
-#         if optional:
-#             value = _get_subsampling_settings(wildcards).get(setting, "")
-#         else:
-#             value = _get_subsampling_settings(wildcards)[setting]
+def get_priority_argument(wildcards):
+    subsampling_settings = _get_subsampling_settings(wildcards)
 
-#         if isinstance(value, str):
-#             # Load build attributes including geographic details about the
-#             # build's region, country, division, etc. as needed for subsampling.
-#             build = config["builds"][wildcards.build_name]
-#             value = value.format(**build)
-#         else:
-#             return value
+    if "priorities" in subsampling_settings and subsampling_settings["priorities"]["type"] == "proximity":
+        return "--priority " + get_priorities(wildcards)
+    else:
+        return ""
 
-#         # Check format strings that haven't been resolved.
-#         if re.search(r'\{.+\}', value):
-#             raise Exception(f"The parameters for the subsampling scheme '{wildcards.subsample}' of build '{wildcards.build_name}' reference build attributes that are not defined in the configuration file: '{value}'. Add these build attributes to the appropriate configuration file and try again.")
 
-#         return value
+def _get_specific_subsampling_setting(setting, optional=False):
+    def _get_setting(wildcards):
+        if optional:
+            value = _get_subsampling_settings(wildcards).get(setting, "")
+        else:
+            value = _get_subsampling_settings(wildcards)[setting]
 
-#     return _get_setting
+        if isinstance(value, str):
+            # Load build attributes including geographic details about the
+            # build's region, country, division, etc. as needed for subsampling.
+            build = config["builds"][wildcards.build_name]
+            value = value.format(**build)
+        else:
+            return value
 
-# rule subsample:
-#     message:
-#         """
-#         Subsample all sequences into a {wildcards.subsample} set for build '{wildcards.build_name}' with {params.sequences_per_group} per {params.group_by}
-#         """
-#     input:
-#         sequences = rules.mask.output.alignment,
-#         metadata = rules.load.output.metadata,
-#         include = config["files"]["include"],
-#         priorities = get_priorities
-#     output:
-#         sequences = "results/{build_name}/sample-{subsample}.fasta"
-#     params:
-#         group_by = _get_specific_subsampling_setting("group_by"),
-#         sequences_per_group = _get_specific_subsampling_setting("seq_per_group"),
-#         exclude_argument = _get_specific_subsampling_setting("exclude", optional=True),
-#         include_argument = _get_specific_subsampling_setting("include", optional=True),
-#         query_argument = _get_specific_subsampling_setting("query", optional=True),
-#         priority_argument = get_priority_argument
-#     conda: config["conda_environment"]
-#     shell:
-#         """
-#         augur filter \
-#             --sequences {input.sequences} \
-#             --metadata {input.metadata} \
-#             --include {input.include} \
-#             {params.exclude_argument} \
-#             {params.include_argument} \
-#             {params.query_argument} \
-#             {params.priority_argument} \
-#             --group-by {params.group_by} \
-#             --sequences-per-group {params.sequences_per_group} \
-#             --output {output.sequences} 2>&1 | tee {log}
-#         """
+        # Check format strings that haven't been resolved.
+        if re.search(r'\{.+\}', value):
+            raise Exception(f"The parameters for the subsampling scheme '{wildcards.subsample}' of build '{wildcards.build_name}' reference build attributes that are not defined in the configuration file: '{value}'. Add these build attributes to the appropriate configuration file and try again.")
 
-# rule proximity_score:
-#     message:
-#         """
-#         determine priority for inclusion in as phylogenetic context by
-#         genetic similiarity to sequences in focal set for build '{wildcards.build_name}'.
-#         """
-#     input:
-#         alignment = rules.mask.output.alignment,
-#         metadata = rules.load.output.metadata,
-#         reference = config["files"]["reference"],
-#         focal_alignment = "results/{build_name}/sample-{focus}.fasta"
-#     output:
-#         priorities = "results/{build_name}/proximity_{focus}.tsv"
-#     log:
-#         "logs/subsampling_priorities_{build_name}_{focus}.txt"
-#     resources:
-#         mem_mb = 4000
-#     conda: config["conda_environment"]
-#     shell:
-#         """
-#         python3 scripts/priorities.py --alignment {input.alignment} \
-#             --metadata {input.metadata} \
-#             --reference {input.reference} \
-#             --focal-alignment {input.focal_alignment} \
-#             --output {output.priorities} 2>&1 | tee {log}
-#         """
+        return value
 
-# def _get_subsampled_files(wildcards):
-#     subsampling_settings = _get_subsampling_settings(wildcards)
+    return _get_setting
 
-#     return [
-#         f"results/{wildcards.build_name}/sample-{subsample}.fasta"
-#         for subsample in subsampling_settings
-#     ]
+rule subsample:
+    message:
+        """
+        Subsample all sequences into a {wildcards.subsample} set for build '{wildcards.build_name}' with {params.sequences_per_group} per {params.group_by}
+        """
+    input:
+        sequences = rules.mask.output.alignment,
+        metadata = rules.load.output.metadata,
+        include = config["files"]["include"],
+        priorities = get_priorities
+    output:
+        sequences = "results/{build_name}/sample-{subsample}.fasta"
+    params:
+        group_by = _get_specific_subsampling_setting("group_by"),
+        sequences_per_group = _get_specific_subsampling_setting("seq_per_group"),
+        exclude_argument = _get_specific_subsampling_setting("exclude", optional=True),
+        include_argument = _get_specific_subsampling_setting("include", optional=True),
+        query_argument = _get_specific_subsampling_setting("query", optional=True),
+        priority_argument = get_priority_argument
+    conda: config["conda_environment"]
+    shell:
+        """
+        augur filter \
+            --sequences {input.sequences} \
+            --metadata {input.metadata} \
+            --include {input.include} \
+            {params.exclude_argument} \
+            {params.include_argument} \
+            {params.query_argument} \
+            {params.priority_argument} \
+            --group-by {params.group_by} \
+            --sequences-per-group {params.sequences_per_group} \
+            --output {output.sequences} 2>&1 | tee {log}
+        """
 
-# rule combine_samples:
-#     message:
-#         """
-#         Combine and deduplicate FASTAs
-#         """
-#     input:
-#         _get_subsampled_files
-#     output:
-#         alignment = "results/{build_name}/subsampled_alignment.fasta"
-#     log:
-#         "logs/subsample_regions_{build_name}.txt"
-#     conda: config["conda_environment"]
-#     shell:
-#         """
-#         python3 scripts/combine-and-dedup-fastas.py \
-#             --input {input} \
-#             --output {output} 2>&1 | tee {log}
-#         """
+rule proximity_score:
+    message:
+        """
+        determine priority for inclusion in as phylogenetic context by
+        genetic similiarity to sequences in focal set for build '{wildcards.build_name}'.
+        """
+    input:
+        alignment = rules.mask.output.alignment,
+        metadata = rules.load.output.metadata,
+        reference = config["files"]["reference"],
+        focal_alignment = "results/{build_name}/sample-{focus}.fasta"
+    output:
+        priorities = "results/{build_name}/proximity_{focus}.tsv"
+    log:
+        "logs/subsampling_priorities_{build_name}_{focus}.txt"
+    resources: mem_mb = 4000
+    conda: config["conda_environment"]
+    shell:
+        """
+        python3 scripts/priorities.py --alignment {input.alignment} \
+            --metadata {input.metadata} \
+            --reference {input.reference} \
+            --focal-alignment {input.focal_alignment} \
+            --output {output.priorities} 2>&1 | tee {log}
+        """
+
+def _get_subsampled_files(wildcards):
+    subsampling_settings = _get_subsampling_settings(wildcards)
+
+    return [
+        f"results/{wildcards.build_name}/sample-{subsample}.fasta"
+        for subsample in subsampling_settings
+    ]
+
+rule combine_samples:
+    message:
+        """
+        Combine and deduplicate FASTAs
+        """
+    input:
+        _get_subsampled_files
+    output:
+        alignment = "results/{build_name}/subsampled_alignment.fasta"
+    log:
+        "logs/subsample_regions_{build_name}.txt"
+    conda: config["conda_environment"]
+    shell:
+        """
+        python3 scripts/combine-and-dedup-fastas.py \
+            --input {input} \
+            --output {output} 2>&1 | tee {log}
+        """
 
 # # TODO: This will probably not work for build names like "country_usa" where we need to know the country is "USA".
-# rule adjust_metadata_regions:
-#     message:
-#         """
-#         Adjusting metadata for build '{wildcards.build_name}'
-#         """
+rule adjust_metadata_regions:
+    message:
+        """
+        Adjusting metadata for build '{wildcards.build_name}'
+        """
+    input:
+        metadata = rules.load.output.metadata
+    output:
+        metadata = "results/{build_name}/metadata_adjusted.tsv"
+    params:
+        region = lambda wildcards: config["builds"][wildcards.build_name]["region"]
+    log:
+        "logs/adjust_metadata_regions_{build_name}.txt"
+    conda: config["conda_environment"]
+    shell:
+        """
+        python3 scripts/adjust_regional_meta.py \
+            --region {params.region:q} \
+            --metadata {input.metadata} \
+            --output {output.metadata} 2>&1 | tee {log}
+        """
+
+# # Build a preliminary tree?? Depending on how long it takes
+# rule tree:
+#     message: "Building tree"
 #     input:
-#         metadata = rules.load.output.metadata
+#         alignment = rules.combine_samples.output.alignment
 #     output:
-#         metadata = "results/{build_name}/metadata_adjusted.tsv"
+#         tree = "results/{build_name}/tree_raw.nwk"
 #     params:
-#         region = lambda wildcards: config["builds"][wildcards.build_name]["region"]
+#         args = lambda w: config["tree"].get("tree-builder-args","") if "tree" in config else ""
 #     log:
-#         "logs/adjust_metadata_regions_{build_name}.txt"
+#         "logs/tree_{build_name}.txt"
+#     benchmark:
+#         "benchmarks/tree_{build_name}.txt"
+#     threads: 16
+#     resources:
+#         # Multiple sequence alignments can use up to 40 times their disk size in
+#         # memory, especially for larger alignments.
+#         # Note that Snakemake >5.10.0 supports input.size_mb to avoid converting from bytes to MB.
+#         mem_mb=lambda wildcards, input: 40 * int(input.size / 1024 / 1024)
 #     conda: config["conda_environment"]
 #     shell:
 #         """
-#         python3 scripts/adjust_regional_meta.py \
-#             --region {params.region:q} \
-#             --metadata {input.metadata} \
-#             --output {output.metadata} 2>&1 | tee {log}
+#         augur tree \
+#             --alignment {input.alignment} \
+#             --tree-builder-args {params.args} \
+#             --output {output.tree} \
+#             --nthreads {threads} 2>&1 | tee {log}
 #         """
+
+# rule refine:
+#     message:
+#         """
+#         Refining tree
+#           - estimate timetree
+#           - use {params.coalescent} coalescent timescale
+#           - estimate {params.date_inference} node dates
+#         """
+#     input:
+#         tree = rules.tree.output.tree,
+#         alignment = rules.combine_samples.output.alignment,
+#         metadata = _get_metadata_by_wildcards
+#     output:
+#         tree = "results/{build_name}/tree.nwk",
+#         node_data = "results/{build_name}/branch_lengths.json"
+#     log:
+#         "logs/refine_{build_name}.txt"
+#     benchmark:
+#         "benchmarks/refine_{build_name}.txt"
+#     threads: 1
+#     resources:
+#         # Multiple sequence alignments can use up to 15 times their disk size in
+#         # memory.
+#         # Note that Snakemake >5.10.0 supports input.size_mb to avoid converting from bytes to MB.
+#         mem_mb=lambda wildcards, input: 15 * int(input.size / 1024 / 1024)
+#     params:
+#         root = config["refine"]["root"],
+#         clock_rate = config["refine"]["clock_rate"],
+#         clock_std_dev = config["refine"]["clock_std_dev"],
+#         coalescent = config["refine"]["coalescent"],
+#         date_inference = config["refine"]["date_inference"],
+#         divergence_unit = config["refine"]["divergence_unit"],
+#         clock_filter_iqd = config["refine"]["clock_filter_iqd"],
+#         timetree = "" if config["refine"].get("no_timetree", False) else "--timetree"
+#     conda: config["conda_environment"]
+#     shell:
+#         """
+#         augur refine \
+#             --tree {input.tree} \
+#             --alignment {input.alignment} \
+#             --metadata {input.metadata} \
+#             --output-tree {output.tree} \
+#             --output-node-data {output.node_data} \
+#             --root {params.root} \
+#             {params.timetree} \
+#             --clock-rate {params.clock_rate} \
+#             --clock-std-dev {params.clock_std_dev} \
+#             --coalescent {params.coalescent} \
+#             --date-inference {params.date_inference} \
+#             --divergence-unit {params.divergence_unit} \
+#             --date-confidence \
+#             --no-covariance \
+#             --clock-filter-iqd {params.clock_filter_iqd} 2>&1 | tee {log}
+#         """
+
+
+rule replace_names:
+    message: "Replacing strain with full sample name in masked alignment and updating metadata."
+    input: 
+        alignment = rules.combine_samples.output.alignment,
+        metadata = rules.adjust_metadata_regions.output.metadata
+    output: 
+        alignment = "results/{build_name}/final_alignment.fasta",
+        metadata = "results/{build_name}/final_metadata.fasta"
+    shell:
+        """
+        Rscript scripts/replace_names.R \
+            --alignment {input.alignment} \
+            --metadata {input.metadata} \
+            --output_alignment {output.alignment}
+            --output_metadata {output.metadata}
+        """
+
+# BEAST2 Analysis
+
+rule beast:
+    message: "Running BEAST2 analysis BDMM-Prime"
+    input:
+        xml = config["beast"]["xml"], #!!! Modify file reference to alignment in xml to results/{build_name}/final_alignment.fasta
+        alignment = rules.replace_names.output.alignment
+    output:
+        log = "results/{build_name}/bdmm-prime/{analysis_name}.{seed}.log",
+        trees = "results/{build_name}/bdmm-prime/{analysis_name}.{seed}.trees",
+        typed_trees = "results/{build_name}/bdmm-prime/{analysis_name}.{seed}.typed.trees",
+        typed_node_trees = "results/{build_name}/bdmm-prime/{analysis_name}.{seed}.typed.node.trees",
+        traj = "results/{build_name}/bdmm-prime/{analysis_name}.{seed}.TL.traj"
+    params:
+        jar = config["beast"]["jar"],
+        n_analysis = config["beast"]["n_analysis"]
+    # shell:
+    #     """
+    #     java -jar {params.jar} -seed {params.n_analysis}  -overwrite {input.xml}.xml
+    #     """
+    run:
+        for n in range(1, params.n_analysis+1):
+            shell("java -jar {jar_file} -seed {n_anl} -overwrite {xml_file}".format(jar_file=params.jar, n_anl=n, xml_file=input.xml))
+
+
+def _get_logs():
+    return expand("results/bdmm-prime/{analysis}.{n}.log", analysis=ANALYSIS_NAME, n=range(1, config["beast"]["n_analysis"]+1)),
+
+rule combine_logs:
+    message: "Combining log files"
+    input:
+        logs = _get_logs
+        #log = "results/bdmm-prime/{analysis_name}.{seed}.log"
+    output:
+        comb_log = "results/{build_name}/bdmm-prime/{analysis_name}.combined.log"
+    params:
+        #n_analysis = config["beast"]["n_analysis"],
+        #input_files = expand("results/bdmm-prime/{analysis}.{n}.log", analysis=ANALYSIS_NAME, n=range(config["beast"]["n_analysis"])),
+        burnin = config["beast"]["burnin"]
+    run:
+       shell("logcombiner {files} -o {ouput_file} -b {b}".format(files = '-log'.join(_get_logs), output_file=output.comb_log, b=params.burnin))
+
+
+
+
+# rule combine_trees:
+
+# rule summary_tree:
+
+
