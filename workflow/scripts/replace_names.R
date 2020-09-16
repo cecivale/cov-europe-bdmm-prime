@@ -17,12 +17,13 @@ args <- parser$parse_args()
 
 INPUT <- args$alignment
 METADATA <- args$metadata
-OUTPUT_ALIGNMENT <- args$output
-OUTPUT_METADATA <- args$output
+OUTPUT_ALIGNMENT <- args$output_alignment
+OUTPUT_METADATA <- args$output_metadata
 
 print(paste("metadata:", METADATA))
 print(paste("alignment:", INPUT))
-print(paste("output:", OUTPUT))
+print(paste("output alignment:", OUTPUT_ALIGNMENT))
+print(paste("output metadata:", OUTPUT_METADATA))
 
 metadata <- read.delim(file = METADATA)
 alignment <- ape::read.FASTA(file = INPUT)
@@ -41,7 +42,7 @@ ape::write.FASTA(
   file = OUTPUT_ALIGNMENT)
 
 write.table(
-  x = updated_metadata,
+  x = metadata,
   file = OUTPUT_METADATA,
   sep = "\t",
   quote = F,

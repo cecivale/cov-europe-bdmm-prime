@@ -493,13 +493,13 @@ rule replace_names:
         metadata = rules.adjust_metadata_regions.output.metadata
     output: 
         alignment = "results/{build_name}/final_alignment.fasta",
-        metadata = "results/{build_name}/final_metadata.fasta"
+        metadata = "results/{build_name}/final_metadata.tsv"
     shell:
         """
         Rscript scripts/replace_names.R \
             --alignment {input.alignment} \
             --metadata {input.metadata} \
-            --output_alignment {output.alignment}
+            --output_alignment {output.alignment} \
             --output_metadata {output.metadata}
         """
 
