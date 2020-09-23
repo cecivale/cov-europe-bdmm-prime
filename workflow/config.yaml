@@ -58,36 +58,48 @@ mask:
 # Geography is specified by build attributes (e.g., `region`, `country`, `division`, `location`) that are referenced from subsampling schemes.
 builds:
   # This build focuses on Europe samples
-  europe:
-    subsampling_scheme: region_grouped_by_country
-    region: europe
+  # europe:
+  #   subsampling_scheme: region_grouped_by_country
+  #   region: europe
+  eeurope:
+    subsampling_scheme: earlyeurope
 
 # # Define subsampling scheme
-# subsampling:
-#   region:
-#     group_by: "country year month"
-#     seq_per_group: 10
-#     exclude: "--exclude-where 'region!={region}'"
-
 # Custom subsampling logic for regions like Europe where grouping by country
 # is the smallest resolution required.
 subsampling:
   region_grouped_by_country:
     # Focal samples for region
     region:
-      #group_by: "country year month"
       group_by: "country year month"
-      #seq_per_group: 64
       seq_per_group: 5
       exclude: "--exclude-where 'region!={region}'"
-    # # Contextual samples for region from the rest of the world
-    # global:
-    #   group_by: "country year month"
-    #   seq_per_group: 6
-    #   exclude: "--exclude-where 'region={region}'"
-    #   priorities:
-    #     type: "proximity"
-    #     focus: "region"
+  earlyeurope:
+    # Focal samples
+    hubei:
+      group_by: "year month"
+      seq_per_group: 10
+      query: --query "(division == 'Hubei') & (date<='2020-01-23')"
+    italy:
+      group_by: "year month"
+      seq_per_group: 30
+      query: --query "(country == 'Italy') & (date<='2020-01-08')"
+    germany:
+      group_by: "year month"
+      seq_per_group: 30
+      query: --query "(country == 'Germany') & (date<='2020-01-08')"
+    france:
+      group_by: "year month"
+      seq_per_group: 20
+      query: --query "(country == 'France') & (date<='2020-01-08')"
+    spain:
+      group_by: "year month"
+      seq_per_group: 30
+      query: --query "(country == 'Spain') & (date<='2020-01-08')"
+    othereuropean:
+      group_by: "year month"
+      seq_per_group: 20
+      query: --query "(region == 'Europe') & (country not in ['Italy', 'France', 'Germany', 'Spain']) & (date<='2020-01-08')"
 
 tree:
   tree-builder-args: "'-ninit 10 -n 4'"
@@ -109,8 +121,10 @@ beast:
   xml:  "200914_europe1.xml"
   # BEAST2 jar file path
   jar: "/cluster/home/ceciliav/BDMM-Prime.jar"
-  # Number of parallel analysis to run 
-  n_analysis: 2
+  # List of arallel mcmc chains to run 
+  n_mcmc: [1,2]
+  # Time for mcmc chains in cluster
+  t_mcmc: 120:00
   # Burnin percentage when combining log files
   burnin: 10
 

@@ -10,6 +10,7 @@ validate(config, schema="schemas/config.schema.yaml")
 
 BUILD_NAMES = list(config["builds"].keys())
 ANALYSIS_NAME = config["beast"]["xml"][:-4]
+SEED = 1234
 
 # Define patterns we expect for wildcards.
 wildcard_constraints:
@@ -23,8 +24,10 @@ localrules: load
 rule all:
   input:
     #alignment = expand("results/{build_name}/subsampled_alignment.fasta", build_name=BUILD_NAMES)
-    #tree = expand("results/{build_name}/tree.nwk", build_name=BUILD_NAMES)
-    comb_log = expand("results/{build_name}/bdmm-prime/{analysis}.combined.log", build_name=BUILD_NAMES, analysis=ANALYSIS_NAME)
+    #tree = expand("results/{build_name}/tree.nwk", build_name=BUILD_NAMES),
+    #comb_log = expand("results/{build_name}/bdmm-prime/{analysis}.combined.log", build_name=BUILD_NAMES, analysis=ANALYSIS_NAME)
+    #alignment = expand("results/{build_name}/final_alignment.fasta", build_name=BUILD_NAMES)
+    log = expand("results/{build_name}/bdmm-prime/{analysis_name}.{seed}.log", build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME, seed=config["beast"]["n_mcmc"]),
 
 # rule clean:
 #     message: "Removing directories: {params}"
@@ -305,6 +308,7 @@ rule subsample:
     params:
         group_by = _get_specific_subsampling_setting("group_by"),
         sequences_per_group = _get_specific_subsampling_setting("seq_per_group"),
+        #max_sequences = _get_specific_subsampling_setting("max_sequences", optional=True),
         exclude_argument = _get_specific_subsampling_setting("exclude", optional=True),
         include_argument = _get_specific_subsampling_setting("include", optional=True),
         query_argument = _get_specific_subsampling_setting("query", optional=True),
@@ -315,6 +319,7 @@ rule subsample:
         augur filter \
             --sequences {input.sequences} \
             --metadata {input.metadata} \
+            --max-date 2020-03-08 \
             --include {input.include} \
             {params.exclude_argument} \
             {params.include_argument} \
@@ -322,6 +327,7 @@ rule subsample:
             {params.priority_argument} \
             --group-by {params.group_by} \
             --sequences-per-group {params.sequences_per_group} \
+            --subsample-seed SEED \
             --output {output.sequences} 2>&1 | tee {log}
         """
 
@@ -379,118 +385,118 @@ rule combine_samples:
         """
 
 # # TODO: This will probably not work for build names like "country_usa" where we need to know the country is "USA".
-rule adjust_metadata_regions:
-    message:
-        """
-        Adjusting metadata for build '{wildcards.build_name}'
-        """
+# rule adjust_metadata_regions:
+#     message:
+#         """
+#         Adjusting metadata for build '{wildcards.build_name}'
+#         """
+#     input:
+#         metadata = rules.load.output.metadata
+#     output:
+#         metadata = "results/{build_name}/metadata_adjusted.tsv"
+#     params:
+#         region = lambda wildcards: config["builds"][wildcards.build_name]["region"]
+#     log:
+#         "logs/adjust_metadata_regions_{build_name}.txt"
+#     conda: config["conda_environment"]
+#     shell:
+#         """
+#         python3 scripts/adjust_regional_meta.py \
+#             --region {params.region:q} \
+#             --metadata {input.metadata} \
+#             --output {output.metadata} 2>&1 | tee {log}
+#         """
+
+# # Build a preliminary tree?? Depending on how long it takes
+rule tree:
+    message: "Building tree"
     input:
-        metadata = rules.load.output.metadata
+        alignment = rules.combine_samples.output.alignment
     output:
-        metadata = "results/{build_name}/metadata_adjusted.tsv"
+        tree = "results/{build_name}/tree_raw.nwk"
     params:
-        region = lambda wildcards: config["builds"][wildcards.build_name]["region"]
+        args = lambda w: config["tree"].get("tree-builder-args","") if "tree" in config else ""
     log:
-        "logs/adjust_metadata_regions_{build_name}.txt"
+        "logs/tree_{build_name}.txt"
+    benchmark:
+        "benchmarks/tree_{build_name}.txt"
+    threads: 16
+    resources:
+        # Multiple sequence alignments can use up to 40 times their disk size in
+        # memory, especially for larger alignments.
+        # Note that Snakemake >5.10.0 supports input.size_mb to avoid converting from bytes to MB.
+        mem_mb=lambda wildcards, input: 40 * int(input.size / 1024 / 1024)
     conda: config["conda_environment"]
     shell:
         """
-        python3 scripts/adjust_regional_meta.py \
-            --region {params.region:q} \
-            --metadata {input.metadata} \
-            --output {output.metadata} 2>&1 | tee {log}
+        augur tree \
+            --alignment {input.alignment} \
+            --tree-builder-args {params.args} \
+            --output {output.tree} \
+            --nthreads {threads} 2>&1 | tee {log}
         """
 
-# # Build a preliminary tree?? Depending on how long it takes
-# rule tree:
-#     message: "Building tree"
-#     input:
-#         alignment = rules.combine_samples.output.alignment
-#     output:
-#         tree = "results/{build_name}/tree_raw.nwk"
-#     params:
-#         args = lambda w: config["tree"].get("tree-builder-args","") if "tree" in config else ""
-#     log:
-#         "logs/tree_{build_name}.txt"
-#     benchmark:
-#         "benchmarks/tree_{build_name}.txt"
-#     threads: 16
-#     resources:
-#         # Multiple sequence alignments can use up to 40 times their disk size in
-#         # memory, especially for larger alignments.
-#         # Note that Snakemake >5.10.0 supports input.size_mb to avoid converting from bytes to MB.
-#         mem_mb=lambda wildcards, input: 40 * int(input.size / 1024 / 1024)
-#     conda: config["conda_environment"]
-#     shell:
-#         """
-#         augur tree \
-#             --alignment {input.alignment} \
-#             --tree-builder-args {params.args} \
-#             --output {output.tree} \
-#             --nthreads {threads} 2>&1 | tee {log}
-#         """
-
-# rule refine:
-#     message:
-#         """
-#         Refining tree
-#           - estimate timetree
-#           - use {params.coalescent} coalescent timescale
-#           - estimate {params.date_inference} node dates
-#         """
-#     input:
-#         tree = rules.tree.output.tree,
-#         alignment = rules.combine_samples.output.alignment,
-#         metadata = _get_metadata_by_wildcards
-#     output:
-#         tree = "results/{build_name}/tree.nwk",
-#         node_data = "results/{build_name}/branch_lengths.json"
-#     log:
-#         "logs/refine_{build_name}.txt"
-#     benchmark:
-#         "benchmarks/refine_{build_name}.txt"
-#     threads: 1
-#     resources:
-#         # Multiple sequence alignments can use up to 15 times their disk size in
-#         # memory.
-#         # Note that Snakemake >5.10.0 supports input.size_mb to avoid converting from bytes to MB.
-#         mem_mb=lambda wildcards, input: 15 * int(input.size / 1024 / 1024)
-#     params:
-#         root = config["refine"]["root"],
-#         clock_rate = config["refine"]["clock_rate"],
-#         clock_std_dev = config["refine"]["clock_std_dev"],
-#         coalescent = config["refine"]["coalescent"],
-#         date_inference = config["refine"]["date_inference"],
-#         divergence_unit = config["refine"]["divergence_unit"],
-#         clock_filter_iqd = config["refine"]["clock_filter_iqd"],
-#         timetree = "" if config["refine"].get("no_timetree", False) else "--timetree"
-#     conda: config["conda_environment"]
-#     shell:
-#         """
-#         augur refine \
-#             --tree {input.tree} \
-#             --alignment {input.alignment} \
-#             --metadata {input.metadata} \
-#             --output-tree {output.tree} \
-#             --output-node-data {output.node_data} \
-#             --root {params.root} \
-#             {params.timetree} \
-#             --clock-rate {params.clock_rate} \
-#             --clock-std-dev {params.clock_std_dev} \
-#             --coalescent {params.coalescent} \
-#             --date-inference {params.date_inference} \
-#             --divergence-unit {params.divergence_unit} \
-#             --date-confidence \
-#             --no-covariance \
-#             --clock-filter-iqd {params.clock_filter_iqd} 2>&1 | tee {log}
-#         """
+rule refine:
+    message:
+        """
+        Refining tree
+          - estimate timetree
+          - use {params.coalescent} coalescent timescale
+          - estimate {params.date_inference} node dates
+        """
+    input:
+        tree = rules.tree.output.tree,
+        alignment = rules.combine_samples.output.alignment,
+        metadata = _get_metadata_by_wildcards
+    output:
+        tree = "results/{build_name}/tree.nwk",
+        node_data = "results/{build_name}/branch_lengths.json"
+    log:
+        "logs/refine_{build_name}.txt"
+    benchmark:
+        "benchmarks/refine_{build_name}.txt"
+    threads: 1
+    resources:
+        # Multiple sequence alignments can use up to 15 times their disk size in
+        # memory.
+        # Note that Snakemake >5.10.0 supports input.size_mb to avoid converting from bytes to MB.
+        mem_mb=lambda wildcards, input: 15 * int(input.size / 1024 / 1024)
+    params:
+        root = config["refine"]["root"],
+        clock_rate = config["refine"]["clock_rate"],
+        clock_std_dev = config["refine"]["clock_std_dev"],
+        coalescent = config["refine"]["coalescent"],
+        date_inference = config["refine"]["date_inference"],
+        divergence_unit = config["refine"]["divergence_unit"],
+        clock_filter_iqd = config["refine"]["clock_filter_iqd"],
+        timetree = "" if config["refine"].get("no_timetree", False) else "--timetree"
+    conda: config["conda_environment"]
+    shell:
+        """
+        augur refine \
+            --tree {input.tree} \
+            --alignment {input.alignment} \
+            --metadata {input.metadata} \
+            --output-tree {output.tree} \
+            --output-node-data {output.node_data} \
+            --root {params.root} \
+            {params.timetree} \
+            --clock-rate {params.clock_rate} \
+            --clock-std-dev {params.clock_std_dev} \
+            --coalescent {params.coalescent} \
+            --date-inference {params.date_inference} \
+            --divergence-unit {params.divergence_unit} \
+            --date-confidence \
+            --no-covariance \
+            --clock-filter-iqd {params.clock_filter_iqd} 2>&1 | tee {log}
+        """
 
 
 rule replace_names:
     message: "Replacing strain with full sample name in masked alignment and updating metadata."
     input: 
         alignment = rules.combine_samples.output.alignment,
-        metadata = rules.adjust_metadata_regions.output.metadata
+        metadata = rules.load.output.metadata
     output: 
         alignment = "results/{build_name}/final_alignment.fasta",
         metadata = "results/{build_name}/final_metadata.tsv"
@@ -503,12 +509,13 @@ rule replace_names:
             --output_metadata {output.metadata}
         """
 
-# BEAST2 Analysis
-
 rule beast:
-    message: "Running BEAST2 analysis BDMM-Prime"
+    message: 
+        """
+        Running BEAST2 analysis BDMM-Prime, MCMC chain {wildcards.seed}.
+        """
     input:
-        xml = config["beast"]["xml"], #!!! Modify file reference to alignment in xml to results/{build_name}/final_alignment.fasta
+        xml = config["beast"]["xml"],
         alignment = rules.replace_names.output.alignment
     output:
         log = "results/{build_name}/bdmm-prime/{analysis_name}.{seed}.log",
@@ -518,32 +525,31 @@ rule beast:
         traj = "results/{build_name}/bdmm-prime/{analysis_name}.{seed}.TL.traj"
     params:
         jar = config["beast"]["jar"],
-        n_analysis = config["beast"]["n_analysis"]
-    # shell:
-    #     """
-    #     java -jar {params.jar} -seed {params.n_analysis}  -overwrite {input.xml}.xml
-    #     """
-    run:
-        for n in range(1, params.n_analysis+1):
-            shell("java -jar {jar_file} -seed {n_anl} -overwrite {xml_file}".format(jar_file=params.jar, n_anl=n, xml_file=input.xml))
+        seed = config["beast"]["n_mcmc"],
+        t_mcmc = config["beast"]["t_mcmc"]
+    resources:
+        runtime = 7200
+    shell:
+        """
+        java -jar {params.jar} -seed {wildcards.seed} -overwrite {input.xml}
+        """
 
+# def _get_logs():
+#     return expand("results/bdmm-prime/{analysis}.{n}.log", analysis=ANALYSIS_NAME, n=range(1, config["beast"]["n_analysis"]+1)),
 
-def _get_logs():
-    return expand("results/bdmm-prime/{analysis}.{n}.log", analysis=ANALYSIS_NAME, n=range(1, config["beast"]["n_analysis"]+1)),
-
-rule combine_logs:
-    message: "Combining log files"
-    input:
-        logs = _get_logs
-        #log = "results/bdmm-prime/{analysis_name}.{seed}.log"
-    output:
-        comb_log = "results/{build_name}/bdmm-prime/{analysis_name}.combined.log"
-    params:
-        #n_analysis = config["beast"]["n_analysis"],
-        #input_files = expand("results/bdmm-prime/{analysis}.{n}.log", analysis=ANALYSIS_NAME, n=range(config["beast"]["n_analysis"])),
-        burnin = config["beast"]["burnin"]
-    run:
-       shell("logcombiner {files} -o {ouput_file} -b {b}".format(files = '-log'.join(_get_logs), output_file=output.comb_log, b=params.burnin))
+# rule combine_logs:
+#     message: "Combining log files"
+#     input:
+#         logs = _get_logs
+#         #log = "results/bdmm-prime/{analysis_name}.{seed}.log"
+#     output:
+#         comb_log = "results/{build_name}/bdmm-prime/{analysis_name}.combined.log"
+#     params:
+#         #n_analysis = config["beast"]["n_analysis"],
+#         #input_files = expand("results/bdmm-prime/{analysis}.{n}.log", analysis=ANALYSIS_NAME, n=range(config["beast"]["n_analysis"])),
+#         burnin = config["beast"]["burnin"]
+#     run:
+#        shell("logcombiner {files} -o {ouput_file} -b {b}".format(files = '-log'.join(_get_logs), output_file=output.comb_log, b=params.burnin))
 
 
 
