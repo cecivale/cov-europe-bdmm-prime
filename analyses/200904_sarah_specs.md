@@ -13,7 +13,7 @@ All the files are found in the `2019-nCov Data` gitlab repository. Analysis note
 
 ## Data Alignment
 
-File: `2019-ncov-data/analyses/2020-04-19_europe_bdmm_prime/europe_demes.fasta` 
+File: `2019-ncov-data/analyses/2020-04-19_europe_bdmm_prime/europe_demes.fasta` [open](alignments/sarah_europe_demes.fasta)
 Sarah's alignment based on data available on GISAID as of 2020-04-01. 
 
 
@@ -32,7 +32,7 @@ Assign demes, filter to date of Lombardy lockdown and downsample within demes.
 
 - Created using BEAUti and modify afterwards
 - Template: BEAUti BDMM-prime?
-- File: `europe_demes.xml`, Remake `200904_sarah_europe_demes.xml`, not used.
+- File: `200904_sarah.xml`, Remake `200904_sarah_europe_demes.xml`, not used. [open](analyses/200904_sarah.xml)
 
 #### Tip Dates
 Use tip dates auto-configure.
@@ -210,6 +210,14 @@ the operator `feast.operators.BlockScaleOperator`. Lines 349-368 of xml.
 
 - Analysis run using *BEAST v2.6.3* in local BDMM-Prime IntelliJ project.
 - Time: - seconds
-- Files raw results: `europe_demes.log, europe_demes.trees, europe_demes.europe_demes.typed.trees, europe_demes.europe_demes.typed.node.trees, europe_demes.xml.state`
+- Files raw results: `europe_demes.log, europe_demes.trees, europe_demes.europe_demes.typed.trees, europe_demes.europe_demes.typed.node.trees, europe_demes.xml.state` at mt-analysis/rResults
 
-TODO
+
+## Results processing
+
+- Summary log table [open](results/200904_sarah_logSummary.tsv)
+- Summary tree, maximum clade credibility tree mean height 10% burnin [open](results/200904_sarah_summaryTree.typed.node.tree)
+
+
+In comparison with the results from Sarah's analysis (2019-nCov data repo `analyses/2020-05-18_european_origins/processed_results/combined_chains.log` or `/maceci/code/mt-analysis/pResults/sarah_original_combined.log`), they are (as expected) equivalent. 
+
