@@ -218,6 +218,8 @@ the operator `feast.operators.BlockScaleOperator`. Lines 349-368 of xml.
 - Summary log table [open](results/200904_sarah_logSummary.tsv)
 - Summary tree, maximum clade credibility tree mean height 10% burnin [open](results/200904_sarah_summaryTree.typed.node.tree)
 
+## Notes
 
 In comparison with the results from Sarah's analysis (2019-nCov data repo `analyses/2020-05-18_european_origins/processed_results/combined_chains.log` or `/maceci/code/mt-analysis/pResults/sarah_original_combined.log`), they are (as expected) equivalent. 
 
+All parameters have > 200 ESS values except R0 Italy and migration rate Italy to Other European ~150 but they are converging. Probably we only need to run the analysis for longer as in Sarah's analysis.
