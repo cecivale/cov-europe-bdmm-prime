@@ -4,7 +4,7 @@
     <data
 id="europe_demes"
 spec= "feast.fileio.AlignmentFromFasta"
-fileName = "results/eeurope/final_alignment.fasta"
+fileName = "results/eEurope/final_alignment.fasta"
 name="alignment"/>
 
 <map name="Uniform" >beast.math.distributions.Uniform</map>
@@ -258,7 +258,7 @@ name="alignment"/>
     <operatorschedule id="OperatorSchedule" spec="OperatorSchedule"/>
 
 
-    <logger spec="Logger" logEvery="1000" fileName="$(filebase).$(seed).TL.traj">
+    <logger spec="Logger" logEvery="10000" fileName="$(filebase).$(seed).TL.traj">
       <log id="typedTrajectoryTL" spec="bdmmprime.trajectories.SampledTrajectory"
            nParticles="1000"
            useTauLeaping="true"
@@ -268,7 +268,6 @@ name="alignment"/>
            typeMappedTree="@typeMappedTree.t:europe_demes"
            parameterization="@EpiBDMMPrimeParameterization.t:europe_demes"/>
     </logger>
-
 
 </run>
 

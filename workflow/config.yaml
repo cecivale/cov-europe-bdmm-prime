@@ -13,16 +13,16 @@ conda_environment: "/envs/nextstrain.yaml"
 
 # These are the two main starting files for the run
 # Files are previously downloaded from GISAID database, Downloads > nextmeta and nextfasta to the data folder
-sequences: "data/200911_sequences.fasta"
-metadata: "data/200911_metadata.tsv"
+sequences: "data/200930_sequences.fasta"
+metadata: "data/200930_metadata.tsv"
 
 
 # Define files used for external configuration. Common examples consist of a
 # list of strains to include and exclude from analyses, a reference sequence to
 # align sequences to.
 files:
-  include: "files/include.txt"
-  exclude: "files/exclude.txt"
+  include: "files/200911_include.txt"
+  exclude: "files/200930_exclude.txt"
   reference: "files/reference_seq.gb"
 
 # Filter settings
@@ -31,8 +31,10 @@ filter:
   min_length: 27000
 
   # Omit sequences with incomplete date annotations, and USA seqs without a state.
-  exclude_where: "division='USA' date='2020' date='2020-01-XX' date='2020-02-XX' date='2020-03-XX' date='2020-04-XX' date='2020-05-XX' date='2020-06-XX' date='2020-01' date='2020-02' date='2020-03' date='2020-04' date='2020-05' date='2020-06'"
+  exclude_where: "division='USA' date='2020' date='2020-01-XX' date='2020-02-XX' date='2020-03-XX' date='2020-04-XX' date='2020-05-XX' date='2020-06-XX' date='2020-07-XX' date='2020-08-XX' date='2020-09-XX' date='2020-10-XX' date='2020-11-XX' date='2020-12-XX' date='2020-01' date='2020-02' date='2020-03' date='2020-04' date='2020-05' date='2020-06' date='2020-07' date='2020-08' date='2020-09' date='2020-10' date='2020-11' date='2020-12'"
 
+  # Exclude sequences which are from before late 2019 (likely date mix-ups)
+  min_date: 2019.74
 
 # Alignment settings
 # Alignments are partitioned into smaller groups to speed up the overall alignment process.
@@ -61,7 +63,7 @@ builds:
   # europe:
   #   subsampling_scheme: region_grouped_by_country
   #   region: europe
-  eeurope:
+  eEurope:
     subsampling_scheme: earlyeurope
 
 # # Define subsampling scheme
@@ -77,29 +79,29 @@ subsampling:
   earlyeurope:
     # Focal samples
     hubei:
-      group_by: "year month"
-      seq_per_group: 10
+      group_by: "division"
+      seq_per_group: 30
       query: --query "(division == 'Hubei') & (date<='2020-01-23')"
     italy:
-      group_by: "year month"
-      seq_per_group: 30
-      query: --query "(country == 'Italy') & (date<='2020-01-08')"
+      group_by: "country"
+      seq_per_group: 60
+      query: --query "(country == 'Italy') & (date<='2020-03-08')"
     germany:
-      group_by: "year month"
-      seq_per_group: 30
-      query: --query "(country == 'Germany') & (date<='2020-01-08')"
+      group_by: "country"
+      seq_per_group: 50
+      query: --query "(country == 'Germany') & (date<='2020-03-08')"
     france:
-      group_by: "year month"
-      seq_per_group: 20
-      query: --query "(country == 'France') & (date<='2020-01-08')"
+      group_by: "country"
+      seq_per_group: 50
+      query: --query "(country == 'France') & (date<='2020-03-08')"
     spain:
-      group_by: "year month"
-      seq_per_group: 30
-      query: --query "(country == 'Spain') & (date<='2020-01-08')"
+      group_by: "country"
+      seq_per_group: 40
+      query: --query "(country == 'Spain') & (date<='2020-03-08')"
     othereuropean:
-      group_by: "year month"
+      group_by: "region"
       seq_per_group: 20
-      query: --query "(region == 'Europe') & (country not in ['Italy', 'France', 'Germany', 'Spain']) & (date<='2020-01-08')"
+      query: --query "(region == 'Europe') & (country not in ['Italy', 'France', 'Germany', 'Spain']) & (date<='2020-03-08')"
 
 tree:
   tree-builder-args: "'-ninit 10 -n 4'"
@@ -125,7 +127,15 @@ beast:
   n_mcmc: [1,2]
   # Time for mcmc chains in cluster
   t_mcmc: 120:00
-  # Burnin percentage when combining log files
-  burnin: 10
+  # Log analyser bin
+  log_analyser: loganalyser
+  # Log combiner bin
+  log_combiner: logcombiner
+   # Inlcude all log files even with ESS < 200
+  include_all: 1
+  # Burnin states when combining log files
+  burnin: 1000000
+  # Tree annotator bin
+  tree_annotator: treeannotator
 
 

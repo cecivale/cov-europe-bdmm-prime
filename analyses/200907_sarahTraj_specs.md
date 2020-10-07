@@ -226,3 +226,5 @@ the operator `feast.operators.BlockScaleOperator`. Lines 349-368 of xml.
 Analysis with trajectories done before BDMM-Prime bug in number of events was fixed, 
 before several events recorded but just one executed resultin in an underestimate of population size.
 
+Analysis was too slow because log every 1 in trajectories. TODO: Run trajectories from Sarah's original log file.
+

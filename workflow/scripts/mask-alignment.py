@@ -1,5 +1,6 @@
 # MIT License
 # Copyright (c) 2020 Nextstrain, full text https://github.com/nextstrain/ncov/blob/master/LICENSE
+# from 2020-09-11
 
 """
 Mask initial bases from alignment FASTA

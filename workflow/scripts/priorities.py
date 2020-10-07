@@ -1,5 +1,6 @@
 """
 Mask initial bases from alignment FASTA
+from 2020-09-11
 """
 import argparse
 from random import shuffle

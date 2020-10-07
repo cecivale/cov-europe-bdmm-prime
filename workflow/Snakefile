@@ -23,11 +23,9 @@ localrules: load
 
 rule all:
   input:
-    #alignment = expand("results/{build_name}/subsampled_alignment.fasta", build_name=BUILD_NAMES)
-    #tree = expand("results/{build_name}/tree.nwk", build_name=BUILD_NAMES),
-    #comb_log = expand("results/{build_name}/bdmm-prime/{analysis}.combined.log", build_name=BUILD_NAMES, analysis=ANALYSIS_NAME)
-    #alignment = expand("results/{build_name}/final_alignment.fasta", build_name=BUILD_NAMES)
-    log = expand("results/{build_name}/bdmm-prime/{analysis_name}.{seed}.log", build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME, seed=config["beast"]["n_mcmc"]),
+    prelim_tree = expand("results/{build_name}/tree.nwk", build_name=BUILD_NAMES),
+    summary_tree = expand("results/{build_name}/combined_{analysis_name}.typed.node.tree", build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
+    summary_log =  expand("results/{build_name}/combined_{analysis_name}.logsummary.txt", build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME)
 
 # rule clean:
 #     message: "Removing directories: {params}"
@@ -68,6 +66,7 @@ rule filter:
     params:
         min_length = config["filter"]["min_length"],
         exclude_where = config["filter"]["exclude_where"],
+        min_date = config["filter"]["min_date"],
         date = numeric_date(date.today())
     conda: config["conda_environment"]
     shell:
@@ -77,6 +76,7 @@ rule filter:
             --metadata {input.metadata} \
             --include {input.include} \
             --max-date {params.date} \
+            --min-date {params.min_date} \
             --exclude {input.exclude} \
             --exclude-where {params.exclude_where}\
             --min-length {params.min_length} \
@@ -296,7 +296,7 @@ def _get_specific_subsampling_setting(setting, optional=False):
 rule subsample:
     message:
         """
-        Subsample all sequences into a {wildcards.subsample} set for build '{wildcards.build_name}' with {params.sequences_per_group} per {params.group_by}
+        Subsample all sequences into a {wildcards.subsample} set for build '{wildcards.build_name}' with {params.sequences_per_group} sequences.
         """
     input:
         sequences = rules.mask.output.alignment,
@@ -313,6 +313,8 @@ rule subsample:
         include_argument = _get_specific_subsampling_setting("include", optional=True),
         query_argument = _get_specific_subsampling_setting("query", optional=True),
         priority_argument = get_priority_argument
+    log:
+        "logs/subsample_{build_name}_{subsample}.txt"
     conda: config["conda_environment"]
     shell:
         """
@@ -407,11 +409,34 @@ rule combine_samples:
 #             --output {output.metadata} 2>&1 | tee {log}
 #         """
 
-# # Build a preliminary tree?? Depending on how long it takes
+
+rule replace_names:
+    message: "Replacing strain with full sample name in masked alignment and updating metadata."
+    input: 
+        alignment = rules.combine_samples.output.alignment,
+        metadata = rules.load.output.metadata
+    output: 
+        alignment = "results/{build_name}/final_alignment.fasta",
+        metadata = "results/{build_name}/final_metadata.tsv",
+        figure = "results/{build_name}/hist_sequences.png"
+    log:
+        "logs/{build_name}_replace_names.txt"
+    shell:
+        """
+        Rscript scripts/replace_names.R \
+            --alignment {input.alignment} \
+            --metadata {input.metadata} \
+            --output_alignment {output.alignment} \
+            --output_figure {output.figure} \
+            --output_metadata {output.metadata} 2>&1 | tee {log}
+        """
+
+
+# Build a preliminary tree
 rule tree:
-    message: "Building tree"
+    message: "Building prerliminary tree with augur"
     input:
-        alignment = rules.combine_samples.output.alignment
+        alignment = rules.replace_names.output.alignment
     output:
         tree = "results/{build_name}/tree_raw.nwk"
     params:
@@ -492,23 +517,6 @@ rule refine:
         """
 
 
-rule replace_names:
-    message: "Replacing strain with full sample name in masked alignment and updating metadata."
-    input: 
-        alignment = rules.combine_samples.output.alignment,
-        metadata = rules.load.output.metadata
-    output: 
-        alignment = "results/{build_name}/final_alignment.fasta",
-        metadata = "results/{build_name}/final_metadata.tsv"
-    shell:
-        """
-        Rscript scripts/replace_names.R \
-            --alignment {input.alignment} \
-            --metadata {input.metadata} \
-            --output_alignment {output.alignment} \
-            --output_metadata {output.metadata}
-        """
-
 rule beast:
     message: 
         """
@@ -518,11 +526,13 @@ rule beast:
         xml = config["beast"]["xml"],
         alignment = rules.replace_names.output.alignment
     output:
-        log = "results/{build_name}/bdmm-prime/{analysis_name}.{seed}.log",
-        trees = "results/{build_name}/bdmm-prime/{analysis_name}.{seed}.trees",
-        typed_trees = "results/{build_name}/bdmm-prime/{analysis_name}.{seed}.typed.trees",
-        typed_node_trees = "results/{build_name}/bdmm-prime/{analysis_name}.{seed}.typed.node.trees",
-        traj = "results/{build_name}/bdmm-prime/{analysis_name}.{seed}.TL.traj"
+        beast_log = "results/{build_name}/{analysis_name}.{seed}.log",
+        trees = "results/{build_name}/{analysis_name}.{seed}.trees",
+        typed_trees = "results/{build_name}/{analysis_name}.{seed}.typed.trees",
+        typed_node_trees = "results/{build_name}/{analysis_name}.{seed}.typed.node.trees",
+        traj = "results/{build_name}/{analysis_name}.{seed}.TL.traj"
+    log:
+        "logs/beast_{build_name}_{analysis_name}.{seed}.txt"
     params:
         jar = config["beast"]["jar"],
         seed = config["beast"]["n_mcmc"],
@@ -531,31 +541,160 @@ rule beast:
         runtime = 7200
     shell:
         """
-        java -jar {params.jar} -seed {wildcards.seed} -overwrite {input.xml}
+        java -jar {params.jar} -seed {wildcards.seed} -overwrite {input.xml} 2>&1 | tee {log}
         """
 
-# def _get_logs():
-#     return expand("results/bdmm-prime/{analysis}.{n}.log", analysis=ANALYSIS_NAME, n=range(1, config["beast"]["n_analysis"]+1)),
+rule summarize_log:
+    message: 
+        """
+        Summarizing log file {input.beast_log} with Log Analyzer.
+        """
+    input: 
+        beast_log = rules.beast.output.beast_log
+    output:
+        summary = "results/{build_name}/{analysis_name}.{seed}.logsummary.txt"
+    log:
+        "logs/{build_name}_{analysis_name}.{seed}.summarize_logs.txt"
+    params:
+        log_analyser = config["beast"]["log_analyser"]
+    shell:
+        """
+        {params.log_analyser} {input.beast_log} {output.summary} 2> {log}
+        """
 
-# rule combine_logs:
-#     message: "Combining log files"
-#     input:
-#         logs = _get_logs
-#         #log = "results/bdmm-prime/{analysis_name}.{seed}.log"
-#     output:
-#         comb_log = "results/{build_name}/bdmm-prime/{analysis_name}.combined.log"
-#     params:
-#         #n_analysis = config["beast"]["n_analysis"],
-#         #input_files = expand("results/bdmm-prime/{analysis}.{n}.log", analysis=ANALYSIS_NAME, n=range(config["beast"]["n_analysis"])),
-#         burnin = config["beast"]["burnin"]
-#     run:
-#        shell("logcombiner {files} -o {ouput_file} -b {b}".format(files = '-log'.join(_get_logs), output_file=output.comb_log, b=params.burnin))
+def _get_logsummary(wildcards):
+    files = expand("results/{build_name}/{analysis_name}.{seed}.logsummary.txt", 
+        build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME, seed=config["beast"]["n_mcmc"])
+    return files
+
+# def _get_logfiles(wildcards):
+#     files = expand("results/{build_name}/{analysis_name}.{seed}.log", 
+#         build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME, seed=config["beast"]["n_mcmc"])
+#     return files
+
+# def _get_treefiles(wildcards):
+#     files = expand("results/{build_name}/{analysis_name}.{seed}.typed.node.trees", 
+#         build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME, seed=config["beast"]["n_mcmc"])
+#     return files
 
 
+rule check_logs:
+    message: 
+        """
+        Check that log files have all ESS values >= 200 to include in the combined log file for analysis with LogAnalyser v1.8.2.
+        """
+    input:
+        summary = _get_logsummary
+    output:
+        log_fnames = "results/{build_name}/{analysis_name}_logs_included.txt",
+        tree_fnames = "results/{build_name}/{analysis_name}_trees_included.txt",
+        traj_fnames = "results/{build_name}/{analysis_name}_trajs_included.txt"
+    log:
+        "logs/{build_name}_{analysis_name}_check_logs.txt"
+    params:
+        include_all = config["beast"]["include_all"]
+    shell:
+        """
+        Rscript scripts/check_log.R \
+            --input {input.summary} \
+            --include_all {params.include_all} \
+            --output_log {output.log_fnames} \
+            --output_tree {output.tree_fnames} \
+            --output_traj {output.traj_fnames} 2>&1 | tee -a {log}
+        """
 
+rule combine_logs:
+    message: 
+        """
+        Combine log files with ESS >= 200: {input.log_fnames} with LogCombiner v1.8.2.
+        """
+    input:
+        log_fnames = rules.check_logs.output.log_fnames,
+    output:
+        combined_log = "results/{build_name}/combined_{analysis_name}.log"
+    log:
+        "logs/{build_name}_{analysis_name}_combine_logs"
+    params:
+        log_combiner = config["beast"]["log_combiner"],
+        burnin = config["beast"]["burnin"]
+    shell:
+        """
+        {params.log_combiner} -burnin {params.burnin} $(cat {input.log_fnames}) {output.combined_log}  2>&1 | tee {log}
+        """
 
-# rule combine_trees:
+rule combine_trees:
+    message: 
+        """
+        Combine tree files with log files with ESS >= 200: {input.tree_fnames} with LogCombiner v1.8.2
+        """
+    input:
+        tree_fnames = rules.check_logs.output.tree_fnames,
+    output:
+        combined_trees = "results/{build_name}/combined_{analysis_name}.typednodetrees"
+    log:
+        "logs/{build_name}_{analysis_name}_combine_trees"
+    params:
+        log_combiner = config["beast"]["log_combiner"],
+        burnin = config["beast"]["burnin"]
+    shell:
+        """
+        {params.log_combiner} -trees -burnin {params.burnin} $(cat {input.tree_fnames}) {output.combined_trees} 2>&1 | tee {log}
+        """
 
-# rule summary_tree:
+rule combine_trajs:
+    message: 
+        """
+        Combine traj files with ESS >= 200: {input.log_fnames} with LogCombiner v1.8.2.
+        """
+    input:
+        traj_fnames = rules.check_logs.output.traj_fnames,
+    output:
+        combined_traj = "results/{build_name}/combined_{analysis_name}.TL.traj"
+    log:
+        "logs/{build_name}_{analysis_name}_combine_trajs"
+    params:
+        log_combiner = config["beast"]["log_combiner"],
+        burnin = config["beast"]["burnin"]
+    shell:
+        """
+        {params.log_combiner} -burnin {params.burnin} $(cat {input.traj_fnames}) {output.combined_traj}  2>&1 | tee {log}
+        """
 
+rule summarize_combined_log:
+    message: 
+        """
+        Create summary table for combined log {input.combined_log} with LogAnalyser v1.8.2.
+        """
+    input:
+        combined_log = rules.combine_logs.output.combined_log
+    output:
+        summary_log = "results/{build_name}/combined_{analysis_name}.logsummary.tsv"
+    log:
+        "logs/{build_name}_{analysis_name}.summarize_combined_log.txt"
+    params:
+        log_analyser = config["beast"]["log_analyser"]
+    shell:
+        """
+        {params.log_analyser} {input.combined_log} {output.summary_log} 2> {log}
+        """
+
+rule summarize_trees:
+    message: 
+        """
+        Summarize trees to Maximum clade credibility tree? with mean node heights with TreeAnnotator v1.8.2.
+        """
+    input:
+        combined_trees = rules.combine_trees.output.combined_trees
+    output:
+        summary_tree = "results/{build_name}/combined_{analysis_name}.typed.node.tree"
+    log:
+        "logs/{build_name}_{analysis_name}_summarize_trees"
+    params:
+        tree_annotator = config["beast"]["tree_annotator"]
+    shell:
+        """
+        {params.tree_annotator} -heights mean {input.combined_trees} {output.summary_tree} 2>&1 | tee {log}
+        """
+
+#rule analyze_traj:
 

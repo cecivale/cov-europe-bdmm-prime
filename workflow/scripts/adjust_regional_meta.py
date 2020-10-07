@@ -2,6 +2,7 @@
 Add column to metadata to denote 'focal' samples based on supplied region
 Rewrite location, division and country for non-focal samples to be region
 Rewrite division_exposure and country_exposure for non-focal samples to be region_exposure
+from 2020-09-11
 """
 
 import argparse
