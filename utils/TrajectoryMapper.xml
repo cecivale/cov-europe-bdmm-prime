@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beast namespace="beast.core
+                  :beast.core.parameter
+                  :beast.evolution.alignment
+                  :beast.evolution.tree
+                  :feast.expressions
+                  :feast.function
+                  :feast.fileio
+                  :feast.fileio.logfileiterator
+                  :bdmmprime.parameterization" version="2.0">
+
+  <data
+  id="europe_demes"
+  spec= "AlignmentFromFasta"
+  fileName = "sarah_europe_demes.fasta"
+  name="alignment"/>
+
+  <parameterization id="EpiBDMMPrimeParameterization" spec="EpiParameterization" origin="@origin">
+    <R0 spec="SkylineVectorParameter" typeSet="@typeSet">
+      <skylineValues idref="R0"/>
+    </R0>
+    <R0AmongDemes spec="SkylineMatrixParameter" typeSet="@typeSet">
+      <skylineValues idref="R0AmongDemes"/>
+    </R0AmongDemes>
+    <becomeUninfectiousRate spec="SkylineVectorParameter" typeSet="@typeSet">
+      <skylineValues idref="becomeUninfectiousRate"/>
+    </becomeUninfectiousRate>
+    <samplingProportion spec="SkylineVectorParameter" typeSet="@typeSet">
+      <skylineValues idref="samplingProportion"/>
+      <parameter id="samplingProportionChangeTimes" spec="RealParameter" name="changeTimes">0.12 0.205</parameter>
+    </samplingProportion>
+    <rhoSampling spec="TimedParameter" id="rhoSamplingProb" typeSet="@typeSet"/>
+    <removalProb spec="SkylineVectorParameter" typeSet="@typeSet">
+      <skylineValues idref="removalProb"/>
+    </removalProb>
+    <migrationRate spec="SkylineMatrixParameter" typeSet="@typeSet">
+      <skylineValues idref="migrationRate"/>
+    </migrationRate>
+    <typeSet id="typeSet" spec="bdmmprime.parameterization.TypeSet">
+      <typeTraitSet id="typeTraitSet" spec="TraitSetFromTaxonSet" traitname="type" delimiter="|" takeGroup="1"> 
+        <taxa id="TaxonSet.1" spec="TaxonSet" alignment="@europe_demes"/> 
+      </typeTraitSet>
+    </typeSet>
+  </parameterization>
+  
+   <run spec="LogFileIterator">
+    <logFileState spec="TraceLogFileState" logFileName="europe_demes.log">
+      <logFileEntry spec="LogFileRealParameter" fieldName="originBDMMPrime">
+        <fieldParameter id="origin" spec="RealParameter" value="10.0"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="R0SVEpi">
+        <fieldParameter id="R0" spec="RealParameter" value="0.0 0.0 0.0 0.0 0.0"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="R0AmongDemesSMEpi">
+        <fieldParameter id="R0AmongDemes" spec="RealParameter" value="0.0"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="becomeUninfectiousRateSVEpi">
+        <fieldParameter id="becomeUninfectiousRate" spec="RealParameter" value="36.5"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi">
+        <fieldParameter id="samplingProportion" spec="RealParameter" value="1.0E-5 1.0E-5 0.0 1.0E-5 1.0E-5 1.0E-5 1.0E-5 1.0E-5 1.0E-5 1.0E-5 0.0 0.0 0.0 0.0 0.0"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi">
+        <fieldParameter id="migrationRate" spec="RealParameter" value="0.1 0.0 0.1 0.1 0.1 0.0 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.0 0.1 0.1 0.1 0.0 0.1"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="removalProbSVEpi">
+        <fieldParameter id="removalProb" spec="RealParameter" value="0.0"/>
+      </logFileEntry>
+    </logFileState>
+
+    <logFileState spec="TreeLogFileState" logFileName="europe_demes.typed.node.trees">
+      <tree spec="Tree" id="tree"/>
+    </logFileState>
+
+
+    <logger spec="Logger"
+            logEvery="10000">
+      <log idref="origin"/> 
+      <log idref="R0"/>
+      <log idref="R0AmongDemes"/>
+      <log idref="becomeUninfectiousRate"/>
+      <log idref="migrationRate"/>
+      <log idref="samplingProportion"/>
+      <log idref="removalProb"/>
+    </logger>
+
+
+    <logger spec="Logger" logEvery="10000" fileName="europe_demes.TL.traj">
+      <log id="typedTrajectoryTL" spec="bdmmprime.trajectories.SampledTrajectory"
+           nParticles="10000"
+           useTauLeaping="true"
+           minLeapCount="100"
+           epsilon="0.03"
+           typeLabel="type"
+           typeMappedTree="@tree"
+           parameterization="@EpiBDMMPrimeParameterization"/>
+    </logger>
+  </run>
+</beast>
+
+
+
+
+
+
+<!-- 
+    <logFileState spec="TreeLogFileState" logFileName="europe_demes.europe_demes.typed.node.trees">
+      <parameter id="typeFrequencies.t:europe_demes" spec="parameter.RealParameter" dimension="5" estimate="false" lower="0.0" name="frequencies" upper="1.0">0.0 0.0 1.0 0.0 0.0</parameter>  
+      <tree spec="bdmmprime.mapping.TypeMappedTree" id="typeMappedTree.t:europe_demes" parameterization="@EpiBDMMPrimeParameterization.t:europe_demes" frequencies="@typeFrequencies.t:europe_demes" mapOnInit="false" remapOnLog="true" typeLabel="type" typeTraitSet="@typeTraitSet.t:europe_demes" untypedTree="@tree"/>
+      <parameter id="typeFrequencies.t:europe_demes" spec="parameter.RealParameter" dimension="5" estimate="false" lower="0.0" name="frequencies" upper="1.0">0.0 0.0 1.0 0.0 0.0</parameter> 
+    </logFileState> -->
+
