@@ -47,7 +47,7 @@ For the analysis, we will use the software package BEAST2, a tool for Bayesian e
 
 | Folder          | Description |
 | --------------- | ----------- |
-| */data*         | Sequence data and alignments used in the analysis |
+| */alignments*   | Sequence data and alignments used in the analysis |
 | */analysis*     | XML files from the analysis and Analysis specs .md file with all the information about the analysis steps|
 | */results*      | Processed results from the analysis |
 | */reports*      | PDFs documents and reports |
@@ -58,7 +58,7 @@ For the analysis, we will use the software package BEAST2, a tool for Bayesian e
 | Folder             | Description |
 | ------------------ | ----------- |
 | */Master's Thesis* | Local copy of gitlab repo and wiki, endNote library and other organisational files |
-| */mt-analysis*     | All files from analysis, raw and processed results. One subfolder for each analysis. Important (and light) files are copied to gitlab repository. |
+| */mt-analysis*     | All files from analysis, raw and processed results. One subfolder for each analysis. Important for reproducibility files are copied to gitlab repository. |
 | */mt-beast-dev*    | BEAST2, BDMM-Prime and other packages for IntelliJ project.|
 
 

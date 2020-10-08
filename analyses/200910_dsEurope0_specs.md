@@ -4,13 +4,13 @@
 
 **LOCATION**: `/maceci/code/mt-analysis/200910_ds_europe0`
 
-**STATUS**: In progress
+**STATUS**: Finished
 
 Analysis with same specifications than Sarah BDMM-prime analysis `2020-05-18_european_origins` (the one from the paper *Sarah Nadeau et al. doi:10.1101/2020.06.10.20127738*) but adding trajectory logger BDMM-Prime and downsampling sequence data for a faster analysis.
 
 ## Data Alignment
 
-File: [200910_ds_europe0.fasta](https://cevo-git.ethz.ch/ceciliav/sars-cov-2-eu-phylodynamics/-/blob/master/data/200910_ds_europe0.fasta)
+File: [200910_ds_europe0.fasta](data/200910_ds_europe0.fasta)
 
 Downsampled Sarah's alignment based on data available on GISAID as of 2020-04-01. 
 
@@ -25,14 +25,14 @@ Assign demes, filter to date of Lombardy lockdown and downsample within demes.
  - Downsampled OtherEuropean by taking # seqs = # deaths (or 1 seq where no dealths)
  - Downsample valid sequences so that BDMM runs in reasonable time
 
- Downsample again for a faster test analysis, done in [downsample_seq.R]((https://cevo-git.ethz.ch/ceciliav/sars-cov-2-eu-phylodynamics/-/blob/master/analyses/scripts/downsample_seq.R), 5 sequence per deme, 25 sequences in total.
+ Downsample again for a faster test analysis, done in [downsample_seq.R](utils/downsample_seq.R), 5 sequence per deme, 25 sequences in total.
 
 
 ## XML
 
 - Created using BEAUti and modify afterwards
 - Template: BEAUti BDMM-prime?
-- File: [200910_ds_europe0.xml](https://cevo-git.ethz.ch/ceciliav/sars-cov-2-eu-phylodynamics/-/blob/master/analyses/200910_ds_europe0.xml)
+- File: [200910_ds_europe0.xml](analyses/200910_dsEurope0.xml)
 
 #### Tip Dates
 Use tip dates auto-configure.
@@ -203,6 +203,8 @@ the operator `feast.operators.BlockScaleOperator`. Lines 349-368 of xml.
 
 #### MCMC
 
+Four chains run.
+
 | Parameter              | Value    |
 | ---------------------- | :------: | 
 | Chain Length           | 10000000 |
@@ -231,12 +233,24 @@ SEED=$LSB_JOBINDEX
 FILE="200910_ds_europe0"
 $JAVA -jar $JAR -seed $SEED  -overwrite $FILE.xml
 ```
-- Final chain length: -
-- Time: 72 h (stopped)
-- Files raw results: `200907_sarah_traj.log, 200907_sarah_traj.trees, 200907_sarah_traj.typed.trees, 200907_sarah_traj.typed.node.trees, 200907_sarah_traj.xml.state`
+- Final chain length: 10000000/chain, first chain failed -> 27002000 (10% burnin)
+- Time: -
+- Files raw results in dsEurope0/rResults: `200910_dsEurope0.(1-4).log, 200910_dsEurope0.(1-4).trees, 200910_dsEurope0.(1-4).typed.trees, 200910_dsEurope0.(1-4).typed.node.trees, 200910_dsEurope0.(1-4).TL.traj, 200910_dsEurope0.(1-4).xml.state`
+- Files combined chains in dsEurope0/pResults: `combined_200910_dsEurope0.log, combined_200910_dsEurope0.typed.node.trees`
+
+## Results processing
+
+- Summary log table [open](results/200910_dsEurope0.logsummary.tsv)
+- Summary tree, maximum clade credibility tree mean height 10% burnin [open](results/200910_dsEurope0.typed.node.tree)
+- Trajectory figures
+ ![](results/200910_dsEurope0_trajplots.png) 
+
 
 ## Notes
 
 Analysis with trajectories done before BDMM-Prime bug in number of events was fixed, 
 before several events recorded but just one executed resultin in an underestimate of population size.
+
+In trajectory plots, we can nicely see how the population trajectories follow what is expected: epidemic in wuhan started earlier and italian epidemics have a higher population size. 
+In comparison with ECDC case counts, we do not observe a clear underestimation. We should be careful since in this analysis we used a small dataset (only 5 sequences per deme) and this dataset could not be representative of all the outbreaks dynamics in each deme.
 
