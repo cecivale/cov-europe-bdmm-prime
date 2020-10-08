@@ -611,7 +611,7 @@ rule combine_logs:
     input:
         log_fnames = rules.check_logs.output.log_fnames,
     output:
-        combined_log = "results/{build_name}/combined_{analysis_name}.log"
+        combined_log = "results/{build_name}/{analysis_name}_comb.log"
     log:
         "logs/{build_name}_{analysis_name}_combine_logs"
     params:
@@ -630,7 +630,7 @@ rule combine_trees:
     input:
         tree_fnames = rules.check_logs.output.tree_fnames,
     output:
-        combined_trees = "results/{build_name}/combined_{analysis_name}.typednodetrees"
+        combined_trees = "results/{build_name}/{analysis_name}_comb.typednodetrees"
     log:
         "logs/{build_name}_{analysis_name}_combine_trees"
     params:
@@ -649,7 +649,7 @@ rule combine_trajs:
     input:
         traj_fnames = rules.check_logs.output.traj_fnames,
     output:
-        combined_traj = "results/{build_name}/combined_{analysis_name}.TL.traj"
+        combined_traj = "results/{build_name}/{analysis_name}_comb.TL.traj"
     log:
         "logs/{build_name}_{analysis_name}_combine_trajs"
     params:
@@ -668,7 +668,7 @@ rule summarize_combined_log:
     input:
         combined_log = rules.combine_logs.output.combined_log
     output:
-        summary_log = "results/{build_name}/combined_{analysis_name}.logsummary.tsv"
+        summary_log = "results/{build_name}/{analysis_name}_comb.logsummary.tsv"
     log:
         "logs/{build_name}_{analysis_name}.summarize_combined_log.txt"
     params:
@@ -686,7 +686,7 @@ rule summarize_trees:
     input:
         combined_trees = rules.combine_trees.output.combined_trees
     output:
-        summary_tree = "results/{build_name}/combined_{analysis_name}.typed.node.tree"
+        summary_tree = "results/{build_name}/{analysis_name}.mcc.typed.node.tree"
     log:
         "logs/{build_name}_{analysis_name}_summarize_trees"
     params:
