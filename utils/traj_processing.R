@@ -5,7 +5,8 @@
 library(tidyverse)
 library(scales)
 library(ggpubr)
-#source("/Users/maceci/code/mt-beast-dev/BDMM-Prime/scripts/trajProcessing.R")
+
+source("/Users/maceci/code/mt-beast-dev/BDMM-Prime/scripts/trajProcessing.R")
 
 
 parseTrajectory <- function(trajStr) {
@@ -102,13 +103,13 @@ gridTrajectoriesByAge <- function(trajStates, ages) {
 }
 
 filename <- "200910_dsEurope0/rResults/200910_dsEurope0.3.TL.traj"
-filename <- "~/200914_europe1.1.TL.traj"
+filename <- "200907_sarahTraj/TrajectoryMapper/europe_demes.TL.traj"
 df <- loadTrajectories(filename, burninFrac=0.1, subsample=100)
-df$type <- factor(df$type, levels=c(0,1,2,3,4), labels=c("France", "Germany", "Hubei", "Italy", "Other European"))
-df$date <- as.Date(-df$age*365, origin=as.Date("2020-03-07"))
+df$states$type <- factor(df$states$type, levels=c(0,1,2,3,4), labels=c("France", "Germany", "Hubei", "Italy", "Other European"))
+df$states$date <- as.Date(-df$states$age*365, origin=as.Date("2020-03-08"))
 
 ages <- seq(0,0.4,length.out=51)
-gt <- gridTrajectoriesByAge(df, ages)%>%
+gt <- gridTrajectoriesByAge(df$states, ages)%>%
   tidyr::replace_na(list(N=0))%>%
   group_by(age, type)%>%
   summarize(Imean=median(N), Ilow=quantile(N,0.25), Ihigh=quantile(N,0.75))
@@ -131,7 +132,7 @@ case_data1 <- case_data%>%
   dplyr::slice_tail()
 
 # Plots
-trajs <- ggplot(df, aes(age, N, group=interaction(type, factor(traj)), color=type))+
+trajs <- ggplot(df$states, aes(age, N, group=interaction(type, factor(traj)), color=type))+
   geom_step(alpha=0.3)+
   scale_y_log10()+
   theme_minimal()+
@@ -139,7 +140,7 @@ trajs <- ggplot(df, aes(age, N, group=interaction(type, factor(traj)), color=typ
   scale_color_brewer(palette="Set1")+
   scale_x_continuous(labels = function (x) {as.Date(-x*365, origin=as.Date("2020-03-07"))})
 
-trajs_deme <- ggplot(df, aes(age, N, group=interaction(type, factor(traj)), color=type))+
+trajs_deme <- ggplot(df$states, aes(age, N, group=interaction(type, factor(traj)), color=type))+
   geom_step(alpha=0.3)+
   theme_minimal()+
   theme(legend.position = "none")+
