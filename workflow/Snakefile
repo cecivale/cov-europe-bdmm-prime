@@ -418,7 +418,8 @@ rule replace_names:
     output: 
         alignment = "results/{build_name}/final_alignment.fasta",
         metadata = "results/{build_name}/final_metadata.tsv",
-        figure = "results/{build_name}/hist_sequences.png"
+        figure = "results/{build_name}/hist_sequences.png",
+        mrs = "results/{build_name}/mrs.txt"
     log:
         "logs/{build_name}_replace_names.txt"
     shell:
@@ -428,6 +429,7 @@ rule replace_names:
             --metadata {input.metadata} \
             --output_alignment {output.alignment} \
             --output_figure {output.figure} \
+            --output_mrs {output.mrs} \
             --output_metadata {output.metadata} 2>&1 | tee {log}
         """
 
@@ -536,9 +538,8 @@ rule beast:
     params:
         jar = config["beast"]["jar"],
         seed = config["beast"]["n_mcmc"],
-        t_mcmc = config["beast"]["t_mcmc"]
     resources:
-        runtime = 7200
+        runtime = config["beast"]["t_mcmc"]
     shell:
         """
         java -jar {params.jar} -seed {wildcards.seed} -overwrite {input.xml} 2>&1 | tee {log}
@@ -557,9 +558,10 @@ rule summarize_log:
         "logs/{build_name}_{analysis_name}.{seed}.summarize_logs.txt"
     params:
         log_analyser = config["beast"]["log_analyser"]
+        burnin = config["beast"]["burnin"] * config["beast"]["l_mcmc"]
     shell:
         """
-        {params.log_analyser} {input.beast_log} {output.summary} 2> {log}
+        {params.log_analyser} -burnin {params.burnin} {input.beast_log} {output.summary} 2> {log}
         """
 
 def _get_logsummary(wildcards):
@@ -616,7 +618,7 @@ rule combine_logs:
         "logs/{build_name}_{analysis_name}_combine_logs"
     params:
         log_combiner = config["beast"]["log_combiner"],
-        burnin = config["beast"]["burnin"]
+        burnin = config["beast"]["burnin"] * config["beast"]["l_mcmc"]
     shell:
         """
         {params.log_combiner} -burnin {params.burnin} $(cat {input.log_fnames}) {output.combined_log}  2>&1 | tee {log}
@@ -635,29 +637,33 @@ rule combine_trees:
         "logs/{build_name}_{analysis_name}_combine_trees"
     params:
         log_combiner = config["beast"]["log_combiner"],
-        burnin = config["beast"]["burnin"]
+        burnin = config["beast"]["burnin"] * config["beast"]["l_mcmc"]
     shell:
         """
         {params.log_combiner} -trees -burnin {params.burnin} $(cat {input.tree_fnames}) {output.combined_trees} 2>&1 | tee {log}
         """
 
-rule combine_trajs:
+rule analyze_trajs:
     message: 
         """
-        Combine traj files with ESS >= 200: {input.log_fnames} with LogCombiner v1.8.2.
+        Combine and analyze traj files with ESS >= 200: {input.traj_fnames}.
         """
     input:
         traj_fnames = rules.check_logs.output.traj_fnames,
+        mrs = rules.replace_names.output.mrs
     output:
-        combined_traj = "results/{build_name}/{analysis_name}_comb.TL.traj"
+        fig_traj = "results/{build_name}/{analysis_name}_figtraj.png"
     log:
-        "logs/{build_name}_{analysis_name}_combine_trajs"
+        "logs/{build_name}_{analysis_name}_analyze_trajs"
     params:
-        log_combiner = config["beast"]["log_combiner"],
         burnin = config["beast"]["burnin"]
     shell:
         """
-        {params.log_combiner} -burnin {params.burnin} $(cat {input.traj_fnames}) {output.combined_traj}  2>&1 | tee {log}
+        Rscript scripts/analyze_traj.R \
+            --input {input.traj_fnames} \
+            --burnin {params.burnin} \
+            --mrs $(cat {input.mrs}) \
+            --output_fig {output.fig_traj} 2>&1 | tee -a {log}
         """
 
 rule summarize_combined_log:

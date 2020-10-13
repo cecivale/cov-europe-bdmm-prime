@@ -123,18 +123,20 @@ beast:
   xml:  "200914_europe1.xml"
   # BEAST2 jar file path
   jar: "/cluster/home/ceciliav/BDMM-Prime.jar"
-  # List of arallel mcmc chains to run 
+  # List of parallel mcmc chains seeds to run 
   n_mcmc: [1,2]
-  # Time for mcmc chains in cluster
-  t_mcmc: 120:00
+  # Length of a mcmc chain, it has to be the same length than the one specified in the xml file
+  l_mcmc: 10000000
+  # Time for mcmc chains in cluster in minutes
+  t_mcmc: 7200
+  # Burnin fraction 
+  burnin: 0.1
   # Log analyser bin
   log_analyser: loganalyser
+  # Inlcude all trace, tree and traj files even with ESS < 200 in the analysis
+  include_all: 1
   # Log combiner bin
   log_combiner: logcombiner
-   # Inlcude all log files even with ESS < 200
-  include_all: 1
-  # Burnin states when combining log files
-  burnin: 1000000
   # Tree annotator bin
   tree_annotator: treeannotator
 

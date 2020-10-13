@@ -1,5 +1,12 @@
-# Check ESS Values > 200 for log file
-# Create file with input file names for LogCombiner v1.8.2, 2002-2015, ETH euler version
+##-----------------------------------------------------
+## Check ESS Values > 200 in trace files from BEAST analysis
+## Create file with input file names that pass the check 
+## to combine them with LogCombiner v1.8.2, 2002-2015, 
+## ETH euler version. Script for snakemake workflow.
+## 
+## 2020-10-06 Cecilia Valenzuela
+##------------------------------------------------------
+
 library(argparse)
 library(tidyverse)
 

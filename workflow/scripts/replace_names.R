@@ -1,5 +1,13 @@
-# Replace names of sequences with complete names for analysis (GISAID ref|country|date)
-# based on script by Sarah Nadeau (2019-nCov Data > data > sequences > 2020-04-01)
+##-----------------------------------------------------
+## Replace names of sequences with complete names for 
+## analysis (GISAID ref|country|date) based on script by 
+## Sarah Nadeau (2019-nCov Data > data > sequences > 2020-04-01)
+## Plot and save an histogram of the sequences across analysis 
+## time coloured by deme.
+## Script for snakemake workflow.
+## 
+## 2020-10-05 Cecilia Valenzuela
+##------------------------------------------------------
 
 library(argparse)
 library(ape)
@@ -9,15 +17,18 @@ library(knitr)
 
 parser <- argparse::ArgumentParser()
 parser$add_argument("--metadata", type="character", 
-                    help="")
+                    help="Metadata  file")
 parser$add_argument("--alignment", type="character", 
-                    help="")
+                    help="Alignment file")
 parser$add_argument("--output_alignment", type = "character",
-                    help = "")
+                    help = "Output file for updated alignment")
 parser$add_argument("--output_metadata", type = "character",
-                    help = "")
+                    help = "Output file for updated metadata")
 parser$add_argument("--output_figure", type = "character",
-                    help = "")
+                    help = "Output file for histogram of sequences")
+parser$add_argument("--output_mrs", type = "character",
+                    help = "Output file for most recent sample date")
+
 args <- parser$parse_args()
 
 INPUT <- args$alignment
@@ -25,12 +36,14 @@ METADATA <- args$metadata
 OUTPUT_ALIGNMENT <- args$output_alignment
 OUTPUT_METADATA <- args$output_metadata
 OUTPUT_FIGURE <- args$output_figure
+OUTPUT_MRS <- args$output_mrs
 
 print(paste("metadata:", METADATA))
 print(paste("alignment:", INPUT))
 print(paste("output alignment:", OUTPUT_ALIGNMENT))
 print(paste("output metadata:", OUTPUT_METADATA))
 print(paste("output figure:", OUTPUT_FIGURE))
+print(paste("output most recent sample date:", OUTPUT_MRS))
 
 metadata <- read.delim(file = METADATA)%>%
   dplyr::mutate(country = factor(country))%>%
@@ -90,5 +103,8 @@ ggplot(data = metadata%>%dplyr::filter(new_seq_name%in%names(alignment)),
 dev.off()
 cat("Histogram of sequences by time and deme saved in ", OUTPUT_FIGURE)
   
-  
+
+# Most recent sample date
+mrs <- min(as.Date(metadata%>%dplyr::filter(new_seq_name%in%names(alignment))$date))
+write(mrs, OUTPUT_MRS)
 
