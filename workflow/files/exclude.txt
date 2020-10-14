@@ -836,3 +836,46 @@ Switzerland/BE-UNIBE-226-3606/2020
 Switzerland/BE-UNIBE-227-3922/2020
 Switzerland/BE-UNIBE-228-9106/2020
 Switzerland/BE-UNIBE-229-6507/2020
+
+
+# Below are the transmission clusters SN is most certain about:
+
+# French people who are "related" according to GISAID
+# France/IDF0372/2020 # index case
+France/IDF0373/2020
+France/IDF0372-isl/2020
+France/IDF0386-islP1/2020
+France/IDF0386-islP3/2020
+
+# A couple who travelled together from China to Italy
+# Italy/INMI1-cs/2020 # index case
+Italy/SPL1/2020
+
+# Family cluster in Guangdong
+# Guangdong/20SF012/2020 # index case
+Guangdong/20SF013/2020
+Guangdong/20SF025/2020
+
+# Another family cluster in Guangdong
+# Guangdong/20SF028/2020 # index case
+Guangdong/20SF040/2020
+
+# Someone who traveled from Wuhan and their wife
+# Canada/ON-VIDO-01/2020 # index case
+Canada/ON-PHL2445/2020 
+
+# Strongly suspected duplicate sample: 2 Wuhan samples collected on same day in December, both M32
+# Wuhan/IVDC-HB-05/2019 # index case
+Wuhan/WIV02/2019
+
+# Cases annotated as being from the Grand Princess cruiseship in nextstrain metadata
+# USA/CA-CDPH-UC1/2020 # index case
+USA/CA-CDPH-UC5/2020
+USA/CA-CDPH-UC6/2020
+USA/CA-CDPH-UC7/2020
+USA/CA-CDPH-UC8/2020
+USA/CA-CDPH-UC9/2020
+USA/UC-CDPH-UC11/2020
+USA/MN1-MDH1/2020
+USA/MN3-MDH3/2020
+Canada/BC_64686/2020
