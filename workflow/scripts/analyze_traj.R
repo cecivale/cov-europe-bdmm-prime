@@ -178,7 +178,7 @@ cat("done!")
 cat("\nSaving the figures...")
 gg1 <- annotate_figure(ggarrange(trajs, trajs_deme, gribbon, gribbon_deme, ncol=2, nrow=2, widths=c(1,2), common.legend = TRUE),
                        top = text_grob(paste("Analysis ", str_split(INPUT[1], pattern = "\\.")[[1]][1]), face = "bold", size = 16))
-gg2 <- annotate_figure(ggarrange(hist_events, line_events, ncol=1, nrow=2, common.legend = TRUE), 
+gg2 <- annotate_figure(ggarrange(hist_events, line_events, ncol=2, nrow=1, common.legend = TRUE), 
                        top = text_grob(paste("Analysis ", str_split(INPUT[1], pattern = "\\.")[[1]][1]), face = "bold", size = 16)) 
 multi <- ggarrange(gg1, gg2, nrow = 1, ncol = 1, common.legend = TRUE)
 ggexport(multi, filename = OUTPUT_FIGURE, width=1700, height=1000, res=72*2)
