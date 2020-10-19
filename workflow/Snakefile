@@ -3,6 +3,8 @@
 # Copyright (c) 2020 Nextstrain, full text https://github.com/nextstrain/ncov/blob/master/LICENSE
 
 from snakemake.utils import validate
+from datetime import date
+from treetime.utils import numeric_date
 
 
 configfile: "config.yaml"
@@ -24,17 +26,17 @@ localrules: load
 rule all:
   input:
     prelim_tree = expand("results/{build_name}/tree.nwk", build_name=BUILD_NAMES),
-    summary_tree = expand("results/{build_name}/combined_{analysis_name}.typed.node.tree", build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
-    summary_log =  expand("results/{build_name}/combined_{analysis_name}.logsummary.txt", build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME)
+    summary_tree = expand("results/{build_name}/{analysis_name}.mcc.typed.node.tree", build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
+    summary_log =  expand("results/{build_name}/{analysis_name}_comb.logsummary.tsv", build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME)
 
-# rule clean:
-#     message: "Removing directories: {params}"
-#     params:
-#         "results",
-#         "logs",
-#         "benchmarks"
-#     shell:
-#         "rm -rfv {params}"
+rule clean:
+    message: "Removing directories: {params}"
+    params:
+        "results",
+        "logs",
+        "benchmarks"
+    shell:
+        "rm -rfv {params}"
 
 # Include small, shared functions that help build inputs and parameters.
 include: "common.smk"
@@ -45,8 +47,6 @@ rule load:
         sequences = config["sequences"],
         metadata = config["metadata"]
 
-from datetime import date
-from treetime.utils import numeric_date
 
 rule filter:
     message:
@@ -85,7 +85,7 @@ rule filter:
 
 
 # I removed rule excluded_sequences, rule align_excluded, rule diagnose_excluded from 
-# nextstrain workflow, since the information on log file about excluded sequences 
+# nextstrain workflow, since I think the information on log file about excluded sequences 
 # from rule filter is enough for our analysis.
 
 
@@ -530,9 +530,6 @@ rule beast:
     output:
         beast_log = "results/{build_name}/{analysis_name}.{seed}.log",
         trees = "results/{build_name}/{analysis_name}.{seed}.trees",
-        typed_trees = "results/{build_name}/{analysis_name}.{seed}.typed.trees",
-        typed_node_trees = "results/{build_name}/{analysis_name}.{seed}.typed.node.trees",
-        traj = "results/{build_name}/{analysis_name}.{seed}.TL.traj"
     log:
         "logs/beast_{build_name}_{analysis_name}.{seed}.txt"
     params:
@@ -557,7 +554,7 @@ rule summarize_log:
     log:
         "logs/{build_name}_{analysis_name}.{seed}.summarize_logs.txt"
     params:
-        log_analyser = config["beast"]["log_analyser"]
+        log_analyser = config["beast"]["log_analyser"],
         burnin = config["beast"]["burnin"] * config["beast"]["l_mcmc"]
     shell:
         """
@@ -632,7 +629,7 @@ rule combine_trees:
     input:
         tree_fnames = rules.check_logs.output.tree_fnames,
     output:
-        combined_trees = "results/{build_name}/{analysis_name}_comb.typednodetrees"
+        combined_trees = "results/{build_name}/{analysis_name}_comb.trees"
     log:
         "logs/{build_name}_{analysis_name}_combine_trees"
     params:
@@ -643,27 +640,36 @@ rule combine_trees:
         {params.log_combiner} -trees -burnin {params.burnin} $(cat {input.tree_fnames}) {output.combined_trees} 2>&1 | tee {log}
         """
 
-rule analyze_trajs:
-    message: 
-        """
-        Combine and analyze traj files with ESS >= 200: {input.traj_fnames}.
-        """
-    input:
-        traj_fnames = rules.check_logs.output.traj_fnames,
-        mrs = rules.replace_names.output.mrs
+rule stochastic_mapping:
+    input: 
+        xml = config["beast"]["xml_stochastic_mapping"]
+        combined_log = rules.combine_logs.combined_log
+        combined_trees = rules.combine_trees.combined_trees
     output:
-        fig_traj = "results/{build_name}/{analysis_name}_figtraj.png"
+        typed_trees = "results/{build_name}/{analysis_name}.typed.trees"
+        node_typed_trees = "results/{build_name}/{analysis_name}.typed.node.trees"
     log:
-        "logs/{build_name}_{analysis_name}_analyze_trajs"
+        "logs/{build_name}_{analysis_name}_stochastic_mapping"
     params:
-        burnin = config["beast"]["burnin"]
+        jar = config["beast"]["jar"],
     shell:
         """
-        Rscript scripts/analyze_traj.R \
-            --input {input.traj_fnames} \
-            --burnin {params.burnin} \
-            --mrs $(cat {input.mrs}) \
-            --output_fig {output.fig_traj} 2>&1 | tee -a {log}
+        java -jar {params.jar} -overwrite {input.xml} 2>&1 | tee {log}
+        """
+
+rule trajectory_sampling:
+    input:
+        xml = config["beast"]["xml_trajectory_sampling"]
+        typed_trees = rules.stochastic_mapping.typed_trees
+    output:
+        traj = "results/{build_name}/{analysis_name}.TL.traj"
+    log:
+        "logs/{build_name}_{analysis_name}_trajectory_sampling"
+    params:
+        jar = config["beast"]["jar"],
+    shell:
+        """
+        java -jar {params.jar} -overwrite {input.xml} 2>&1 | tee {log}
         """
 
 rule summarize_combined_log:
@@ -702,5 +708,26 @@ rule summarize_trees:
         {params.tree_annotator} -heights mean {input.combined_trees} {output.summary_tree} 2>&1 | tee {log}
         """
 
-#rule analyze_traj:
+rule analyze_trajectories:
+    message: 
+        """
+        Combine and analyze traj files with ESS >= 200: {input.traj_fnames}.
+        """
+    input:
+        traj_fnames = rules.check_logs.output.traj_fnames,
+        mrs = rules.replace_names.output.mrs
+    output:
+        fig_traj = "results/{build_name}/{analysis_name}.figtraj.png"
+    log:
+        "logs/{build_name}_{analysis_name}_analyze_trajectories"
+    params:
+        burnin = config["beast"]["burnin"]
+    shell:
+        """
+        Rscript scripts/analyze_trajectories.R \
+            --input {input.traj_fnames} \
+            --burnin {params.burnin} \
+            --mrs $(cat {input.mrs}) \
+            --output_fig {output.fig_traj} 2>&1 | tee -a {log}
+        """
 
