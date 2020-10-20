@@ -1,0 +1,7 @@
+demeID,deme,division,country,region,from,to,group
+0,France,NA,France,Europe,2020-01-01,2020-03-08,focal
+1,Germany,NA,Germany,Europe,2020-01-01,2020-03-08,focal
+2,Hubei,Hubei,China,Asia,2019-12-01,2020-01-23,focal
+3,Italy,NA,Italy,Europe,2020-01-01,2020-03-08,focal
+4,OtherEuropean,NA,NA,Europe,2020-01-01,2020-03-08,contextual
+5,Spain,NA,Spain,Europe,2020-01-01,2020-03-08,focal

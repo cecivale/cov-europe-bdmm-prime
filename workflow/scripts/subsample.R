@@ -4,31 +4,39 @@
 ## 2020-10-10 Cecilia Valenzuela
 ##------------------------------------------------------
 
+# Debugging
+metadata.tsv <- "/Users/maceci/code/mt-analysis/201014_europe2/data/201014_metadata.tsv"
+include.txt <- "./files/include.txt"
+demes.csv <- "./files/demes.csv"
+latitudes.tsv <- "/Users/maceci/code/ncov/defaults/lat_longs.tsv"
+latitudes <- read.delim(latitudes.tsv, col.names = c("area", "location", "N", "W"))
+
 library(tidyverse)
 library(argparse)
 library(ape)
-source("utils.R")
+source("./scripts/utils.R") # TODO relative paths
 
-subsample <- function(alignment.fasta, metadata.tsv, include.txt, demes.csv){
+subsample <- function(alignment.fasta, metadata.tsv, include.txt, demes.csv) {
   # Read files
-  alignment <- ape::read.FASTA(file = alignment.fasta)
-  metadata <- read.delim(file = metadata.tsv)%>%
-    dplyr::filter(strain%in%names(alignment))%>% # Keep only metadata about seqs in the alignment
-    dplyr::mutate(date=as.Date(date)) 
+  alignment <- read.FASTA(file = alignment.fasta)
+  metadata <- read.delim(file = metadata.tsv) %>%
+    filter(strain %in% names(alignment)) %>% # Keep only metadata about seqs in the alignment
+    mutate(date = as.Date(date)) 
   include <- readLines(include.txt)
   demes <- read.csv(demes.csv, colClasses = "character")
   
-  # Filter metadata according to demes information and add demes and type information to dataframe
+  # Filter metadata according to demes information and add demes and group information to dataframe
   metadata_list <- mapply(get_GISAIDseqs, list(metadata), 
                           demes$from, demes$to, 
                           demes$division, demes$country, demes$region,
-                          demes$deme, demes$type)
+                          demes$deme, demes$group, list(demes$country))
   metadata_dfs <- lapply(1:dim(metadata_list)[2], function(i) as.data.frame(metadata_list[,i]))
-  metadata1 <- dplyr::bind_rows(metadata_dfs)
+  metadata_demes <- bind_rows(metadata_dfs)
 
   # Load case date from ECDC
-  case_data <- get_casesECDC(demes=demes)
+  case_data <- get_casesECDC(demes = demes) 
     
+  # TODO from here
   # summary1 <- metadata1%>%
   #   dplyr::count(country, sort=TRUE, name = "n_seq")
   
@@ -80,6 +88,9 @@ subsample <- function(alignment.fasta, metadata.tsv, include.txt, demes.csv){
                   n_inc_deaths8Mar = round(totaldeaths_8Mar/sum(totaldeaths_8Mar)*N),
                   n_inc_deaths28Mar = round(totaldeaths_28Mar/sum(totaldeaths_28Mar)*N),
                   n_inc1 = ifelse(country=="Italy", 70, round(totaldeaths_28Mar/sum(totaldeaths_28Mar)*(N-70))))
+  
+  # Create map and histogram?? Animated by day?
+  
   
   # Subsampling scheme, proportional to number of cases for each country and month
   # We compute the probability of a sequence being subsampled as 
@@ -134,7 +145,7 @@ parser$add_argument("--metadata", type="character",
 parser$add_argument("--include", type="character", 
                     help="Included sequences txt file")
 parser$add_argument("--demes", type="character", 
-                    help="Demes information csv dile")
+                    help="Demes information csv file")
 parser$add_argument("--output_sequences", type = "character",
                     help = "Output file for updated alignment")
 parser$add_argument("--output_metadata", type = "character",

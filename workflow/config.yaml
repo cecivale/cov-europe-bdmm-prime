@@ -13,16 +13,16 @@ conda_environment: "/envs/nextstrain.yaml"
 
 # These are the two main starting files for the run
 # Files are previously downloaded from GISAID database, Downloads > nextmeta and nextfasta to the data folder
-sequences: "data/200930_sequences.fasta"
-metadata: "data/200930_metadata.tsv"
+sequences: "data/201014_sequences.fasta"
+metadata: "data/201014_metadata.tsv"
 
 
 # Define files used for external configuration. Common examples consist of a
 # list of strains to include and exclude from analyses, a reference sequence to
 # align sequences to.
 files:
-  include: "files/200911_include.txt"
-  exclude: "files/200930_exclude.txt"
+  include: "files/include.txt"
+  exclude: "files/201014_exclude.txt"
   reference: "files/reference_seq.gb"
 
 # Filter settings
