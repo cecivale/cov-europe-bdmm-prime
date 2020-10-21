@@ -22,8 +22,9 @@ metadata: "data/201014_metadata.tsv"
 # align sequences to.
 files:
   include: "files/include.txt"
-  exclude: "files/201014_exclude.txt"
+  exclude: "files/exclude.txt"
   reference: "files/reference_seq.gb"
+  demes: "files/demes.csv"
 
 # Filter settings
 filter:
@@ -35,6 +36,9 @@ filter:
 
   # Exclude sequences which are from before late 2019 (likely date mix-ups)
   min_date: 2019.74
+
+  # Exclude sequences that are after this date
+  max_date: 2020.183 # 2020-03-08
 
 # Alignment settings
 # Alignments are partitioned into smaller groups to speed up the overall alignment process.
@@ -59,10 +63,7 @@ mask:
 # Each build needs a name, a defined subsampling process, and geographic attributes used for subsampling.
 # Geography is specified by build attributes (e.g., `region`, `country`, `division`, `location`) that are referenced from subsampling schemes.
 builds:
-  # This build focuses on Europe samples
-  # europe:
-  #   subsampling_scheme: region_grouped_by_country
-  #   region: europe
+  # This build focuses on Europe early samples
   eEurope:
     subsampling_scheme: earlyeurope
 
@@ -70,12 +71,6 @@ builds:
 # Custom subsampling logic for regions like Europe where grouping by country
 # is the smallest resolution required.
 subsampling:
-  region_grouped_by_country:
-    # Focal samples for region
-    region:
-      group_by: "country year month"
-      seq_per_group: 5
-      exclude: "--exclude-where 'region!={region}'"
   earlyeurope:
     # Focal samples
     hubei:
@@ -108,7 +103,7 @@ tree:
 
 # TreeTime settings
 refine:
-  root: "Wuhan/Hu-1/2019 Wuhan/WH01/2019" #EPI_ISL_402125  EPI_ISL_406798
+  root: "EPI_ISL_402125/Hubei/2019-12-26 EPI_ISL_406798/Hubei/2019-12-26" 
   clock_rate: 0.0008
   clock_std_dev: 0.0004
   coalescent: "skyline"
@@ -120,7 +115,7 @@ refine:
 # BEAST2 analysis settings
 beast:
   # XML file for analysis
-  xml:  "200914_europe1.xml"
+  xml:  "201014_europe2.xml"
   # BEAST2 jar file path
   jar: "/cluster/home/ceciliav/BDMM-Prime.jar"
   # List of parallel mcmc chains seeds to run 
@@ -139,5 +134,8 @@ beast:
   log_combiner: logcombiner
   # Tree annotator bin
   tree_annotator: treeannotator
+  # Trajectory Mapper xml
+  trajectoryMapper: "201014_europe2.trajectoryMapper.xml"
+
 
 

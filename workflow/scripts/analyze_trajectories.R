@@ -16,22 +16,17 @@ library(ggpubr)
 library(ggsci)
 
 # Source files -----------------------------------------
-source("~/code/mt-beast-dev/BDMM-Prime/scripts/trajProcessing.R")
-source("~/code/mt-analysis/200914_europe1/scripts/utils.R")
+source("./scripts/trajProcessing.R")
+source("./scripts/utils.R")
 
 
 # Parser -----------------------------------------------
 parser <- argparse::ArgumentParser()
-parser$add_argument("--input.txt", nargs="+",
-                    help=".txt with trajectory filenames to be included in the analysis")
-parser$add_argument("--burnin", type = "double",
-                    help = "Burning fraction for trajectory files")
-parser$add_argument("--mrs", type = "character",
-                    help = "Most recent sample date")
-parser$add_argument("--demes.csv", type = "character",
-                    help = "Demes information csv file")
-parser$add_argument("--output_figure", type = "character",
-                    help = "Output path for the figures")
+parser$add_argument("--input.txt", nargs="+", help=".txt with trajectory filenames to be included in the analysis")
+parser$add_argument("--burnin", type = "double", help = "Burning fraction for trajectory files")
+parser$add_argument("--mrs", type = "character", help = "Most recent sample date")
+parser$add_argument("--demes.csv", type = "character", help = "Demes information csv file")
+parser$add_argument("--output_figure", type = "character", help = "Output path for the figures")
 args <- parser$parse_args()
 
 INPUT.TXT <- read_lines(args$input.txt)

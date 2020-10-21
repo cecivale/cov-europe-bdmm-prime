@@ -19,7 +19,8 @@ wildcard_constraints:
     # Allow build names to contain alpha characters, underscores, and hyphens
     # but not special strings used for Nextstrain builds.
     build_name = r'(?:[_a-zA-Z-](?!(tip-frequencies|gisaid|zh)))+',
-    date = r"[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]"
+    date = r"[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]",
+    seed = r"[0-9]*"
 
 localrules: load
 
@@ -67,7 +68,7 @@ rule filter:
         min_length = config["filter"]["min_length"],
         exclude_where = config["filter"]["exclude_where"],
         min_date = config["filter"]["min_date"],
-        date = numeric_date(date.today())
+        date = config["filter"]["max_date"]
     conda: config["conda_environment"]
     shell:
         """
@@ -386,59 +387,64 @@ rule combine_samples:
             --output {output} 2>&1 | tee {log}
         """
 
-# # TODO: This will probably not work for build names like "country_usa" where we need to know the country is "USA".
-# rule adjust_metadata_regions:
-#     message:
-#         """
-#         Adjusting metadata for build '{wildcards.build_name}'
-#         """
-#     input:
-#         metadata = rules.load.output.metadata
-#     output:
-#         metadata = "results/{build_name}/metadata_adjusted.tsv"
-#     params:
-#         region = lambda wildcards: config["builds"][wildcards.build_name]["region"]
-#     log:
-#         "logs/adjust_metadata_regions_{build_name}.txt"
-#     conda: config["conda_environment"]
-#     shell:
-#         """
-#         python3 scripts/adjust_regional_meta.py \
-#             --region {params.region:q} \
-#             --metadata {input.metadata} \
-#             --output {output.metadata} 2>&1 | tee {log}
-#         """
-
-
-rule replace_names:
-    message: "Replacing strain with full sample name in masked alignment and updating metadata."
+rule adjust_names:
+    message: 
+        """
+        Adjust metadata and final alignment sequence names
+        """
     input: 
         alignment = rules.combine_samples.output.alignment,
-        metadata = rules.load.output.metadata
+        metadata = rules.load.output.metadata,
+        demes = config["files"]["demes"]
     output: 
         alignment = "results/{build_name}/final_alignment.fasta",
-        metadata = "results/{build_name}/final_metadata.tsv",
-        figure = "results/{build_name}/hist_sequences.png",
-        mrs = "results/{build_name}/mrs.txt"
+        metadata = "results/{build_name}/final_metadata.tsv"
     log:
-        "logs/{build_name}_replace_names.txt"
+        "logs/{build_name}_adjust_names.txt"
     shell:
         """
-        Rscript scripts/replace_names.R \
+        Rscript scripts/adjust_names.R \
             --alignment {input.alignment} \
             --metadata {input.metadata} \
+            --demes {input.demes} \
             --output_alignment {output.alignment} \
-            --output_figure {output.figure} \
-            --output_mrs {output.mrs} \
             --output_metadata {output.metadata} 2>&1 | tee {log}
+        """
+
+rule analyze_subsample:
+    message: 
+        """
+        Analyze final subsampled alignment.
+        """
+    input: 
+        metadata = rules.load.output.metadata,
+        alignment = rules.mask.output.alignment,
+        metadata_subsample = rules.adjust_names.output.metadata
+    output: 
+        # report =
+        figures = "results/{build_name}.seqhist.png",
+        mrs = "results/{build_name}/mrs.txt"
+    log:
+        "logs/{build_name}_analyze_subsample.txt"
+    shell:
+        """
+        Rscript scripts/analyze_subsample.R \
+            --metadata {input.metadata} \
+            --alignment {input.alignment} \
+            --subsample {input.metadata_subsample}
+            --output_figure {output.figures} \
+            --mrs {output.mrs} 2>&1 | tee {log}
         """
 
 
 # Build a preliminary tree
 rule tree:
-    message: "Building prerliminary tree with augur"
+    message: 
+        """
+        Building preliminary tree with augur
+        """
     input:
-        alignment = rules.replace_names.output.alignment
+        alignment = rules.adjust_names.output.alignment
     output:
         tree = "results/{build_name}/tree_raw.nwk"
     params:
@@ -473,8 +479,9 @@ rule refine:
         """
     input:
         tree = rules.tree.output.tree,
-        alignment = rules.combine_samples.output.alignment,
-        metadata = _get_metadata_by_wildcards
+        alignment = rules.adjust_names.output.alignment,
+        #metadata = _get_metadata_by_wildcards
+        metadata = rules.adjust_names.output.metadata
     output:
         tree = "results/{build_name}/tree.nwk",
         node_data = "results/{build_name}/branch_lengths.json"
@@ -496,6 +503,7 @@ rule refine:
         date_inference = config["refine"]["date_inference"],
         divergence_unit = config["refine"]["divergence_unit"],
         clock_filter_iqd = config["refine"]["clock_filter_iqd"],
+        keep_polytomies = "--keep-polytomies" if config["refine"].get("keep_polytomies", False) else "",
         timetree = "" if config["refine"].get("no_timetree", False) else "--timetree"
     conda: config["conda_environment"]
     shell:
@@ -508,6 +516,7 @@ rule refine:
             --output-node-data {output.node_data} \
             --root {params.root} \
             {params.timetree} \
+            {params.keep_polytomies} \
             --clock-rate {params.clock_rate} \
             --clock-std-dev {params.clock_std_dev} \
             --coalescent {params.coalescent} \
@@ -518,7 +527,6 @@ rule refine:
             --clock-filter-iqd {params.clock_filter_iqd} 2>&1 | tee {log}
         """
 
-
 rule beast:
     message: 
         """
@@ -526,7 +534,7 @@ rule beast:
         """
     input:
         xml = config["beast"]["xml"],
-        alignment = rules.replace_names.output.alignment
+        alignment = rules.adjust_names.output.alignment
     output:
         beast_log = "results/{build_name}/{analysis_name}.{seed}.log",
         trees = "results/{build_name}/{analysis_name}.{seed}.trees",
@@ -539,7 +547,7 @@ rule beast:
         runtime = config["beast"]["t_mcmc"]
     shell:
         """
-        java -jar {params.jar} -seed {wildcards.seed} -overwrite {input.xml} 2>&1 | tee {log}
+        java -jar {params.jar} -seed {wildcards.seed} -overwrite {input.xml} 2>&1 | tee {log} || true
         """
 
 rule summarize_log:
@@ -640,16 +648,17 @@ rule combine_trees:
         {params.log_combiner} -trees -burnin {params.burnin} $(cat {input.tree_fnames}) {output.combined_trees} 2>&1 | tee {log}
         """
 
-rule stochastic_mapping:
+rule trajectory_mapping:
     input: 
-        xml = config["beast"]["xml_stochastic_mapping"]
-        combined_log = rules.combine_logs.combined_log
-        combined_trees = rules.combine_trees.combined_trees
+        xml = config["beast"]["trajectoryMapper"],
+        combined_log = rules.combine_logs.output.combined_log,
+        combined_trees = rules.combine_trees.output.combined_trees
     output:
-        typed_trees = "results/{build_name}/{analysis_name}.typed.trees"
-        node_typed_trees = "results/{build_name}/{analysis_name}.typed.node.trees"
+        typed_trees = "results/{build_name}/{analysis_name}.typed.trees",
+        node_typed_trees = "results/{build_name}/{analysis_name}.typed.node.trees",
+        trajectories = "results/{build_name}/{analysis_name}.TL.traj"
     log:
-        "logs/{build_name}_{analysis_name}_stochastic_mapping"
+        "logs/{build_name}_{analysis_name}_trajectory_mapping"
     params:
         jar = config["beast"]["jar"],
     shell:
@@ -657,22 +666,7 @@ rule stochastic_mapping:
         java -jar {params.jar} -overwrite {input.xml} 2>&1 | tee {log}
         """
 
-rule trajectory_sampling:
-    input:
-        xml = config["beast"]["xml_trajectory_sampling"]
-        typed_trees = rules.stochastic_mapping.typed_trees
-    output:
-        traj = "results/{build_name}/{analysis_name}.TL.traj"
-    log:
-        "logs/{build_name}_{analysis_name}_trajectory_sampling"
-    params:
-        jar = config["beast"]["jar"],
-    shell:
-        """
-        java -jar {params.jar} -overwrite {input.xml} 2>&1 | tee {log}
-        """
-
-rule summarize_combined_log:
+rule summarize_comb_log:
     message: 
         """
         Create summary table for combined log {input.combined_log} with LogAnalyser v1.8.2.
@@ -682,7 +676,7 @@ rule summarize_combined_log:
     output:
         summary_log = "results/{build_name}/{analysis_name}_comb.logsummary.tsv"
     log:
-        "logs/{build_name}_{analysis_name}.summarize_combined_log.txt"
+        "logs/{build_name}_{analysis_name}.summarize_comb_log.txt"
     params:
         log_analyser = config["beast"]["log_analyser"]
     shell:
@@ -690,13 +684,15 @@ rule summarize_combined_log:
         {params.log_analyser} {input.combined_log} {output.summary_log} 2> {log}
         """
 
+#rule analyze_log:
+
 rule summarize_trees:
     message: 
         """
         Summarize trees to Maximum clade credibility tree? with mean node heights with TreeAnnotator v1.8.2.
         """
     input:
-        combined_trees = rules.combine_trees.output.combined_trees
+        combined_trees = rules.trajectory_mapping.output.node_typed_trees
     output:
         summary_tree = "results/{build_name}/{analysis_name}.mcc.typed.node.tree"
     log:
@@ -708,6 +704,8 @@ rule summarize_trees:
         {params.tree_annotator} -heights mean {input.combined_trees} {output.summary_tree} 2>&1 | tee {log}
         """
 
+#rule analyze/plot_tree:
+
 rule analyze_trajectories:
     message: 
         """
@@ -715,7 +713,7 @@ rule analyze_trajectories:
         """
     input:
         traj_fnames = rules.check_logs.output.traj_fnames,
-        mrs = rules.replace_names.output.mrs
+        mrs = rules.analyze_subsample.output.mrs
     output:
         fig_traj = "results/{build_name}/{analysis_name}.figtraj.png"
     log:
