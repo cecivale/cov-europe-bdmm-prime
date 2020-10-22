@@ -53,7 +53,7 @@ metadata <- full_metadata %>%
 
 # Adjust alignment names
 strain_names <- names(alignment)
-full_names <- metadata$name[match(strain_names, metadata$strain)]
+full_names <- metadata$strain[match(strain_names, metadata$strain_old)]
 if (any(is.na(full_names))) {
   stop("Not all strains have full names in metadata.")
 }
