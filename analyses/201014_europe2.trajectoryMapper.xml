@@ -260,6 +260,10 @@
         <log id="typeMappedTree" spec="TypeMappedTree" bdmmDistrib="@BDMMPrime" frequencies="@typeFrequencies" mapOnInit="false" remapOnLog="true" typeLabel="type" typeTraitSet="@typeTraitSet" untypedTree="@tree"/>
     </logger>
 
+    <logger logEvery="10000" fileName="201014_europe2.typed.tree.log">
+      <log id="typedTreeStats" spec="TypedTreeStatsLogger" includeRootEdgeChanges="true" typeLabel="type" typeSet="@typeSet" typedTree="@typeMappedTree"/>
+    </logger>
+
     <!-- Modify typed node tree file name-->
     <logger id="nodeTypedTreeLogger" spec="Logger" fileName="results/eEurope/201014_europe2.typed.node.trees" logEvery="1000" mode="tree">
       <log id="nodeTypedTree" spec="TypedNodeTreeLogger" typedTree="@typeMappedTree"/>

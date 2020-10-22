@@ -1,4 +1,4 @@
-##-----------------------------------------------------
+##------------------------------------------------------------------------------
 ## Adjust metadata and final alignment sequence names.
 ## Replace names of sequences with complete names for 
 ## analysis (GISAID ref|deme|date) based on script by 
@@ -6,12 +6,14 @@
 ## Script for snakemake workflow.
 ## 
 ## 2020-10-05 Cecilia Valenzuela
-##------------------------------------------------------
+##------------------------------------------------------------------------------
 
+# Load libraries ---------------------------------------------------------------
 library(argparse)
 library(ape)
 library(dplyr)
 
+# Parser -----------------------------------------------------------------------
 parser <- argparse::ArgumentParser()
 parser$add_argument("--metadata", type="character", help="Metadata  file")
 parser$add_argument("--alignment", type="character", help="Alignment file")
@@ -21,7 +23,7 @@ parser$add_argument("--output_metadata", type = "character", help = "Output file
 
 args <- parser$parse_args()
 
-# Read files
+# Read files -------------------------------------------------------------------
 ALIGNMENT <- args$alignment
 METADATA <- args$metadata
 DEMES <- args$demes
@@ -34,12 +36,11 @@ print(paste("demes information file: ", DEMES))
 print(paste("output alignment:", OUTPUT_ALIGNMENT))
 print(paste("output metadata:", OUTPUT_METADATA))
 
-# Read files
 alignment <- ape::read.FASTA(file = ALIGNMENT)
 full_metadata <- read.delim(file = METADATA)
 demes <- read.csv(DEMES, as.is = c(2:5))
 
-# Adjust metadata: 
+# Adjust metadata --------------------------------------------------------------
 metadata <- full_metadata %>%
 # 1. Filter metadata for only sequences in the alignment
   filter(strain %in% names(alignment)) %>% 
@@ -51,7 +52,7 @@ metadata <- full_metadata %>%
   mutate(strain_old = strain,
          strain = paste(gisaid_epi_isl, deme, date, sep = "/"))
 
-# Adjust alignment names
+# Adjust alignment names -------------------------------------------------------
 strain_names <- names(alignment)
 full_names <- metadata$strain[match(strain_names, metadata$strain_old)]
 if (any(is.na(full_names))) {
@@ -59,7 +60,7 @@ if (any(is.na(full_names))) {
 }
 names(alignment) <- full_names
 
-# Save output files
+# Save output files ------------------------------------------------------------
 ape::write.FASTA(x = alignment, file = OUTPUT_ALIGNMENT)
 write.table(x = metadata, file = OUTPUT_METADATA, sep = "\t", quote = F, row.names = F, col.names = T)
 

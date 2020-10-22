@@ -226,9 +226,6 @@
             <log idref="gammaShape.s:europe_demes"/>
             <log idref="kappa.s:europe_demes"/>
             <log idref="originBDMMPrime.t:europe_demes"/>
-            <log id="typedTreeStats.t:europe_demes" spec="bdmmprime.mapping.TypedTreeStatsLogger" includeRootEdgeChanges="true" typeLabel="type" typeSet="@typeSetBDMMPrime.t:europe_demes">
-                <typedTree id="typeMappedTree.t:europe_demes" spec="bdmmprime.mapping.TypeMappedTree" bdmmDistrib="@BDMMPrime.t:europe_demes" frequencies="@typeFrequencies.t:europe_demes" mapOnInit="false" remapOnLog="true" typeLabel="type" typeTraitSet="@typeTraitSet.t:europe_demes" untypedTree="@Tree.t:europe_demes"/>
-            </log>
             <log idref="R0SVEpi.t:europe_demes"/>
             <log idref="R0AmongDemesSMEpi.t:europe_demes"/>
             <log idref="becomeUninfectiousRateSVEpi.t:europe_demes"/>
