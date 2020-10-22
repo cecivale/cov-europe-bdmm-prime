@@ -8,7 +8,9 @@
     :beast.evolution.operators
     :beast.evolution.sitemodel
     :beast.evolution.substitutionmodel
-    :beast.evolution.likelihood" required="" version="2.6">
+    :beast.evolution.likelihood
+    :bdmmprime.util.operators
+    :bdmmprime.util.priors" required="" version="2.6">
 
 
     <data
@@ -117,58 +119,58 @@
     			</distribution> -->
 
     			<!-- Prior for sampling proportion for France Epoch 1 (post-Jan 23) -->
-    			<distribution spec="bdmmprime.util.priors.ZeroExcludingPrior">
+    			<distribution spec="SmartZeroExcludingPrior">
     				<x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="0" count="1"/>
     				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.093"/>
     			</distribution>
     			<!-- Prior for sampling proportion for Germany Epoch 1 (post-Jan 23) -->
-    			<distribution spec="bdmmprime.util.priors.ZeroExcludingPrior">
+    			<distribution spec="SmartZeroExcludingPrior">
     				<x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="1" count="1"/>
     				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.048"/>
     			</distribution>
     			<!-- Prior for sampling proportion for Italy Epoch 1 (post-Jan 23) -->
-    			<distribution spec="bdmmprime.util.priors.ZeroExcludingPrior">
+    			<distribution spec="SmartZeroExcludingPrior">
     				<x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="3" count="1"/>
     				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.011"/>
     			</distribution>
                 <!-- Prior for sampling proportion for OtherEuropean Epoch 1 (post-Jan 23) -->
-                <distribution spec="bdmmprime.util.priors.ZeroExcludingPrior">
+                <distribution spec="SmartZeroExcludingPrior">
                     <x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="4" count="1"/>
-                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.011"/>
+                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.012"/>
                 </distribution>
     			<!-- Prior for sampling proportion for Spain Epoch 1 (post-Jan 23) -->
-    			<distribution spec="bdmmprime.util.priors.ZeroExcludingPrior">
+    			<distribution spec="SmartZeroExcludingPrior">
     				<x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="5" count="1"/>
     				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.046"/>
     			</distribution>
 
     			<!-- Prior for sampling proportion for France Epoch 2 (post-first sample date) -->
-    			<distribution spec="bdmmprime.util.priors.ZeroExcludingPrior">
+    			<distribution spec="SmartZeroExcludingPrior">
     				<x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="6" count="1"/>
     				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.093"/>
     			</distribution>
     			<!-- Prior for sampling proportion for Germany Epoch 2 (post-first sample date) -->
-    			<distribution spec="bdmmprime.util.priors.ZeroExcludingPrior">
+    			<distribution spec="SmartZeroExcludingPrior">
     				<x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="7" count="1"/>
     				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.048"/>
     			</distribution>
     			<!-- Prior for sampling proportion for Hubei Epoch 2 (post-first sample date) -->
-    			<distribution spec="bdmmprime.util.priors.ZeroExcludingPrior">
+    			<distribution spec="SmartZeroExcludingPrior">
     				<x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="8" count="1"/>
     				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.06"/>
     			</distribution>
     			<!-- Prior for sampling proportion for Italy Epoch 2 (post-first sample date) -->
-    			<distribution spec="bdmmprime.util.priors.ZeroExcludingPrior">
+    			<distribution spec="SmartZeroExcludingPrior">
     				<x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="9" count="1"/>
     				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.011"/>
     			</distribution>
     			<!-- Prior for sampling proportion for OtherEuropean Epoch 2 (post-first sample date) -->
-    			<distribution spec="bdmmprime.util.priors.ZeroExcludingPrior">
+    			<distribution spec="SmartZeroExcludingPrior">
     				<x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="10" count="1"/>
-    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.011"/>
+    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.012"/>
     			</distribution>
                 <!-- Prior for sampling proportion for Spain Epoch 2 (post-first sample date) -->
-                <distribution spec="bdmmprime.util.priors.ZeroExcludingPrior">
+                <distribution spec="SmartZeroExcludingPrior">
                     <x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="11" count="1"/>
                     <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.046"/>
                 </distribution>
@@ -211,32 +213,7 @@
 
         <operator id="R0EpiScaler.t:europe_demes" spec="ScaleOperator" parameter="@R0Epi.t:europe_demes" scaleFactor="0.75" weight="3.0"/>
 
-        <!-- <operator id="samplingProportionEpiScaler.t:europe_demes" spec="ScaleOperator" parameter="@samplingProportionEpi.t:europe_demes" scaleFactor="0.75" weight="3.0"/> -->
-
-    	<!-- Constrain France sampling prop. to be equal between Epochs 2 and 3 (after first sample date) -->
-    	<operator id="samplingProportionEpiScaler.t.France:europe_demes" spec="feast.operators.BlockScaleOperator" parameter="@samplingProportionEpi.t:europe_demes" scaleFactor="0.75" weight="3.0">
-    	    <indicator spec="beast.core.parameter.BooleanParameter" value="true false false false false false true false false false false false false false false false false false" estimate="false"/>
-    	</operator>
-    	<!-- Constrain Germany sampling prop. to be equal between Epochs 2 and 3 (after first sample date) -->
-    	<operator id="samplingProportionEpiScaler.t.Germany:europe_demes" spec="feast.operators.BlockScaleOperator" parameter="@samplingProportionEpi.t:europe_demes" scaleFactor="0.75" weight="3.0">
-    	    <indicator spec="beast.core.parameter.BooleanParameter" value="false true false false false false false true false false false false false false false false false false" estimate="false"/>
-    	</operator>
-    	<!-- Set operator for Hubei in Epoch 2 -->
-    	<operator id="samplingProportionEpiScaler.t.Hubei:europe_demes" spec="feast.operators.BlockScaleOperator" parameter="@samplingProportionEpi.t:europe_demes" scaleFactor="0.75" weight="3.0">
-    	    <indicator spec="beast.core.parameter.BooleanParameter" value="false felse false false false false false false true false false false false false false false false false" estimate="false"/>
-    	</operator>
-    	<!-- Constrain Italy sampling prop. to be equal between Epochs 2 and 3 (after first sample date) -->
-    	<operator id="samplingProportionEpiScaler.t.Italy:europe_demes" spec="feast.operators.BlockScaleOperator" parameter="@samplingProportionEpi.t:europe_demes" scaleFactor="0.75" weight="3.0">
-    	    <indicator spec="beast.core.parameter.BooleanParameter" value="false false false true false false false false false true false false false false false false false false" estimate="false"/>
-    	</operator>
-        <!-- Constrain OtherEuropean sampling prop. to be equal between Epochs 2 and 3 (after first sample date) -->
-        <operator id="samplingProportionEpiScaler.t.OtherEuropean:europe_demes" spec="feast.operators.BlockScaleOperator" parameter="@samplingProportionEpi.t:europe_demes" scaleFactor="0.75" weight="3.0">
-            <indicator spec="beast.core.parameter.BooleanParameter" value="false false false false true false false false false false true false false false false false false false" estimate="false"/>
-        </operator>
-    	<!-- Constrain Spain sampling prop. to be equal between Epochs 2 and 3 (after first sample date) -->
-    	<operator id="samplingProportionEpiScaler.t.Spain:europe_demes" spec="feast.operators.BlockScaleOperator" parameter="@samplingProportionEpi.t:europe_demes" scaleFactor="0.75" weight="3.0">
-    	    <indicator spec="beast.core.parameter.BooleanParameter" value="false false false false false true false false false false false true false false false false false false" estimate="false"/>
-    	</operator>
+        <operator id="samplingProportionEpiScaler.t:europe_demes" spec="SmartScaleOperator" parameter="@samplingProportionEpi.t:europe_demes" scaleFactor="0.75" weight="3.0"/>
 
         <operator id="migrationRateEpiScaler.t:europe_demes" spec="ScaleOperator" parameter="@migrationRateEpi.t:europe_demes" scaleFactor="0.75" weight="3.0"/>
 
