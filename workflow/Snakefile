@@ -720,12 +720,14 @@ rule analyze_trajectories:
         "logs/{build_name}_{analysis_name}_analyze_trajectories"
     params:
         burnin = config["beast"]["burnin"]
+        demes = config["demes"]
     shell:
         """
         Rscript scripts/analyze_trajectories.R \
             --input {input.traj_fnames} \
             --burnin {params.burnin} \
             --mrs $(cat {input.mrs}) \
+            --demes {params.demes}\
             --output_fig {output.fig_traj} 2>&1 | tee -a {log}
         """
 
