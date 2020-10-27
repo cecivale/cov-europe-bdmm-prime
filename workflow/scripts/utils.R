@@ -68,21 +68,12 @@ get_casesECDC <- function(demes_info = NA, from = NA, to = NA) {
                              demes_info$deme, demes_info$focal, list(demes_info$country))
     case_data_dfs <- lapply(1:dim(case_data_list)[2], function(i) as.data.frame(case_data_list[,i]))
     case_data2 <- bind_rows(case_data_dfs)
-  # } else {
-  #   # Here? or in filter function?
-  #   case_data2 <- case_data1 %>%
-  #     filter(date >= as.Date(from) & date <= as.Date(to)) %>%
-  #     arrange(date) %>%
-  #     group_by(country) %>%
-  #     mutate(sumcases = cumsum(cases),
-  #            sumdeaths = cumsum(deaths))
-  # }
   cat("done!")
   return(case_data2)
 }
 
 
-get_casesWHO <- function(demes_info = NA, from = NA, to = NA) {
+get_casesWHO <- function(demes_info = NA, max_date = NA) {
   #' Get case data information from WHO for specific demes (countries and regions)
   cat("\nLoading case data counts from WHO...")
   case_data <-  read.csv("https://covid19.who.int/WHO-COVID-19-global-data.csv")
@@ -91,28 +82,19 @@ get_casesWHO <- function(demes_info = NA, from = NA, to = NA) {
            region = countrycode::countrycode(sourcevar = case_data$Country_code,
                                              origin = "iso2c",
                                              destination = "continent", warn = FALSE)) %>%
-    select(-Date_reported)
+    select(-Date_reported) %>%
+    rename_all(tolower)
   
-  # Set from and to dates with values from the function call instead of the ones from the demes info
-  if (!is.na(from)) demes_info$from = from
-  if (!is.na(to)) demes_info$to = to
-  
-  # Filter case count data according to deme info
-  case_data_list <- mapply(filter_casesECDC, list(case_data1), 
-                           demes_info$from, demes_info$to, 
-                           demes_info$country, demes_info$region,
-                           demes_info$deme, demes_info$focal, list(demes_info$country))
-  case_data_dfs <- lapply(1:dim(case_data_list)[2], function(i) as.data.frame(case_data_list[,i]))
-  case_data2 <- bind_rows(case_data_dfs)
-  # } else {
-  #   # Here? or in filter function?
-  #   case_data2 <- case_data1 %>%
-  #     filter(date >= as.Date(from) & date <= as.Date(to)) %>%
-  #     arrange(date) %>%
-  #     group_by(country) %>%
-  #     mutate(sumcases = cumsum(cases),
-  #            sumdeaths = cumsum(deaths))
-  # }
+  case_data2 <- case_data1 %>%
+    left_join(demes, by = "region") %>%
+    filter(date <= as.Date(max_date)) %>% # Filter dates
+    filter((country.x == country.y) | # Filter countries
+             (!country.x %in% demes$country & is.na(country.y) & region %in% demes$region)) %>%
+    group_by(deme, date) %>%
+    summarise(cases_deme = sum(cumulative_cases),
+              deaths_deme = sum(cumulative_deaths),
+              .groups = "drop_last")
+
   cat("done!")
   return(case_data2)
 }

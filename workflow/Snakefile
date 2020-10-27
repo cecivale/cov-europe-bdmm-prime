@@ -398,10 +398,11 @@ rule adjust_names:
     input: 
         alignment = rules.combine_samples.output.alignment,
         metadata = rules.load.output.metadata,
-        config = configfile
     output: 
         alignment = "results/{build_name}/final_alignment.fasta",
         metadata = "results/{build_name}/final_metadata.tsv"
+    params:
+        demes = config["demes"]
     log:
         "logs/{build_name}_adjust_names.txt"
     shell:
@@ -409,7 +410,7 @@ rule adjust_names:
         Rscript scripts/adjust_names.R \
             --alignment {input.alignment} \
             --metadata {input.metadata} \
-            --config {input.config} \
+            --demes {params.demes} \
             --output_alignment {output.alignment} \
             --output_metadata {output.metadata} 2>&1 | tee {log}
         """
@@ -720,18 +721,21 @@ rule analyze_trajectories:
         trajectories = rules.trajectory_mapping.output.trajectories,
         metadata = rules.adjust_names.output.metadata
     output:
-        fig_traj = "results/{build_name}/{analysis_name}.figtraj.png"
+        fig_traj = "results/{build_name}/{analysis_name}.figtraj.png" 
     log:
         "logs/{build_name}_{analysis_name}_analyze_trajectories"
     params:
         burnin = config["beast"]["burnin"],
-        #demes = config["demes"]
+        demes = config["demes"]
     shell:
         """
         Rscript scripts/analyze_trajectories.R \
             --input {input.traj_fnames} \
             --burnin {params.burnin} \
+            --demes {params.demes} \
             --metadata {input.metadata} \
             --output_fig {output.fig_traj} 2>&1 | tee -a {log}
         """
+
+
 

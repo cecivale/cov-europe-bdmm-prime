@@ -10,15 +10,15 @@
 
 # Load libraries ---------------------------------------------------------------
 library(argparse)
+library(yaml)
 library(ape)
 library(dplyr)
-library(yaml)
 
 # Parser -----------------------------------------------------------------------
 parser <- argparse::ArgumentParser()
 parser$add_argument("--metadata", type="character", help="Metadata  file")
 parser$add_argument("--alignment", type="character", help="Alignment file")
-parser$add_argument("--config", type = "character", help = "Config yaml file with demes info")
+parser$add_argument("--demes", type = "character", help = "Demes configuration")
 parser$add_argument("--output_alignment", type = "character",
                     help = "Output file for updated alignment")
 parser$add_argument("--output_metadata", type = "character", 
@@ -29,19 +29,19 @@ args <- parser$parse_args()
 # Read files -------------------------------------------------------------------
 ALIGNMENT <- args$alignment
 METADATA <- args$metadata
-CONFIG <- args$config
+DEMES <- args$demes
 OUTPUT_ALIGNMENT <- args$output_alignment
 OUTPUT_METADATA <- args$output_metadata
 
-print(paste("metadata:", METADATA))
-print(paste("alignment:", ALIGNMENT))
-print(paste("config file: ", CONFIG))
-print(paste("output alignment:", OUTPUT_ALIGNMENT))
-print(paste("output metadata:", OUTPUT_METADATA))
+print(paste("metadata: ", METADATA))
+print(paste("alignment: ", ALIGNMENT))
+print(paste("demes: ", "Demes specification in config file"))
+print(paste("output alignment: ", OUTPUT_ALIGNMENT))
+print(paste("output metadata: ", OUTPUT_METADATA))
 
 alignment <- ape::read.FASTA(file = ALIGNMENT)
 full_metadata <- read.delim(file = METADATA)
-demes <- bind_rows(lapply(yaml.load_file(CONFIG)$demes, 
+demes <- bind_rows(lapply(yaml::yaml.load(string = paste(DEMES, collapse = " ")),
                           data.frame, stringsAsFactors = FALSE))
 
 # Adjust metadata --------------------------------------------------------------
