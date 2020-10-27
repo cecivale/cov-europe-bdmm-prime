@@ -137,14 +137,18 @@ gribbon <- ggplot(gt_summary) +
   scale_color_npg()+
   scale_fill_npg()
 
-deme <- "Germany"
+deme <- "France"
+case_data <- read_csv("/Users/maceci/Downloads/WHO-COVID-19-global-data.csv")
 # 1.2 All trajectories single deme in log scale with ECDC case count data 
 trajs <- states %>% 
   # 1. Prepare data
   filter(type == deme) %>%
   bind_rows(case_data %>% 
-              rename(type = deme,
-                     N = sumcases) %>% 
+              rename(#type = deme,
+                     #N = sumcases) %>% 
+                     type = Country,
+                     N = Cumulative_cases,
+                     date = Date_reported) %>% 
               filter(type == deme) %>%
               mutate(traj = "ecdc")) %>%
   # 2. Plot

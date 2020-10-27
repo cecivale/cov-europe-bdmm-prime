@@ -12,33 +12,37 @@
 library(argparse)
 library(ape)
 library(dplyr)
+library(yaml)
 
 # Parser -----------------------------------------------------------------------
 parser <- argparse::ArgumentParser()
 parser$add_argument("--metadata", type="character", help="Metadata  file")
 parser$add_argument("--alignment", type="character", help="Alignment file")
-parser$add_argument("--demes", type = "character", help = "Demes information csv file")
-parser$add_argument("--output_alignment", type = "character",help = "Output file for updated alignment")
-parser$add_argument("--output_metadata", type = "character", help = "Output file for updated metadata")
+parser$add_argument("--config", type = "character", help = "Config yaml file with demes info")
+parser$add_argument("--output_alignment", type = "character",
+                    help = "Output file for updated alignment")
+parser$add_argument("--output_metadata", type = "character", 
+                    help = "Output file for updated metadata")
 
 args <- parser$parse_args()
 
 # Read files -------------------------------------------------------------------
 ALIGNMENT <- args$alignment
 METADATA <- args$metadata
-DEMES <- args$demes
+CONFIG <- args$config
 OUTPUT_ALIGNMENT <- args$output_alignment
 OUTPUT_METADATA <- args$output_metadata
 
 print(paste("metadata:", METADATA))
 print(paste("alignment:", ALIGNMENT))
-print(paste("demes information file: ", DEMES))
+print(paste("config file: ", CONFIG))
 print(paste("output alignment:", OUTPUT_ALIGNMENT))
 print(paste("output metadata:", OUTPUT_METADATA))
 
 alignment <- ape::read.FASTA(file = ALIGNMENT)
 full_metadata <- read.delim(file = METADATA)
-demes <- read.csv(DEMES, as.is = c(2:5))
+demes <- bind_rows(lapply(yaml.load_file(CONFIG)$demes, 
+                          data.frame, stringsAsFactors = FALSE))
 
 # Adjust metadata --------------------------------------------------------------
 metadata <- full_metadata %>%
@@ -62,5 +66,6 @@ names(alignment) <- full_names
 
 # Save output files ------------------------------------------------------------
 ape::write.FASTA(x = alignment, file = OUTPUT_ALIGNMENT)
-write.table(x = metadata, file = OUTPUT_METADATA, sep = "\t", quote = F, row.names = F, col.names = T)
+write.table(x = metadata, file = OUTPUT_METADATA, sep = "\t", quote = F, 
+            row.names = F, col.names = T)
 

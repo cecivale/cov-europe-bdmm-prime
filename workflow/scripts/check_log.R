@@ -11,16 +11,11 @@ library(argparse)
 library(tidyverse)
 
 parser <- argparse::ArgumentParser()
-parser$add_argument("--input", nargs="+",
-                    help="")
-parser$add_argument("--include_all", type="logical",
-                    help="")
-parser$add_argument("--output_log", type="character", 
-                    help="")
-parser$add_argument("--output_tree", type="character", 
-                    help="")
-parser$add_argument("--output_traj", type="character", 
-                    help="")
+parser$add_argument("--input", nargs="+", help="")
+parser$add_argument("--include_all", type="logical", help="")
+parser$add_argument("--output_log", type="character", help="")
+parser$add_argument("--output_tree", type="character", help="")
+parser$add_argument("--output_traj", type="character", help="")
 args <- parser$parse_args()
 
 INPUT <- args$input

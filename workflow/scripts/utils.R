@@ -4,6 +4,8 @@
 ## 2020-10-14 Cecilia Valenzuela
 ##------------------------------------------------------
 
+library(countrycode)
+
 set_plotopts <- function() {
   theme_set(theme_minimal())
   theme_update(strip.background = element_rect(fill = "grey95", color = "grey95", size = 1),
@@ -78,6 +80,43 @@ get_casesECDC <- function(demes_info = NA, from = NA, to = NA) {
   cat("done!")
   return(case_data2)
 }
+
+
+get_casesWHO <- function(demes_info = NA, from = NA, to = NA) {
+  #' Get case data information from WHO for specific demes (countries and regions)
+  cat("\nLoading case data counts from WHO...")
+  case_data <-  read.csv("https://covid19.who.int/WHO-COVID-19-global-data.csv")
+  case_data1 <- case_data %>%
+    mutate(date = as.Date(Date_reported),
+           region = countrycode::countrycode(sourcevar = case_data$Country_code,
+                                             origin = "iso2c",
+                                             destination = "continent", warn = FALSE)) %>%
+    select(-Date_reported)
+  
+  # Set from and to dates with values from the function call instead of the ones from the demes info
+  if (!is.na(from)) demes_info$from = from
+  if (!is.na(to)) demes_info$to = to
+  
+  # Filter case count data according to deme info
+  case_data_list <- mapply(filter_casesECDC, list(case_data1), 
+                           demes_info$from, demes_info$to, 
+                           demes_info$country, demes_info$region,
+                           demes_info$deme, demes_info$focal, list(demes_info$country))
+  case_data_dfs <- lapply(1:dim(case_data_list)[2], function(i) as.data.frame(case_data_list[,i]))
+  case_data2 <- bind_rows(case_data_dfs)
+  # } else {
+  #   # Here? or in filter function?
+  #   case_data2 <- case_data1 %>%
+  #     filter(date >= as.Date(from) & date <= as.Date(to)) %>%
+  #     arrange(date) %>%
+  #     group_by(country) %>%
+  #     mutate(sumcases = cumsum(cases),
+  #            sumdeaths = cumsum(deaths))
+  # }
+  cat("done!")
+  return(case_data2)
+}
+
 
 get_GISAIDseqs <- function(metadata, 
                            from="2019-12-01", to=Sys.Date(), 

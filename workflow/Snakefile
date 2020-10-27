@@ -2,6 +2,7 @@
 # MIT License
 # Copyright (c) 2020 Nextstrain, full text https://github.com/nextstrain/ncov/blob/master/LICENSE
 
+import pandas as pd
 from snakemake.utils import validate
 from datetime import date
 from treetime.utils import numeric_date
@@ -334,6 +335,8 @@ rule subsample:
             --output {output.sequences} 2>&1 | tee {log}
         """
 
+#TODO rule rsubsample
+
 rule proximity_score:
     message:
         """
@@ -395,7 +398,7 @@ rule adjust_names:
     input: 
         alignment = rules.combine_samples.output.alignment,
         metadata = rules.load.output.metadata,
-        demes = config["files"]["demes"]
+        config = configfile
     output: 
         alignment = "results/{build_name}/final_alignment.fasta",
         metadata = "results/{build_name}/final_metadata.tsv"
@@ -406,35 +409,36 @@ rule adjust_names:
         Rscript scripts/adjust_names.R \
             --alignment {input.alignment} \
             --metadata {input.metadata} \
-            --demes {input.demes} \
+            --config {input.config} \
             --output_alignment {output.alignment} \
             --output_metadata {output.metadata} 2>&1 | tee {log}
         """
 
-rule analyze_subsample:
-    message: 
-        """
-        Analyze final subsampled alignment.
-        """
-    input: 
-        metadata = rules.load.output.metadata,
-        alignment = rules.mask.output.alignment,
-        metadata_subsample = rules.adjust_names.output.metadata
-    output: 
-        # report =
-        figures = "results/{build_name}.seqhist.png",
-        mrs = "results/{build_name}/mrs.txt"
-    log:
-        "logs/{build_name}_analyze_subsample.txt"
-    shell:
-        """
-        Rscript scripts/analyze_subsample.R \
-            --metadata {input.metadata} \
-            --alignment {input.alignment} \
-            --subsample {input.metadata_subsample}
-            --output_figure {output.figures} \
-            --mrs {output.mrs} 2>&1 | tee {log}
-        """
+#TODO
+# rule analyze_subsample:
+#     message: 
+#         """
+#         Analyze final subsampled alignment.
+#         """
+#     input: 
+#         metadata = rules.load.output.metadata,
+#         alignment = rules.mask.output.alignment,
+#         metadata_subsample = rules.adjust_names.output.metadata
+#     output: 
+#         # report =
+#         figures = "results/{build_name}.seqhist.png",
+#         mrs = "results/{build_name}/mrs.txt"
+#     log:
+#         "logs/{build_name}_analyze_subsample.txt"
+#     shell:
+#         """
+#         Rscript scripts/analyze_subsample.R \
+#             --metadata {input.metadata} \
+#             --alignment {input.alignment} \
+#             --subsample {input.metadata_subsample}
+#             --output_figure {output.figures} \
+#             --mrs {output.mrs} 2>&1 | tee {log}
+#         """
 
 
 # Build a preliminary tree
@@ -547,18 +551,18 @@ rule beast:
         runtime = config["beast"]["t_mcmc"]
     shell:
         """
-        java -jar {params.jar} -seed {wildcards.seed} -overwrite {input.xml} 2>&1 | tee {log} || true
+        java -jar {params.jar} -seed {wildcards.seed} -overwrite {input.xml} 2>&1 | tee {log} 
         """
 
 rule summarize_log:
     message: 
         """
-        Summarizing log file {input.beast_log} with Log Analyzer.
+        Summarizing log file {input.beast_log} with Log Analyser v1.8.2.
         """
     input: 
         beast_log = rules.beast.output.beast_log
     output:
-        summary = "results/{build_name}/{analysis_name}.{seed}.logsummary.txt"
+        log_summary = "results/{build_name}/{analysis_name}.{seed}.logsummary.txt"
     log:
         "logs/{build_name}_{analysis_name}.{seed}.summarize_logs.txt"
     params:
@@ -566,7 +570,7 @@ rule summarize_log:
         burnin = config["beast"]["burnin"] * config["beast"]["l_mcmc"]
     shell:
         """
-        {params.log_analyser} -burnin {params.burnin} {input.beast_log} {output.summary} 2> {log}
+        {params.log_analyser} -burnin {params.burnin} {input.beast_log} {output.log_summary} 2> {log}
         """
 
 def _get_logsummary(wildcards):
@@ -574,41 +578,41 @@ def _get_logsummary(wildcards):
         build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME, seed=config["beast"]["n_mcmc"])
     return files
 
-# def _get_logfiles(wildcards):
-#     files = expand("results/{build_name}/{analysis_name}.{seed}.log", 
-#         build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME, seed=config["beast"]["n_mcmc"])
-#     return files
-
-# def _get_treefiles(wildcards):
-#     files = expand("results/{build_name}/{analysis_name}.{seed}.typed.node.trees", 
-#         build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME, seed=config["beast"]["n_mcmc"])
-#     return files
-
-
-rule check_logs:
+checkpoint chains_diagnostic:
     message: 
         """
-        Check that log files have all ESS values >= 200 to include in the combined log file for analysis with LogAnalyser v1.8.2.
+        Check that log file have all ESS values >= 200 to include it in the combined chain.
         """
     input:
-        summary = _get_logsummary
+        log_summary = _get_logsummary
     output:
-        log_fnames = "results/{build_name}/{analysis_name}_logs_included.txt",
-        tree_fnames = "results/{build_name}/{analysis_name}_trees_included.txt",
-        traj_fnames = "results/{build_name}/{analysis_name}_trajs_included.txt"
-    log:
-        "logs/{build_name}_{analysis_name}_check_logs.txt"
+        diagnostic = "results/{build_name}/{analysis_name}_chains_diagnostic.txt",
     params:
-        include_all = config["beast"]["include_all"]
+        min_ess = config["beast"]["min_ess"]
+    log:
+        "logs/{build_name}_{analysis_name}_chains_diagnostic.txt"
     shell:
         """
-        Rscript scripts/check_log.R \
-            --input {input.summary} \
-            --include_all {params.include_all} \
-            --output_log {output.log_fnames} \
-            --output_tree {output.tree_fnames} \
-            --output_traj {output.traj_fnames} 2>&1 | tee -a {log}
+        Rscript scripts/chains_diagnostic.R \
+        --input {input.log_summary} \
+        --ess {params.min_ess} \
+        --output {output.diagnostic} 2>&1 | tee -a {log}
         """
+
+#TODO Wildcard analysiss and seed
+def _get_logs_tocombine(wildcards):
+    diagnostic = pd.read_csv(checkpoints.chains_diagnostic.get().output[0].open(), sep="\t")
+    return expand(
+        "results/{build_name}/{chain}.log",
+        build_name=BUILD_NAMES, chain=diagnostic[diagnostic["included"] == 1]["chain"]
+    )
+
+def _get_trees_tocombine(wildcards):
+    diagnostic = pd.read_csv(checkpoints.chains_diagnostic.get().output[0].open(), sep="\t")
+    return expand(
+        "results/{build_name}/{chain}.trees",
+        build_name=BUILD_NAMES, chain=diagnostic[diagnostic["included"] == 1]["chain"]
+    )
 
 rule combine_logs:
     message: 
@@ -616,7 +620,7 @@ rule combine_logs:
         Combine log files with ESS >= 200: {input.log_fnames} with LogCombiner v1.8.2.
         """
     input:
-        log_fnames = rules.check_logs.output.log_fnames,
+        log_files= _get_logs_tocombine
     output:
         combined_log = "results/{build_name}/{analysis_name}_comb.log"
     log:
@@ -626,7 +630,7 @@ rule combine_logs:
         burnin = config["beast"]["burnin"] * config["beast"]["l_mcmc"]
     shell:
         """
-        {params.log_combiner} -burnin {params.burnin} $(cat {input.log_fnames}) {output.combined_log}  2>&1 | tee {log}
+        {params.log_combiner} -burnin {params.burnin} {input.log_files} {output.combined_log}  2>&1 | tee {log}
         """
 
 rule combine_trees:
@@ -635,7 +639,7 @@ rule combine_trees:
         Combine tree files with log files with ESS >= 200: {input.tree_fnames} with LogCombiner v1.8.2
         """
     input:
-        tree_fnames = rules.check_logs.output.tree_fnames,
+        tree_files = _get_trees_tocombine
     output:
         combined_trees = "results/{build_name}/{analysis_name}_comb.trees"
     log:
@@ -645,7 +649,7 @@ rule combine_trees:
         burnin = config["beast"]["burnin"] * config["beast"]["l_mcmc"]
     shell:
         """
-        {params.log_combiner} -trees -burnin {params.burnin} $(cat {input.tree_fnames}) {output.combined_trees} 2>&1 | tee {log}
+        {params.log_combiner} -trees -burnin {params.burnin} {input.tree_files} {output.combined_trees} 2>&1 | tee {log}
         """
 
 rule trajectory_mapping:
@@ -689,7 +693,7 @@ rule summarize_comb_log:
 rule summarize_trees:
     message: 
         """
-        Summarize trees to Maximum clade credibility tree? with mean node heights with TreeAnnotator v1.8.2.
+        Summarize trees to Maximum clade credibility tree with mean node heights with TreeAnnotator v1.8.2.
         """
     input:
         combined_trees = rules.trajectory_mapping.output.node_typed_trees
@@ -698,10 +702,11 @@ rule summarize_trees:
     log:
         "logs/{build_name}_{analysis_name}_summarize_trees"
     params:
-        tree_annotator = config["beast"]["tree_annotator"]
+        tree_annotator = config["beast"]["tree_annotator"],
+        heights = config["beast"]["mcc_heights"]
     shell:
         """
-        {params.tree_annotator} -heights mean {input.combined_trees} {output.summary_tree} 2>&1 | tee {log}
+        {params.tree_annotator} -heights {params.heights} {input.combined_trees} {output.summary_tree} 2>&1 | tee {log}
         """
 
 #rule analyze/plot_tree:
@@ -712,22 +717,21 @@ rule analyze_trajectories:
         Combine and analyze traj files with ESS >= 200: {input.traj_fnames}.
         """
     input:
-        traj_fnames = rules.check_logs.output.traj_fnames,
-        mrs = rules.analyze_subsample.output.mrs
+        trajectories = rules.trajectory_mapping.output.trajectories,
+        metadata = rules.adjust_names.output.metadata
     output:
         fig_traj = "results/{build_name}/{analysis_name}.figtraj.png"
     log:
         "logs/{build_name}_{analysis_name}_analyze_trajectories"
     params:
-        burnin = config["beast"]["burnin"]
-        demes = config["demes"]
+        burnin = config["beast"]["burnin"],
+        #demes = config["demes"]
     shell:
         """
         Rscript scripts/analyze_trajectories.R \
             --input {input.traj_fnames} \
             --burnin {params.burnin} \
-            --mrs $(cat {input.mrs}) \
-            --demes {params.demes}\
+            --metadata {input.metadata} \
             --output_fig {output.fig_traj} 2>&1 | tee -a {log}
         """
 
