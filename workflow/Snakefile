@@ -295,88 +295,84 @@ def _get_specific_subsampling_setting(setting, optional=False):
 
     return _get_setting
 
-rule subsample:
-    message:
-        """
-        Subsample all sequences into a {wildcards.subsample} set for build '{wildcards.build_name}' with {params.sequences_per_group} sequences.
-        """
-    input:
-        sequences = rules.mask.output.alignment,
-        metadata = rules.load.output.metadata,
-        include = config["files"]["include"],
-        priorities = get_priorities
-    output:
-        sequences = "results/{build_name}/sample-{subsample}.fasta"
-    params:
-        group_by = _get_specific_subsampling_setting("group_by"),
-        sequences_per_group = _get_specific_subsampling_setting("seq_per_group"),
-        #max_sequences = _get_specific_subsampling_setting("max_sequences", optional=True),
-        exclude_argument = _get_specific_subsampling_setting("exclude", optional=True),
-        include_argument = _get_specific_subsampling_setting("include", optional=True),
-        query_argument = _get_specific_subsampling_setting("query", optional=True),
-        priority_argument = get_priority_argument
-    log:
-        "logs/subsample_{build_name}_{subsample}.txt"
-    conda: config["conda_environment"]
-    shell:
-        """
-        augur filter \
-            --sequences {input.sequences} \
-            --metadata {input.metadata} \
-            --max-date 2020-03-08 \
-            --include {input.include} \
-            {params.exclude_argument} \
-            {params.include_argument} \
-            {params.query_argument} \
-            {params.priority_argument} \
-            --group-by {params.group_by} \
-            --sequences-per-group {params.sequences_per_group} \
-            --subsample-seed SEED \
-            --output {output.sequences} 2>&1 | tee {log}
-        """
+# rule subsample:
+#     message:
+#         """
+#         Subsample all sequences into a {wildcards.subsample} set for build '{wildcards.build_name}' with {params.sequences_per_group} sequences.
+#         """
+#     input:
+#         sequences = rules.mask.output.alignment,
+#         metadata = rules.load.output.metadata,
+#         include = config["files"]["include"],
+#         priorities = get_priorities
+#     output:
+#         sequences = "results/{build_name}/sample-{subsample}.fasta"
+#     params:
+#         group_by = _get_specific_subsampling_setting("group_by"),
+#         sequences_per_group = _get_specific_subsampling_setting("seq_per_group"),
+#         #max_sequences = _get_specific_subsampling_setting("max_sequences", optional=True),
+#         exclude_argument = _get_specific_subsampling_setting("exclude", optional=True),
+#         include_argument = _get_specific_subsampling_setting("include", optional=True),
+#         query_argument = _get_specific_subsampling_setting("query", optional=True),
+#         priority_argument = get_priority_argument
+#     log:
+#         "logs/subsample_{build_name}_{subsample}.txt"
+#     conda: config["conda_environment"]
+#     shell:
+#         """
+#         augur filter \
+#             --sequences {input.sequences} \
+#             --metadata {input.metadata} \
+#             --max-date 2020-03-08 \
+#             --include {input.include} \
+#             {params.exclude_argument} \
+#             {params.include_argument} \
+#             {params.query_argument} \
+#             {params.priority_argument} \
+#             --group-by {params.group_by} \
+#             --sequences-per-group {params.sequences_per_group} \
+#             --subsample-seed SEED \
+#             --output {output.sequences} 2>&1 | tee {log}
+#         """
 
-#TODO 
 rule rsubsample:
     message:
         """
-        R Subsample all sequences into a {wildcards.subsample} set for build '{wildcards.build_name}' with {params.sequences_per_group} sequences.
+        R weighted subsampling all sequences into a {wildcards.subsample} set for build '{wildcards.build_name}' with {params.seq_per_deme} sequences.
         """
     input:
         sequences = rules.mask.output.alignment,
         metadata = rules.load.output.metadata,
-        include = config["files"]["include"],
-        #priorities = get_priorities
+        include = config["files"]["include"]
     output:
         sequences = "results/{build_name}/sample-{subsample}.fasta"
     params:
-        deme =
-        n_seq = 
-        from = "2020-01-23"
-        to = "2020-03-08"
-        group_by = _get_specific_subsampling_setting("group_by"),
-        sequences_per_group = _get_specific_subsampling_setting("seq_per_group"),
-        #max_sequences = _get_specific_subsampling_setting("max_sequences", optional=True),
-        exclude_argument = _get_specific_subsampling_setting("exclude", optional=True),
-        include_argument = _get_specific_subsampling_setting("include", optional=True),
-        query_argument = _get_specific_subsampling_setting("query", optional=True),
-        priority_argument = get_priority_argument
+        region = _get_specific_subsampling_setting("region", optional=True),
+        country = _get_specific_subsampling_setting("country", optional=True),
+        division = _get_specific_subsampling_setting("division", optional=True),
+        exclude_country = _get_specific_subsampling_setting("exclude_country", optional=True),
+        exclude_division = _get_specific_subsampling_setting("exclude_division", optional=True),
+        min_date = _get_specific_subsampling_setting("min_date", optional=False),
+        max_date = _get_specific_subsampling_setting("max_date", optional=False),
+        seq_per_deme = _get_specific_subsampling_setting("seq_per_deme", optional=False)
     log:
         "logs/subsample_{build_name}_{subsample}.txt"
     conda: config["conda_environment"]
     shell:
         """
-        augur filter \
-            --sequences {input.sequences} \
+        Rscript subsample.R \
+            --alignment {input.sequences} \
             --metadata {input.metadata} \
-            --max-date 2020-03-08 \
             --include {input.include} \
-            {params.exclude_argument} \
-            {params.include_argument} \
-            {params.query_argument} \
-            {params.priority_argument} \
-            --group-by {params.group_by} \
-            --sequences-per-group {params.sequences_per_group} \
-            --subsample-seed SEED \
+            --region {params.region} \
+            --country {params.country} \
+            --division {params.division} \
+            --exclude_country {params.exclude_country} \
+            --exclude_division {params.exclude_division} \
+            --from {params.min_date} \
+            --to {params.max_date} \
+            --seq_per_deme {params.seq_per_deme} \
+            --seed SEED \
             --output {output.sequences} 2>&1 | tee {log}
         """
 
@@ -446,7 +442,7 @@ rule adjust_names:
         alignment = "results/{build_name}/final_alignment.fasta",
         metadata = "results/{build_name}/final_metadata.tsv"
     params:
-        demes = config["demes"]
+        demes = config["files"]["demes"]
     log:
         "logs/{build_name}_adjust_names.txt"
     shell:
@@ -772,7 +768,7 @@ rule analyze_trajectories:
         "logs/{build_name}_{analysis_name}_analyze_trajectories"
     params:
         burnin = config["beast"]["burnin"],
-        demes = config["demes"]
+        demes = config["files"]["demes"]
     shell:
         """
         Rscript scripts/analyze_trajectories.R \

@@ -64,20 +64,20 @@ mask:
 # Geography is specified by build attributes (e.g., `region`, `country`, `division`, `location`) that are referenced from subsampling schemes.
 builds:
   # This build focuses on Europe early samples
-  europe1:
-    subsampling_scheme: earlyeurope1
-  europe2:
-    subsampling_scheme: earlyeurope2
+  # europe1:
+  #   subsampling_scheme: earlyeurope1
+  # europe2:
+  #   subsampling_scheme: earlyeurope2
   europe3:
-    demes: 
-  europe4GLM:
+    subsampling_scheme: earlyeurope3
+  #europe4GLM:
     
 
 # # Define subsampling scheme
 # Custom subsampling logic for regions like Europe where grouping by country
 # is the smallest resolution required.
 subsampling:
-  earlyeurope:
+  europe12:
     # Focal samples
     hubei:
       group_by: "division"
@@ -104,57 +104,50 @@ subsampling:
       seq_per_group: 20
       query: --query "(region == 'Europe') & (country not in ['Italy', 'France', 'Germany', 'Spain']) & (date<='2020-03-08')"
 
-demes:
-  # Focal demes
-  France:
-    demeID: 0
-    country: "France"
-    region: "Europe"
-    from: "2020-01-23"
-    to: "2020-03-08"
-    n_seq: 50
-    focal: 1
-  Germany:
-    demeID: 1
-    country: "Germany"
-    region: "Europe"
-    from: "2020-01-28"
-    to: "2020-03-08"
-    n_seq: 50
-    focal: 1
-  Hubei:
-    demeID: 2
-    division: "Hubei"
-    country: "China"
-    region: "Asia"
-    from: "2019-12-24"
-    to: "2020-01-23"
-    n_seq: 30
-    focal: 1
-  Italy:
-    demeID: 3
-    country: "Italy"
-    region: "Europe"
-    from: "2020-01-29"
-    to: "2020-03-08"
-    n_seq: 60
-    focal: 1
-  Spain:
-    demeID: 4
-    country: "Spain"
-    region: "Europe"
-    from: "2020-02-24"
-    to: "2020-03-08"
-    n_seq: 40
-    focal: 1
-  # Contextual deme
-  OtherEuropean:
-    demeID: 5
-    region: "Europe"
-    from: "2020-01-29"
-    to: "2020-03-08"
-    n_seq: 20
-    focal: 0
+  earlyeurope3:
+    France:
+      country: "France"
+      region: "Europe"
+      from: "2020-01-23"
+      to: "2020-03-08"
+      seq_per_deme: 50
+      focal: 1
+    Germany:
+      country: "Germany"
+      region: "Europe"
+      from: "2020-01-28"
+      to: "2020-03-08"
+      seq_per_deme: 50
+      focal: 1
+    Hubei:
+      division: "Hubei"
+      country: "China"
+      region: "Asia"
+      from: "2019-12-24"
+      to: "2020-01-23"
+      seq_per_deme: 30
+      focal: 1
+    Italy:
+      country: "Italy"
+      region: "Europe"
+      from: "2020-01-29"
+      to: "2020-03-08"
+      seq_per_deme: 60
+      focal: 1
+    OtherEuropean:
+      region: "Europe"
+      exclude_country: ["France","Germany","Italy","Spain"]
+      from: "2020-01-29"
+      to: "2020-03-08"
+      seq_per_deme: 20
+      focal: 0
+    Spain:
+      country: "Spain"
+      region: "Europe"
+      from: "2020-02-24"
+      to: "2020-03-08"
+      seq_per_deme: 40
+      focal: 1
     
 
 tree:
