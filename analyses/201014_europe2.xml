@@ -45,7 +45,7 @@
             <parameter id="kappa.s:europe_demes" spec="parameter.RealParameter" lower="0.0" name="stateNode">2.0</parameter>
             <parameter id="originBDMMPrime.t:europe_demes" spec="parameter.RealParameter" name="stateNode">1.0</parameter>
             <parameter id="R0Epi.t:europe_demes" spec="parameter.RealParameter" dimension="6" name="stateNode">1.0 1.0 1.0 1.0 1.0 1.0</parameter>
-            <parameter id="samplingProportionEpi.t:europe_demes" spec="parameter.RealParameter" dimension="18" lower="0.0" name="stateNode" upper="1.0">1.0E-5 1.0E-5 0.0 1.0E-5 1.0E-5 1.0E-5 1.0E-5 1.0E-5 1.0E-5 1.0E-5 1.0E-5 1.0E-5 0.0 0.0 0.0 0.0 0.0 0.0</parameter>
+            <parameter id="samplingProportionEpi.t:europe_demes" spec="parameter.RealParameter" dimension="18" lower="0.0" name="stateNode" upper="1.0">1.0E-5 1.1E-5 0.0 1.3E-5 1.4E-5 1.5E-5 1.0E-5 1.1E-5 1.2E-5 1.3E-5 1.4E-5 1.5E-5 0.0 0.0 0.0 0.0 0.0 0.0</parameter>
             <parameter id="migrationRateEpi.t:europe_demes" spec="parameter.RealParameter" dimension="30" name="stateNode">0.1 0.0 0.1 0.1 0.1 0.1 0.0 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.0 0.1 0.1 0.1 0.1 0.0 0.1 0.1 0.1 0.1 0.0 0.1 0.1</parameter>
         </state>
 
