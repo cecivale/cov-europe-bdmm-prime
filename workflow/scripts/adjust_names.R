@@ -18,7 +18,7 @@ library(dplyr)
 parser <- argparse::ArgumentParser()
 parser$add_argument("--metadata", type="character", help="Metadata  file")
 parser$add_argument("--alignment", type="character", help="Alignment file")
-parser$add_argument("--demes", type = "character", help = "Demes configuration")
+parser$add_argument("--demes", type = "character", nargs="+", help = "Demes configuration")
 parser$add_argument("--output_alignment", type = "character",
                     help = "Output file for updated alignment")
 parser$add_argument("--output_metadata", type = "character", 
@@ -42,7 +42,7 @@ print(paste("output metadata: ", OUTPUT_METADATA))
 alignment <- ape::read.FASTA(file = ALIGNMENT)
 full_metadata <- read.delim(file = METADATA)
 demes <- bind_rows(lapply(yaml::yaml.load(string = paste(DEMES, collapse = " ")),
-                          data.frame, stringsAsFactors = FALSE))
+                          data.frame, stringsAsFactors = FALSE), .id = "deme")
 
 # Adjust metadata --------------------------------------------------------------
 metadata <- full_metadata %>%

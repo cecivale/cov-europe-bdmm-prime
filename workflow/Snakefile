@@ -335,8 +335,52 @@ rule subsample:
             --output {output.sequences} 2>&1 | tee {log}
         """
 
-#TODO rule rsubsample
+#TODO 
+rule rsubsample:
+    message:
+        """
+        R Subsample all sequences into a {wildcards.subsample} set for build '{wildcards.build_name}' with {params.sequences_per_group} sequences.
+        """
+    input:
+        sequences = rules.mask.output.alignment,
+        metadata = rules.load.output.metadata,
+        include = config["files"]["include"],
+        #priorities = get_priorities
+    output:
+        sequences = "results/{build_name}/sample-{subsample}.fasta"
+    params:
+        deme =
+        n_seq = 
+        from = "2020-01-23"
+        to = "2020-03-08"
+        group_by = _get_specific_subsampling_setting("group_by"),
+        sequences_per_group = _get_specific_subsampling_setting("seq_per_group"),
+        #max_sequences = _get_specific_subsampling_setting("max_sequences", optional=True),
+        exclude_argument = _get_specific_subsampling_setting("exclude", optional=True),
+        include_argument = _get_specific_subsampling_setting("include", optional=True),
+        query_argument = _get_specific_subsampling_setting("query", optional=True),
+        priority_argument = get_priority_argument
+    log:
+        "logs/subsample_{build_name}_{subsample}.txt"
+    conda: config["conda_environment"]
+    shell:
+        """
+        augur filter \
+            --sequences {input.sequences} \
+            --metadata {input.metadata} \
+            --max-date 2020-03-08 \
+            --include {input.include} \
+            {params.exclude_argument} \
+            {params.include_argument} \
+            {params.query_argument} \
+            {params.priority_argument} \
+            --group-by {params.group_by} \
+            --sequences-per-group {params.sequences_per_group} \
+            --subsample-seed SEED \
+            --output {output.sequences} 2>&1 | tee {log}
+        """
 
+# Not sure if we are interested in this
 rule proximity_score:
     message:
         """
@@ -552,7 +596,7 @@ rule beast:
         runtime = config["beast"]["t_mcmc"]
     shell:
         """
-        java -jar {params.jar} -seed {wildcards.seed} -overwrite {input.xml} 2>&1 | tee {log} 
+        java -jar {params.jar} -seed {wildcards.seed} -statefile {wildcards.analysis_name}.{wildcards.seed}.state -overwrite {input.xml} 2>&1 | tee {log} 
         """
 
 rule summarize_log:
@@ -600,28 +644,30 @@ checkpoint chains_diagnostic:
         --output {output.diagnostic} 2>&1 | tee -a {log}
         """
 
-#TODO Wildcard analysiss and seed
 def _get_logs_tocombine(wildcards):
-    diagnostic = pd.read_csv(checkpoints.chains_diagnostic.get().output[0].open(), sep="\t")
+    diagnostic = pd.read_csv(checkpoints.chains_diagnostic.get(**wildcards).output[0].open(), sep="\t")
     return expand(
-        "results/{build_name}/{chain}.log",
-        build_name=BUILD_NAMES, chain=diagnostic[diagnostic["included"] == 1]["chain"]
+        "results/{build_name}/{analysis_name}.{seed}.log",
+        build_name=wildcards.build_name, analysis_name=wildcards.analysis_name,
+        seed=diagnostic[diagnostic["included"] == 1]["seed"]
     )
 
 def _get_trees_tocombine(wildcards):
-    diagnostic = pd.read_csv(checkpoints.chains_diagnostic.get().output[0].open(), sep="\t")
+    diagnostic = pd.read_csv(checkpoints.chains_diagnostic.get(**wildcards).output[0].open(), sep="\t")
     return expand(
-        "results/{build_name}/{chain}.trees",
-        build_name=BUILD_NAMES, chain=diagnostic[diagnostic["included"] == 1]["chain"]
+        "results/{build_name}/{analysis_name}.{seed}.trees",
+        build_name=wildcards.build_name, analysis_name=wildcards.analysis_name,
+        seed=diagnostic[diagnostic["included"] == 1]["seed"]
     )
+
 
 rule combine_logs:
     message: 
         """
-        Combine log files with ESS >= 200: {input.log_fnames} with LogCombiner v1.8.2.
+        Combine log files with ESS >= 200: {input.log_files} with LogCombiner v1.8.2.
         """
     input:
-        log_files= _get_logs_tocombine
+        log_files = _get_logs_tocombine
     output:
         combined_log = "results/{build_name}/{analysis_name}_comb.log"
     log:
@@ -637,7 +683,7 @@ rule combine_logs:
 rule combine_trees:
     message: 
         """
-        Combine tree files with log files with ESS >= 200: {input.tree_fnames} with LogCombiner v1.8.2
+        Combine tree files with log files with ESS >= 200: {input.tree_files} with LogCombiner v1.8.2
         """
     input:
         tree_files = _get_trees_tocombine

@@ -10,6 +10,7 @@
 # Load libraries ---------------------------------------------------------------
 library(argparse)
 library(dplyr)
+library(stringr)
 
 # Parser -----------------------------------------------------------------------
 parser <- argparse::ArgumentParser()
@@ -33,7 +34,8 @@ for (fname in INPUT){
   l <- last(strsplit(read_lines(fname, n_max = 1), " ")[[1]])
   if (all(tb$ESS >= ESS, na.rm = TRUE)) {
     cat("All ESS values > 200 in log file ", fname, "\nLog file included in analysis.")
-    diagnostic <- rbind(diagnostic, data.frame(chain = gsub(".logsummary.txt", "", fname), 
+    diagnostic <- rbind(diagnostic, data.frame(analysis = str_split(fname, pattern ="\\.")[[1]][1],
+                                               seed = str_split(fname, pattern ="\\.")[[1]][2],
                                                length = l,
                                                min_ESS = ESS, 
                                                included = 1))

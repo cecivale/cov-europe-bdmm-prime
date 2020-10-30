@@ -46,28 +46,95 @@ filter_casesECDC <- function(case_data,
   return(case_data2)
 }
 
-get_casesECDC <- function(demes_info = NA, from = NA, to = NA) {
+get_casesJH <- function(demes, from, to) {
+  case_data <- read_csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv", col_types = cols())
+  
+  case_data1 <- case_data %>%
+    pivot_longer(cols = !1:4, names_to = "date", values_to = "cumcases") %>%
+    rename(division = 1, 
+           country = 2) %>%
+    mutate(date = as.Date(date, "%m/%d/%y"),
+           region = countrycode::countrycode(sourcevar = case_data1$country,
+                                             origin = "country.name",
+                                             destination = "continent", warn = FALSE))
+  
+  case_data2 <- case_data1 %>%
+    filter(date >= as.Date(from) & date <= as.Date(to)) %>% # Filter dates
+    left_join(demes, by = "region") %>%
+    filter((country.x == country.y) | # Filter countries
+             (!country.x %in% demes$country & is.na(country.y) 
+              & region %in% demes$region
+              & division.x %in% c(NA, "Hubei"))) %>%
+    group_by(deme, date) %>%
+    summarise(cumcases = sum(cumcases),
+              .groups = "drop_last") %>%
+    ungroup() 
+    # arrange(date) %>%
+    # group_by(deme) %>%
+    # mutate(cases = c(0, diff(cumcases))) %>%
+    # ungroup()
+    # 
+    
+}
+get_casesECDC <- function(demes = NA, get_country = NA, from = NA, to = NA) {
   #' Get case data information from ECDC for specific demes (countries and regions)
   cat("\nLoading case data counts from ECDC...")
   case_data <-  read.csv("https://opendata.ecdc.europa.eu/covid19/casedistribution/csv", 
                          na.strings = "", fileEncoding = "UTF-8-BOM")
   case_data1 <- case_data %>%
     rename(country = countriesAndTerritories,
-           region = continentExp) %>%
-    mutate(date = as.Date(dateRep, "%d/%m/%Y"),
-           country = ifelse(country == "Czechia", "Czech Republic", gsub("_", " ", country)))
+           region = continentExp,
+           date = dateRep,
+           population = popData2019,
+           cases14days = Cumulative_number_for_14_days_of_COVID.19_cases_per_100000,
+           ) %>%
+    mutate(date = as.Date(date, "%d/%m/%Y"),
+           country = ifelse(country == "Czechia", "Czech Republic", gsub("_", " ", country))) %>%
+    select(region, country, geoId, date, cases, deaths, cases14days, population)
   
-    # Set from and to dates with values from the function call instead of the ones from the demes info
-    if (!is.na(from)) demes_info$from = from
-    if (!is.na(to)) demes_info$to = to
+  if (is.na(from)) from = min(case_data1$date) 
+  if (is.na(to)) to = max(case_data1$date)
+  
+  if (!is.null(nrow(demes))) {
+    case_data2 <- case_data1 %>%
+      filter(date >= as.Date(from) & date <= as.Date(to)) %>% # Filter dates
+      left_join(demes, by = "region") %>%
+      filter((country.x == country.y) | # Filter countries
+               (!country.x %in% demes$country & is.na(country.y) 
+                & region %in% demes$region)) %>%
+      group_by(deme, date) %>%
+      summarise(cases = sum(cases),
+                deaths = sum(deaths),
+                cases14days = mean(cases14days, na.rm = TRUE),
+                population = mean(population, na.rm = TRUE),
+                .groups = "drop_last") %>%
+      ungroup() %>%
+      arrange(date) %>%
+      group_by(deme) %>%
+      mutate(cumcases = cumsum(cases),
+             cumdeaths = cumsum(deaths)) %>%
+      ungroup()
+  }
+  else {
+    case_data2 <- case_data1 %>%
+      filter(date >= as.Date(from) & date <= as.Date(to)) %>% # Filter dates
+      
+      filter((country == get_country)) %>%
+      group_by(country, date) %>%
+      summarise(cases = sum(cases),
+                deaths = sum(deaths),
+                cases14days = mean(cases14days, na.rm = TRUE),
+                population = mean(population, na.rm = TRUE),
+                .groups = "drop_last") %>%
+      ungroup() %>%
+      arrange(date) %>%
+      group_by(country) %>%
+      mutate(cumcases = cumsum(cases),
+             cumdeaths = cumsum(deaths)) %>%
+      ungroup()
+  }
     
-    # Filter case count data according to deme info
-    case_data_list <- mapply(filter_casesECDC, list(case_data1), 
-                             demes_info$from, demes_info$to, 
-                             demes_info$country, demes_info$region,
-                             demes_info$deme, demes_info$focal, list(demes_info$country))
-    case_data_dfs <- lapply(1:dim(case_data_list)[2], function(i) as.data.frame(case_data_list[,i]))
-    case_data2 <- bind_rows(case_data_dfs)
+  
   cat("done!")
   return(case_data2)
 }

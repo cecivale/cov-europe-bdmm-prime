@@ -1,140 +1,82 @@
-##-----------------------------------------------------
+##------------------------------------------------------------------------------
 ## Subsample
 ## 
 ## 2020-10-10 Cecilia Valenzuela
-##------------------------------------------------------
-
-# Debugging
-metadata.tsv <- "/Users/maceci/code/mt-analysis/201014_europe2/data/201014_metadata.tsv"
-include.txt <- "./files/include.txt"
-demes.csv <- "./files/demes.csv"
-latitudes.tsv <- "/Users/maceci/code/ncov/defaults/lat_longs.tsv"
-latitudes <- read.delim(latitudes.tsv, col.names = c("area", "location", "N", "W"))
+##------------------------------------------------------------------------------
 
 library(tidyverse)
 library(argparse)
 library(ape)
-source("./scripts/utils.R") # TODO relative paths
+source("scripts/utils.R") 
 
-subsample <- function(alignment.fasta, metadata.tsv, include.txt, demes.csv) {
+subsample <- function(alignment, metadata, include, exclude,
+                      region_name, country_name, division_name,
+                      exclude_country, exclude_division,
+                      from, to, seq_per_deme) {
   # Read files
-  alignment <- read.FASTA(file = alignment.fasta)
-  metadata <- read.delim(file = metadata.tsv) %>%
+  alignment <- read.FASTA(file = alignment)
+  metadata <- read.delim(file = metadata) %>%
     filter(strain %in% names(alignment)) %>% # Keep only metadata about seqs in the alignment
     mutate(date = as.Date(date)) 
-  include <- readLines(include.txt)
-  demes <- read.csv(demes.csv, colClasses = "character")
   
-  # Filter metadata according to demes information and add demes and group information to dataframe
-  metadata_list <- mapply(get_GISAIDseqs, list(metadata), 
-                          demes$from, demes$to, 
-                          demes$division, demes$country, demes$region,
-                          demes$deme, demes$group, list(demes$country))
-  metadata_dfs <- lapply(1:dim(metadata_list)[2], function(i) as.data.frame(metadata_list[,i]))
-  metadata_demes <- bind_rows(metadata_dfs)
-
-  # Load case date from ECDC
-  case_data <- get_casesECDC(demes = demes) 
+  if (!is.na(exclude)) {
+    exclude <- readLines(include)
+    metadata <- filter(metadata, !strain %in% exclude)
+    }
+  
+  metadata_deme <- metadata %>%
+    filter(region == region_name,
+           if (is.na(country_name)) TRUE else country %in% country_name,
+           if (is.na(division_name)) TRUE else division_name %in% division_name_name,
+           if (is.na(exclude_country)) TRUE else !country %in% exclude_country,
+           if (is.na(exclude_division)) TRUE else !division_name %in% exclude_division,
+           date <= as.Date(to),
+           date >= as.Date(from))
+  
+  # Get case counts for deme
+  cases_deme <- get_casesECDC(region_name, country_name, division_name, exclude_country, exclude_division) 
+  
+  # Compute weights and probabilities for each date
+  by_date <- metadata_deme %>%
+    count(date) %>%
+    left_join(cases_deme) %>%
+    mutate(p_case = cases/max(cumcases),
+           w_date = sum(n)/n,
+           p_date = (p_case * w_date)/sum(p_case * w_date)) %>%
+    select(date, p_case, w_date, p_date)
+  
+  # Compute weights for each division
+  by_div <- metadata_deme %>%
+    count(division) %>%
+    mutate(w_div = sum(n)/n,
+           p_div = w_div/sum(w_div)) %>%
+    select(division, w_div, p_div)
+  
+  # Compute weighted probability for each sequence
+  metadata_deme2 <- metadata_deme %>%
+    left_join(by_date) %>%
+    left_join(by_div) %>%
+    mutate(p = (p_case * w_date * w_div)/sum(p_case * w_date  * w_div))
+  
+  if (is.na(include)) {
+    # Subsample according to these probabilities
+    subsample <- sample(metadata_deme2$strain, size = seq_per_deme, 
+                         replace = FALSE, prob=metadata_deme2$p)
+  
+    # Create map and histogram?? Animated by day?
     
-  # TODO from here
-  # summary1 <- metadata1%>%
-  #   dplyr::count(country, sort=TRUE, name = "n_seq")
-  
-  # Exclude sequences from nextstrain exclude.txt
-  metadata2 <- metadata1%>%
-    dplyr::filter(!strain%in%exclude)
-  summary_seqs <- metadata2%>%
-    dplyr::count(country, sort=TRUE, name = "n_seq")
-  
-  # Include sequences from Sarah's analysis
-  include <- readLines(INCLUDE)
-  metadata3 <- metadata%>%
-    dplyr::filter(strain%in%include)
-  summary_sarah <- metadata3%>%
-    dplyr::count(country, sort=TRUE, name = "n_inc0")
-  
-  
-  ### Load current case data from ECDC 
-  case_data <-  read.csv("https://opendata.ecdc.europa.eu/covid19/casedistribution/csv", 
-                         na.strings = "", fileEncoding = "UTF-8-BOM")%>%
-    dplyr::rename(country = countriesAndTerritories,
-                  region = continentExp)%>%
-    dplyr::mutate(date = as.Date(dateRep, "%d/%m/%Y"),
-                  country = ifelse(country == "Czechia", "Czech Republic", gsub("_", " ", country)))
-  
-  # Cases and death counts by country until 8 Mar european countries and 24 Jan Hubei (before lockdowns)
-  case_data_0308 <- case_data%>%
-    dplyr::filter((date <= as.Date("2020-03-08") & region == "Europe" & date > as.Date("2020-01-01")) | 
-                    (date <= as.Date("2020-01-23") & country == "China" & date > as.Date("2019-12-01")))%>%
-    dplyr::group_by(country)%>%
-    dplyr::summarise(totalcases_8Mar = sum(cases),
-                     totaldeaths_8Mar = sum(deaths))
-  
-  # Deaths from 28 Mar, considering that deaths occur with a delay after transmission
-  case_data_0328 <- case_data%>%
-    dplyr::filter((date <= as.Date("2020-03-28") & region == "Europe" & date > as.Date("2020-01-01")) | 
-                    (date <= as.Date("2020-02-12") & country == "China" & date > as.Date("2019-12-01")))%>%
-    dplyr::group_by(country)%>%
-    dplyr::summarise(totaldeaths_28Mar = sum(deaths))
-  
-  N = 300
-  
-  case_data_sum <- dplyr::left_join(case_data_0308, case_data_0328, by="country")%>%
-    dplyr::arrange(desc(totalcases_8Mar))%>%
-    dplyr::left_join(summary_seqs, by="country")%>%
-    dplyr::left_join(summary_sarah, by="country")%>%
-    dplyr::filter(!is.na(n_seq), totalcases_8Mar > 15)%>%
-    dplyr::mutate(n_inc_cases8Mar = round(totalcases_8Mar/sum(totalcases_8Mar)*N),
-                  n_inc_deaths8Mar = round(totaldeaths_8Mar/sum(totaldeaths_8Mar)*N),
-                  n_inc_deaths28Mar = round(totaldeaths_28Mar/sum(totaldeaths_28Mar)*N),
-                  n_inc1 = ifelse(country=="Italy", 70, round(totaldeaths_28Mar/sum(totaldeaths_28Mar)*(N-70))))
-  
-  # Create map and histogram?? Animated by day?
-  
-  
-  # Subsampling scheme, proportional to number of cases for each country and month
-  # We compute the probability of a sequence being subsampled as 
-  # #cases for a specific month and country / #total number of cases
-  
-  seqs_month <- metadata2%>%
-    dplyr::mutate(month = as.numeric(format(date,"%m")),
-                  year = as.numeric(format(date,"%Y")))%>%
-    dplyr::count(country, month, sort=TRUE, name = "n_seqmonth")
-  
-  by_month <- case_data%>%
-    dplyr::filter((date <= as.Date("2020-03-08") & region == "Europe" & date > as.Date("2020-01-01")) | 
-                    (date <= as.Date("2020-02-12") & country == "China" & date > as.Date("2019-12-01")),
-                  country%in%seqs_month$country)%>%
-    group_by(month, year, country)%>%
-    summarise(newcases = sum(cases),
-              newdeaths = sum(deaths))%>%
-    ungroup%>%
-    dplyr::mutate(totalcases=sum(case_data_sum$totalcases_8Mar))%>%
-    dplyr::left_join(seqs_month, by=c("country", "month"))%>%
-    dplyr::mutate(prob = (newcases/totalcases)/n_seqmonth)
-  
-  sampling_prob <- metadata2%>%
-    dplyr::mutate(month = as.numeric(format(date,"%m")),
-                  year = as.numeric(format(date,"%Y")))%>%
-    dplyr::left_join(by_month, by=c("country", "year", "month"))%>%
-    dplyr::pull(prob)
-  
-  subsample <- sample(metadata2$strain, size = 250, replace = FALSE, prob = sampling_prob)
-  #subsample <- sample(metadata2$strain, size = 250, replace = FALSE)
-  #subsample <- metadata2 %>% group_by(country) %>% sample_n(30)
-  
-  subsample_metadata <- metadata2%>%
-    filter(strain%in%subsample)
-  
-  subsample_summary <- subsample_metadata%>%
-    dplyr::mutate(month = as.numeric(format(date,"%m")),
-                  year = as.numeric(format(date,"%Y")))%>%
-    #dplyr::count(country, month, sort=TRUE, name = "n_seq")
-    dplyr::count(country, sort=TRUE, name = "n_seq")
-  
-  
+    return(alignment[subsample])
+  } else {
+    include <- readLines(include) 
+    if (length(include) < seq_per_deme) {
+      subsample <- sample(metadata_deme2$strain, size = seq_per_deme - length(include), 
+                        replace = FALSE, prob=metadata_deme2$p)
+      return(alignment[c(include, subsample)])
+      } else {
+      return(alignment[include])
+    }
+  }
 }
-
 
 # Parse arguments
 parser <- argparse::ArgumentParser()
@@ -144,53 +86,31 @@ parser$add_argument("--metadata", type="character",
                     help="GISAID Metadata tsv file")
 parser$add_argument("--include", type="character", 
                     help="Included sequences txt file")
-parser$add_argument("--demes", type="character", 
-                    help="Demes information csv file")
-parser$add_argument("--output_sequences", type = "character",
-                    help = "Output file for updated alignment")
-parser$add_argument("--output_metadata", type = "character",
-                    help = "Output file for updated metadata")
+parser$add_argument("--exclude", type="character", 
+                    help="excluded sequences txt file")
+parser$add_argument("--region", type="character")
+parser$add_argument("--country", type="character")
+parser$add_argument("--division", type="character")
+parser$add_argument("--exclude_country", type="character")
+parser$add_argument("--exclude_division", type="character")
+parser$add_argument("--from", type="character")
+parser$add_argument("--to", type="character")
+parser$add_argument("--seq_per_deme", type="character")
+parser$add_argument("--output", type = "character",
+                    help = "Output file for subsample alignment")
 parser$add_argument("--output_figure", type = "character",
                     help = "Output file for histogram of sequences")
-parser$add_argument("--output_mrs", type = "character",
-                    help = "Output file for most recent sample date")
 
 args <- parser$parse_args()
 
-ALIGNMENT <- args$alignment
-METADATA <- args$metadata
-INCLUDE <- args$include
-DEMES <- args$demes
-OUTPUT_SEQS <- args$output_sequences
-OUTPUT_METADATA <- args$output_metadata
-OUTPUT_FIGURE <- args$output_figure
-OUTPUT_MRS <- args$output_mrs
-
-print(paste("alignment:", ALIGNMENT))
-print(paste("metadata:", METADATA))
-print(paste("include:", INCLUDE))
-print(paste("demes:", DEMES))
-print(paste("output sequences:", OUTPUT_SEQS))
-print(paste("output metadata:", OUTPUT_METADATA))
-print(paste("output figure:", OUTPUT_FIGURE))
-print(paste("output most recent sample date:", OUTPUT_MRS))
-
 # Subsampling
-subsample_output <- subsample(SEQS, METADATA, INCLUDE, DEMES)
+subsample_output <- subsample(args$alignment, args$metadata, args$include, args$exclude,
+                              args$region, args$country, args$division,
+                              args$exclude_country, args$exclude_division,
+                              args$from, args$to, args$seq_per_deme)
 
-ape::write.FASTA(
-  x = subsample_output$sequences,
-  file = OUTPUT_SEQS)
+ape::write.FASTA(x = subsample_output, file = args$output)
 
-write.table(
-  x = subsample_output$metadata,
-  file = OUTPUT_METADATA,
-  sep = "\t",
-  quote = F,
-  row.names = F,
-  col.names = T)
+#ggexport(subsample_output$figure, filename = OUTPUT_FIGURE)
 
-ggexport(subsample_output$figure, filename=OUTPUT_FIGURE)
-
-write(subsample_output$mrs, OUTPUT_MRS)
 

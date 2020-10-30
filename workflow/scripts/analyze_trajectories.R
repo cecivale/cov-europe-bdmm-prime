@@ -112,9 +112,9 @@ ge_summary <- ge %>%
 
 # Case data information from ECDC
 demes <- bind_rows(lapply(yaml::yaml.load(string = paste(DEMES, collapse = " ")),
-                          data.frame, stringsAsFactors = FALSE))
-#TODO
-#case_data <- get_casesECDC(demes, to = MRS)
+                          data.frame, stringsAsFactors = FALSE), .id = "deme")
+
+#case_dataECDC <- get_casesECDC(demes, to = MRS)
 case_data <- get_casesWHO(demes, max_date = MRS)
 
 # Plotting ---------------------------------------------------------------------
@@ -232,6 +232,35 @@ migbirths_box <- lapply(demes$deme, function(deme) {
           axis.text.x=element_blank())
   })
 
+
+# TODO Thinks about how to compute the intervals for the ribbon
+# 2.3b Migration and births ribbon lines
+migbirths_ribbon <- lapply(demes$deme, function(deme) {
+  ge_summary %>% 
+    filter((src == deme | dest == deme) & event %in% c("B", "M")) %>%
+    mutate(event = case_when(
+      src == deme & event == "M" ~ "OM",
+      dest == deme & event == "M" ~ "IM",
+      TRUE ~ "B")) %>%
+    group_by(event, date) %>%
+    mutate(Gmedian = mean(Imedian),
+           Glow = median(Ilow),
+           Ghigh = median(Ihigh)) %>%
+    ungroup() %>% 
+    ggplot() +
+    geom_line(aes(x = date, y = Gmedian,  color = event), 
+                 outlier.shape = NA) +
+    geom_ribbon(aes(date, ymin = Glow, ymax = Ghigh, fill = event), alpha = 0.5) +
+    scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
+    scale_x_date(date_breaks = "1 month", date_labels = "%b", 
+                 limits = c(ymd("2019-11-01"), ymd("2020-03-08"))) +
+    scale_color_manual(values = ecolors) +
+    scale_fill_manual(values = ecolors) +
+    labs(subtitle = "Births and migrations events") +
+    theme(axis.title.x=element_blank(),
+          axis.text.x=element_blank())
+})
+
 # 2.4 Proportion barplot birth vs migration single deme
 migbirths_bar <- lapply(demes$deme, function(deme) {
   ge_summary %>%
@@ -243,7 +272,8 @@ migbirths_bar <- lapply(demes$deme, function(deme) {
     scale_fill_manual(values = ecolors) +
     labs(subtitle = "Mean Births vs migrations events percentage") +
     theme(axis.title.x=element_blank(),
-          axis.text.x=element_blank())
+          axis.text.x=element_blank(),
+          legend.position = "none")
   })
 
 # 2.5 Proportion barplot source of migrations single deme
@@ -257,7 +287,8 @@ srcmig_bar <- lapply(demes$deme, function(deme) {
     scale_fill_manual(values = dcolors) +
     labs(subtitle = "Source of migrations percentage") +
     theme(axis.title.x=element_blank(),
-          axis.text.x=element_blank())
+          axis.text.x=element_blank(),
+          legend.position = "none")
   })
   
 
@@ -302,16 +333,22 @@ gg2 <- lapply(1:nrow(demes), function(i) {
                   top = text_grob(demes$deme[i], face = "bold", size = 16))
   })
 
-gg3 <- lapply(1:nrow(demes), function(i) {
+gg3 <- lapply(1:3, function(i) {
   annotate_figure(ggarrange(migbirths_box[[i]], migbirths_bar[[i]], srcmig_bar[[i]], dest_bar[[i]], 
-                            ncol = 1, heights = c(3,1,1,1.4), common.legend = TRUE), 
+                            ncol = 1, heights = c(3,1,1,1.4), common.legend = FALSE), 
                   top = text_grob(demes$deme[i], face = "bold", size = 16))
   })
 
+gg4 <- lapply(4:nrow(demes), function(i) {
+  annotate_figure(ggarrange(migbirths_box[[i]], migbirths_bar[[i]], srcmig_bar[[i]], dest_bar[[i]], 
+                            ncol = 1, heights = c(3,1,1,1.4), common.legend = FALSE), 
+                  top = text_grob(demes$deme[i], face = "bold", size = 16))
+})
+
 
 multi <- ggarrange(gg1, ggarrange(plotlist = gg2, nrow = 1), ggarrange(plotlist = gg3, nrow = 1), 
-                   nrow = 1, ncol = 1, common.legend = TRUE)
-ggexport(multi, filename = OUTPUT_FIGURE, width=2100, height=1000, res=72*2)
+                   ggarrange(plotlist = gg4, nrow = 1), nrow = 1, ncol = 1, common.legend = TRUE)
+ggexport(multi, filename = OUTPUT_FIGURE, width=1500, height=1000, res=72*2)
 cat("done!")
 
 # ------------------------------------------------------------------------------

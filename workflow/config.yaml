@@ -64,8 +64,14 @@ mask:
 # Geography is specified by build attributes (e.g., `region`, `country`, `division`, `location`) that are referenced from subsampling schemes.
 builds:
   # This build focuses on Europe early samples
-  eEurope:
-    subsampling_scheme: earlyeurope
+  europe1:
+    subsampling_scheme: earlyeurope1
+  europe2:
+    subsampling_scheme: earlyeurope2
+  europe3:
+    demes: 
+  europe4GLM:
+    
 
 # # Define subsampling scheme
 # Custom subsampling logic for regions like Europe where grouping by country
@@ -182,8 +188,6 @@ beast:
   # Log analyser bin
   log_analyser: loganalyser
   min_ess: 200
-  # Inlcude all trace, tree and traj files even with ESS < 200 in the analysis
-  include_all: 1
   # Log combiner bin
   log_combiner: logcombiner
   # Tree annotator bin
