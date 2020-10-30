@@ -28,8 +28,8 @@ subsample <- function(alignment, metadata, include = NA, exclude = NA,
     filter(region == region_name,
            if (is.na(country_name)) TRUE else country %in% country_name,
            if (is.na(division_name)) TRUE else division %in% division_name,
-           if (is.na(exclude_country)) TRUE else !country %in% exclude_country,
-           if (is.na(exclude_division)) TRUE else !division %in% exclude_division,
+           if (all(is.na(exclude_country))) TRUE else !country %in% exclude_country,
+           if (all(is.na(exclude_division))) TRUE else !division %in% exclude_division,
            date >= as.Date(from),
            date <= as.Date(to))
   
@@ -40,27 +40,28 @@ subsample <- function(alignment, metadata, include = NA, exclude = NA,
 
   # Compute weights and probabilities for each date
   by_date <- metadata_deme %>%
-    count(date) %>%
-    left_join(cases_deme, by = "date") %>%
+    count(date, country) %>%
+    left_join(cases_deme, by = c("date", "country")) %>%
     replace_na(list(cases = 0, cumcases = 0)) %>%
-    mutate(p_case = (cases + 1)/max(cumcases),
+    mutate(p_case = (cases + 1)/sum(cases),
            w_date = sum(n)/n,
            p_date = (p_case * w_date)/sum(p_case * w_date)) %>%
-    select(date, p_case, w_date, p_date)
+    select(date, country, p_case, w_date, p_date) 
 
-  # Compute weights for each division
+  #Compute weights for each division
   by_div <- metadata_deme %>%
-    count(division) %>%
-    mutate(w_div = sum(n)/n,
+    count(division, country) %>%
+    mutate(w_div = ifelse(is.na(country_name), 1, sum(n)/n),
            p_div = w_div/sum(w_div)) %>%
-    select(division, w_div, p_div)
+    select(division, country, w_div, p_div)
 
   # Compute weighted probability for each sequence
   metadata_deme2 <- metadata_deme %>%
-    left_join(by_date, by = "date") %>%
-    left_join(by_div, by = "division") %>%
+    left_join(by_date, by = c("date", "country")) %>%
+    left_join(by_div, by = c("division", "country")) %>%
     mutate(p = (p_case * w_date * w_div)/sum(p_case * w_date  * w_div))
   
+  print(metadata_deme2)
   if (!is.na(include)) {
     include <- readLines(include) 
     metadata_include <- metadata_deme2 %>%
@@ -131,8 +132,8 @@ ape::write.FASTA(x = subsample_output, file = args$output)
 subsample_output <- subsample("/Users/maceci/code/mt-analysis/201014_europe2/masked.fasta", 
                               "/Users/maceci/code/mt-analysis/201014_europe2/data/201014_metadata.tsv", 
                               "/Users/maceci/code/mt-analysis/201030_europe3/files/include.txt", exclude = NA,
-                              "Asia", "China", "Hubei",
-                              NA, NA,
+                              "Europe", NA, NA,
+                              c("France", "Germany", "Italy", "Spain"), NA,
                               from = "2019-01-01", to = "2020-03-09", 40)
 
 metadata = "/Users/maceci/code/mt-analysis/201014_europe2/data/201014_metadata.tsv"
@@ -144,7 +145,7 @@ metadata%>%
   count(date)
 
 metadata%>%
-  count(division)
+  count(country)
  
 alignment <- "/Users/maceci/code/mt-analysis/201014_europe2/masked.fasta"
 alignment <- read.FASTA(file = alignment)

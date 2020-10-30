@@ -33,7 +33,7 @@ get_cases <- function(region_name = NA, country_name = NA, division_name = NA,
     filter(if (is.na(region_name)) TRUE else region %in% region_name,
            if (is.na(country_name)) TRUE else country %in% country_name,
            #if (is.na(division_name)) TRUE else division %in% division_name,
-           if (is.na(exclude_country)) TRUE else !country %in% exclude_country,
+           if (all(is.na(exclude_country))) TRUE else !country %in% exclude_country,
            #if (is.na(exclude_division)) TRUE else !division_name %in% exclude_division,
            date >= as.Date(from),
            date <= as.Date(to))
