@@ -1,18 +1,25 @@
 ##------------------------------------------------------------------------------
-## Subsample
+## Subsample sequences for a deme.
+## Filter by region, country and division, and date interval. 
+## The probability of sampling a specific sequence is proportional to the 
+## probability of having a case that date, weighted by the inverse of the 
+## probability of having a sequence that day and also weighted by the inverse 
+## of the probability of having a sequence from that division.
+## 
+## In this way, we expect to account for the differences in sampling efforts 
+## across days and divisions; and to obtain a constant sampling rate 
+## (assumption of the model) by taking into account the total number of cases each day.
+##
+## Script for snakemake workflow.
 ## 
 ## 2020-10-10 Cecilia Valenzuela
 ##------------------------------------------------------------------------------
 
-library(tidyverse)
-library(argparse)
-library(ape)
-source("scripts/utils.R") 
-
 subsample <- function(alignment, metadata, include = NA, exclude = NA,
                       region_name = NA, country_name = NA, division_name = NA,
                       exclude_country = NA, exclude_division = NA,
-                      from, to, seq_per_deme) {
+                      from, to, seq_per_deme, seed) {
+  set.seed(seed)
   # Read files
   alignment <- read.FASTA(file = alignment)
   metadata <- read.delim(file = metadata, stringsAsFactors = FALSE) %>%
@@ -23,7 +30,7 @@ subsample <- function(alignment, metadata, include = NA, exclude = NA,
     exclude <- readLines(include)
     metadata <- filter(metadata, !strain %in% exclude)
     }
-  
+  # Filter metadata
   metadata_deme <- metadata %>%
     filter(region == region_name,
            if (is.na(country_name)) TRUE else country %in% country_name,
@@ -51,7 +58,9 @@ subsample <- function(alignment, metadata, include = NA, exclude = NA,
   #Compute weights for each division
   by_div <- metadata_deme %>%
     count(division, country) %>%
-    mutate(w_div = ifelse(is.na(country_name), 1, sum(n)/n),
+    mutate(w_div = case_when(
+                        is.na(country_name) ~ 1,
+                        TRUE ~ sum(n)/n),
            p_div = w_div/sum(w_div)) %>%
     select(division, country, w_div, p_div)
 
@@ -61,7 +70,7 @@ subsample <- function(alignment, metadata, include = NA, exclude = NA,
     left_join(by_div, by = c("division", "country")) %>%
     mutate(p = (p_case * w_date * w_div)/sum(p_case * w_date  * w_div))
   
-  print(metadata_deme2)
+  # Include sequences in include if any and subsample with the computed probabilities
   if (!is.na(include)) {
     include <- readLines(include) 
     metadata_include <- metadata_deme2 %>%
@@ -70,28 +79,44 @@ subsample <- function(alignment, metadata, include = NA, exclude = NA,
   } else n_inc <- 0
     
   if (n_inc == 0) {
-    # Subsample according to these probabilities
     subsample <- sample(metadata_deme2$strain, size = seq_per_deme, 
                          replace = FALSE, prob = metadata_deme2$p)
-    return(alignment[subsample])
+    subsample_seqs <- alignment[subsample]
   } else {
     if (nrow(metadata_include) < seq_per_deme) {
       subsample <- sample(metadata_deme2 %>% filter(!strain %in% metadata_include$strain) %>% pull(strain), 
                           size = seq_per_deme - n_inc, 
                           replace = FALSE, 
                           prob = metadata_deme2 %>% filter(!strain %in% metadata_include$strain) %>% pull(p))
-      return(alignment[c(metadata_include$strain, subsample)])
+      subsample_seqs <- alignment[c(metadata_include$strain, subsample)]
       } else {
-      return(alignment[metadata_include$strain])
+      subsample_seqs <- alignment[metadata_include$strain]
     }
   }
+  
+  # Histogram of sequences
+  set_plotopts()
+  hist <- ggplot() +
+    geom_histogram(data = metadata_deme2, aes(x = date), fill = "#979da1", binwidth = 1) +
+    geom_histogram(data = metadata_deme2 %>% filter(strain %in% names(subsample_seqs)), 
+                   aes(x = date), fill = "#91D1C2", binwidth = 1) +
+    geom_line(data = cases_deme,  aes(x = date, y = cases)) +
+    scale_fill_npg()
+  
+  return(list(seqs = subsample_seqs, fig = hist))
 }
 
 
-# Create map and histogram?? Animated by day?
+# Load libraries ---------------------------------------------------------------
+library(tidyverse)
+library(argparse)
+library(ape)
+library(ggsci)
 
+# Source files -----------------------------------------------------------------
+source("scripts/utils.R") 
 
-# Parse arguments
+# Parser -----------------------------------------------------------------------
 parser <- argparse::ArgumentParser()
 parser$add_argument("--alignment", type = "character", 
                     help = "mask alignment fasta file")
@@ -112,44 +137,38 @@ parser$add_argument("--seq_per_deme", type = "character")
 parser$add_argument("--output", type = "character",
                     help = "Output file for subsample alignment")
 parser$add_argument("--seed", type = "integer")
-# parser$add_argument("--output_figure", type = "character",
-#                     help = "Output file for histogram of sequences")
+parser$add_argument("--output_figure", type = "character",
+                    help = "Output file for histogram of sequences")
 
 args <- parser$parse_args()
-set.seed(args$seed)
-# Subsampling
+
+
+# Subsampling ------------------------------------------------------------------
 subsample_output <- subsample(args$alignment, args$metadata, args$include, args$exclude,
                               args$region, args$country, args$division,
                               args$exclude_country, args$exclude_division,
-                              args$from, args$to, args$seq_per_deme)
+                              args$from, args$to, args$seq_per_deme, args$seed)
 
-ape::write.FASTA(x = subsample_output, file = args$output)
+ape::write.FASTA(x = subsample_output$seqs, file = args$output)
 
-#ggexport(subsample_output$figure, filename = OUTPUT_FIGURE)
+# Create map and histogram?? Animated by day?
+ggexport(subsample_output$fig, filename = OUTPUT_FIGURE)
 
-# Debug
-
-subsample_output <- subsample("/Users/maceci/code/mt-analysis/201014_europe2/masked.fasta", 
-                              "/Users/maceci/code/mt-analysis/201014_europe2/data/201014_metadata.tsv", 
-                              "/Users/maceci/code/mt-analysis/201030_europe3/files/include.txt", exclude = NA,
-                              "Europe", NA, NA,
-                              c("France", "Germany", "Italy", "Spain"), NA,
-                              from = "2019-01-01", to = "2020-03-09", 40)
-
-metadata = "/Users/maceci/code/mt-analysis/201014_europe2/data/201014_metadata.tsv"
-metadata <- read.delim(file = metadata, stringsAsFactors = FALSE) %>%
-  filter(strain %in% names(subsample_output)) %>% # Keep only metadata about seqs in the alignment
-  mutate(date = as.Date(date)) 
-
-metadata%>%
-  count(date)
-
-metadata%>%
-  count(country)
- 
-alignment <- "/Users/maceci/code/mt-analysis/201014_europe2/masked.fasta"
-alignment <- read.FASTA(file = alignment)
-metadata <- read.delim(file = metadata, stringsAsFactors = FALSE) %>%
-  filter(strain %in% names(alignment))
-metadata %>% filter(country == "Spain") %>%
-  count(date)
+# subsample_output <- subsample("/Users/maceci/code/mt-analysis/201014_europe2/masked.fasta", 
+#                               "/Users/maceci/code/mt-analysis/201014_europe2/data/201014_metadata.tsv", 
+#                               "/Users/maceci/code/mt-analysis/201030_europe3/files/include.txt", exclude = NA,
+#                               "Europe", "Spain", NA,
+#                               NA, NA,
+#                               from = "2019-01-01", to = "2020-03-08", 40, 1234)
+# 
+# metadata = "/Users/maceci/code/mt-analysis/201014_europe2/data/201014_metadata.tsv"
+# metadata <- read.delim(file = metadata, stringsAsFactors = FALSE) %>%
+#   filter(strain %in% names(subsample_output$seqs)) %>% # Keep only metadata about seqs in the alignment
+#   mutate(date = as.Date(date)) 
+# 
+# metadata%>%
+#   count(date)
+# 
+# metadata%>%
+#   count(country)
+# 

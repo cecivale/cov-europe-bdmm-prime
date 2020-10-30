@@ -19,7 +19,7 @@ SEED = 1234
 wildcard_constraints:
     # Allow build names to contain alpha characters, underscores, and hyphens
     # but not special strings used for Nextstrain builds.
-    build_name = r'(?:[_a-zA-Z-](?!(tip-frequencies|gisaid|zh)))+',
+    #build_name = r'(?:[_a-zA-Z-](?!(tip-frequencies|gisaid|zh)))+',
     date = r"[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]",
     seed = r"[0-9]*"
 
@@ -29,7 +29,8 @@ rule all:
   input:
     prelim_tree = expand("results/{build_name}/tree.nwk", build_name=BUILD_NAMES),
     summary_tree = expand("results/{build_name}/{analysis_name}.mcc.typed.node.tree", build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
-    summary_log =  expand("results/{build_name}/{analysis_name}_comb.logsummary.tsv", build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME)
+    summary_log =  expand("results/{build_name}/{analysis_name}_comb.logsummary.tsv", build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
+    fig_traj = expand("results/{build_name}/{analysis_name}.figtraj.png", build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME)
 
 rule clean:
     message: "Removing directories: {params}"
@@ -345,7 +346,8 @@ rule rsubsample:
         metadata = rules.load.output.metadata,
         include = config["files"]["include"]
     output:
-        sequences = "results/{build_name}/sample-{subsample}.fasta"
+        sequences = "results/{build_name}/sample-{subsample}.fasta",
+        fig = "results/{build_name}/sample-{subsample}.png"
     params:
         region = _get_specific_subsampling_setting("region", optional=True),
         country = _get_specific_subsampling_setting("country", optional=True),
@@ -373,7 +375,8 @@ rule rsubsample:
             --to {params.max_date} \
             --seq_per_deme {params.seq_per_deme} \
             --seed SEED \
-            --output {output.sequences} 2>&1 | tee {log}
+            --output {output.sequences} \
+            --output_figure {output.fig} 2>&1 | tee {log}
         """
 
 # Not sure if we are interested in this
@@ -442,7 +445,7 @@ rule adjust_names:
         alignment = "results/{build_name}/final_alignment.fasta",
         metadata = "results/{build_name}/final_metadata.tsv"
     params:
-        demes = config["files"]["demes"]
+        demes = _get_subsampling_settings
     log:
         "logs/{build_name}_adjust_names.txt"
     shell:
@@ -757,7 +760,7 @@ rule summarize_trees:
 rule analyze_trajectories:
     message: 
         """
-        Combine and analyze traj files with ESS >= 200: {input.traj_fnames}.
+        Combine and analyze traj files with ESS >= 200: {input.trajectories}.
         """
     input:
         trajectories = rules.trajectory_mapping.output.trajectories,
@@ -768,11 +771,11 @@ rule analyze_trajectories:
         "logs/{build_name}_{analysis_name}_analyze_trajectories"
     params:
         burnin = config["beast"]["burnin"],
-        demes = config["files"]["demes"]
+        demes = _get_subsampling_settings
     shell:
         """
         Rscript scripts/analyze_trajectories.R \
-            --input {input.traj_fnames} \
+            --input {input.trajectories} \
             --burnin {params.burnin} \
             --demes {params.demes} \
             --metadata {input.metadata} \

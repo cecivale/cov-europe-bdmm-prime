@@ -77,7 +77,7 @@ builds:
 # Custom subsampling logic for regions like Europe where grouping by country
 # is the smallest resolution required.
 subsampling:
-  europe12:
+  earlyeurope12:
     # Focal samples
     hubei:
       group_by: "division"
@@ -108,45 +108,45 @@ subsampling:
     France:
       country: "France"
       region: "Europe"
-      from: "2020-01-23"
-      to: "2020-03-08"
+      min_date: "2020-01-23"
+      max_date: "2020-03-08"
       seq_per_deme: 50
       focal: 1
     Germany:
       country: "Germany"
       region: "Europe"
-      from: "2020-01-28"
-      to: "2020-03-08"
+      min_date: "2020-01-28"
+      max_date: "2020-03-08"
       seq_per_deme: 50
       focal: 1
     Hubei:
       division: "Hubei"
       country: "China"
       region: "Asia"
-      from: "2019-12-24"
-      to: "2020-01-23"
-      seq_per_deme: 30
+      min_date: "2019-12-24"
+      max_date: "2020-01-23"
+      seq_per_deme: 40
       focal: 1
     Italy:
       country: "Italy"
       region: "Europe"
-      from: "2020-01-29"
-      to: "2020-03-08"
+      min_date: "2020-01-29"
+      max_date: "2020-03-08"
       seq_per_deme: 60
       focal: 1
     OtherEuropean:
       region: "Europe"
       exclude_country: ["France","Germany","Italy","Spain"]
-      from: "2020-01-29"
-      to: "2020-03-08"
-      seq_per_deme: 20
+      min_date: "2020-01-29"
+      max_date: "2020-03-08"
+      seq_per_deme: 40
       focal: 0
     Spain:
       country: "Spain"
       region: "Europe"
-      from: "2020-02-24"
-      to: "2020-03-08"
-      seq_per_deme: 40
+      min_date: "2020-02-24"
+      max_date: "2020-03-08"
+      seq_per_deme: 50
       focal: 1
     
 
@@ -167,11 +167,11 @@ refine:
 # BEAST2 analysis settings
 beast:
   # XML file for analysis
-  xml:  "201014_europe2.xml"
+  xml:  "201030_europe3.xml"
   # BEAST2 jar file path
   jar: "/cluster/home/ceciliav/BDMM-Prime.jar"
   # List of parallel mcmc chains seeds to run 
-  n_mcmc: [1,2]
+  n_mcmc: [1,2,3,4]
   # Length of a mcmc chain, it has to be the same length than the one specified in the xml file
   l_mcmc: 10000000
   # Time for mcmc chains in cluster in minutes
@@ -187,7 +187,7 @@ beast:
   tree_annotator: treeannotator
   mcc_heights: "mean"
   # Trajectory Mapper xml
-  trajectoryMapper: "201014_europe2.trajectoryMapper.xml"
+  trajectoryMapper: "201030_europe3.trajectoryMapper.xml"
 
 
 
