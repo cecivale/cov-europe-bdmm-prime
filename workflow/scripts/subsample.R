@@ -26,7 +26,7 @@ subsample <- function(alignment, metadata, include = NA, exclude = NA,
     filter(strain %in% names(alignment)) %>% # Keep only metadata about seqs in the alignment
     mutate(date = as.Date(date)) 
   
-  if (!is.na(exclude)) {
+  if (!is.null(exclude)) {
     exclude <- readLines(include)
     metadata <- filter(metadata, !strain %in% exclude)
     }
@@ -77,15 +77,17 @@ subsample <- function(alignment, metadata, include = NA, exclude = NA,
       filter(strain %in% include)
     n_inc <- nrow(metadata_include)
   } else n_inc <- 0
-    
+  
   if (n_inc == 0) {
-    subsample <- sample(metadata_deme2$strain, size = seq_per_deme, 
+    sample_size = min(seq_per_deme, nrow(metadata_deme2))
+    subsample <- sample(metadata_deme2$strain, size = sample_size, 
                          replace = FALSE, prob = metadata_deme2$p)
     subsample_seqs <- alignment[subsample]
   } else {
     if (nrow(metadata_include) < seq_per_deme) {
+      sample_size = min(seq_per_deme - n_inc, nrow(metadata_deme2%>% filter(!strain %in% metadata_include$strain)))
       subsample <- sample(metadata_deme2 %>% filter(!strain %in% metadata_include$strain) %>% pull(strain), 
-                          size = seq_per_deme - n_inc, 
+                          size = sample_size, 
                           replace = FALSE, 
                           prob = metadata_deme2 %>% filter(!strain %in% metadata_include$strain) %>% pull(p))
       subsample_seqs <- alignment[c(metadata_include$strain, subsample)]
@@ -112,28 +114,31 @@ library(tidyverse)
 library(argparse)
 library(ape)
 library(ggsci)
+library(ggpubr)
 
 # Source files -----------------------------------------------------------------
 source("scripts/utils.R") 
 
 # Parser -----------------------------------------------------------------------
+
 parser <- argparse::ArgumentParser()
+
 parser$add_argument("--alignment", type = "character", 
                     help = "mask alignment fasta file")
 parser$add_argument("--metadata", type = "character", 
                     help = "GISAID Metadata tsv file")
-parser$add_argument("--include", type = "character", default = NA,
+parser$add_argument("--include", type = "character",
                     help = "Included sequences txt file")
-parser$add_argument("--exclude", type = "character", default = NA,
+parser$add_argument("--exclude", type = "character",
                     help = "excluded sequences txt file")
-parser$add_argument("--region", type = "character", default = NA)
-parser$add_argument("--country", type = "character", default = NA)
-parser$add_argument("--division", type = "character", default = NA)
-parser$add_argument("--exclude_country", type = "character", default = NA)
-parser$add_argument("--exclude_division", type = "character", default = NA)
+parser$add_argument("--region", type = "character")
+parser$add_argument("--country", type = "character")
+parser$add_argument("--division", type = "character")
+parser$add_argument("--exclude_country", type = "character", nargs = "+")
+parser$add_argument("--exclude_division", type = "character", nargs = "+")
 parser$add_argument("--from", type = "character")
 parser$add_argument("--to", type = "character")
-parser$add_argument("--seq_per_deme", type = "character")
+parser$add_argument("--seq_per_deme", type = "integer")
 parser$add_argument("--output", type = "character",
                     help = "Output file for subsample alignment")
 parser$add_argument("--seed", type = "integer")
@@ -141,8 +146,8 @@ parser$add_argument("--output_figure", type = "character",
                     help = "Output file for histogram of sequences")
 
 args <- parser$parse_args()
-
-
+args <- replace(args, args == "NA", NA)
+print(args)
 # Subsampling ------------------------------------------------------------------
 subsample_output <- subsample(args$alignment, args$metadata, args$include, args$exclude,
                               args$region, args$country, args$division,
@@ -152,7 +157,7 @@ subsample_output <- subsample(args$alignment, args$metadata, args$include, args$
 ape::write.FASTA(x = subsample_output$seqs, file = args$output)
 
 # Create map and histogram?? Animated by day?
-ggexport(subsample_output$fig, filename = OUTPUT_FIGURE)
+ggexport(subsample_output$fig, filename = args$output_figure)
 
 # subsample_output <- subsample("/Users/maceci/code/mt-analysis/201014_europe2/masked.fasta", 
 #                               "/Users/maceci/code/mt-analysis/201014_europe2/data/201014_metadata.tsv", 

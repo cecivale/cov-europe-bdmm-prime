@@ -276,7 +276,7 @@ def get_priority_argument(wildcards):
 def _get_specific_subsampling_setting(setting, optional=False):
     def _get_setting(wildcards):
         if optional:
-            value = _get_subsampling_settings(wildcards).get(setting, "")
+            value = _get_subsampling_settings(wildcards).get(setting, "NA")
         else:
             value = _get_subsampling_settings(wildcards)[setting]
 
@@ -362,7 +362,7 @@ rule rsubsample:
     conda: config["conda_environment"]
     shell:
         """
-        Rscript subsample.R \
+        Rscript scripts/subsample.R \
             --alignment {input.sequences} \
             --metadata {input.metadata} \
             --include {input.include} \
@@ -374,7 +374,7 @@ rule rsubsample:
             --from {params.min_date} \
             --to {params.max_date} \
             --seq_per_deme {params.seq_per_deme} \
-            --seed SEED \
+            --seed {SEED} \
             --output {output.sequences} \
             --output_figure {output.fig} 2>&1 | tee {log}
         """
