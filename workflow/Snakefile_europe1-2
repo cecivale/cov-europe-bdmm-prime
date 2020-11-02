@@ -1,0 +1,706 @@
+# Modified Nextrain workflow from 2020-09-11
+# MIT License
+# Copyright (c) 2020 Nextstrain, full text https://github.com/nextstrain/ncov/blob/master/LICENSE
+
+from snakemake.utils import validate
+
+
+configfile: "config.yaml"
+validate(config, schema="schemas/config.schema.yaml")
+
+BUILD_NAMES = list(config["builds"].keys())
+ANALYSIS_NAME = config["beast"]["xml"][:-4]
+SEED = 1234
+
+# Define patterns we expect for wildcards.
+wildcard_constraints:
+    # Allow build names to contain alpha characters, underscores, and hyphens
+    # but not special strings used for Nextstrain builds.
+    build_name = r'(?:[_a-zA-Z-](?!(tip-frequencies|gisaid|zh)))+',
+    date = r"[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]"
+
+localrules: load
+
+rule all:
+  input:
+    prelim_tree = expand("results/{build_name}/tree.nwk", build_name=BUILD_NAMES),
+    summary_tree = expand("results/{build_name}/{analysis_name}.mcc.typed.node.tree", build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
+    summary_log =  expand("results/{build_name}/{analysis_name}_comb.logsummary.tsv", build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME)
+
+# rule clean:
+#     message: "Removing directories: {params}"
+#     params:
+#         "results",
+#         "logs",
+#         "benchmarks"
+#     shell:
+#         "rm -rfv {params}"
+
+# Include small, shared functions that help build inputs and parameters.
+include: "common.smk"
+
+rule load:
+    message: "Loading sequences and metadata from files"
+    output:
+        sequences = config["sequences"],
+        metadata = config["metadata"]
+
+from datetime import date
+from treetime.utils import numeric_date
+
+rule filter:
+    message:
+        """
+        Filtering to
+          - excluding strains in {input.exclude}
+        """
+    input:
+        sequences = rules.load.output.sequences,
+        metadata = rules.load.output.metadata,
+        include = config["files"]["include"],
+        exclude = config["files"]["exclude"]
+    output:
+        sequences = "results/filtered.fasta"
+    log:
+        "logs/filtered.txt"
+    params:
+        min_length = config["filter"]["min_length"],
+        exclude_where = config["filter"]["exclude_where"],
+        min_date = config["filter"]["min_date"],
+        date = numeric_date(date.today())
+    conda: config["conda_environment"]
+    shell:
+        """
+        augur filter \
+            --sequences {input.sequences} \
+            --metadata {input.metadata} \
+            --include {input.include} \
+            --max-date {params.date} \
+            --min-date {params.min_date} \
+            --exclude {input.exclude} \
+            --exclude-where {params.exclude_where}\
+            --min-length {params.min_length} \
+            --output {output.sequences} 2>&1 | tee {log}
+        """
+
+
+# I removed rule excluded_sequences, rule align_excluded, rule diagnose_excluded from 
+# nextstrain workflow, since the information on log file about excluded sequences 
+# from rule filter is enough for our analysis.
+
+
+checkpoint partition_sequences:
+    input:
+        sequences = rules.filter.output.sequences
+    output:
+        split_sequences = directory("results/split_sequences/")
+    log:
+        "logs/partition_sequences.txt"
+    params:
+        sequences_per_group = config["partition_sequences"]["sequences_per_group"]
+    conda: config["conda_environment"]
+    shell:
+        """
+        python3 scripts/partition-sequences.py \
+            --sequences {input.sequences} \
+            --sequences-per-group {params.sequences_per_group} \
+            --output-dir {output.split_sequences} 2>&1 | tee {log}
+        """
+
+rule align:
+    message:
+        """
+        Aligning sequences to {input.reference}
+          - gaps relative to reference are considered real
+        Cluster:  {wildcards.cluster}
+        """
+    input:
+        sequences = "results/split_sequences/{cluster}.fasta",
+        reference = config["files"]["reference"]
+    output:
+        alignment = "results/split_alignments/{cluster}.fasta"
+    log:
+        "logs/align_{cluster}.txt"
+    benchmark:
+        "benchmarks/align_{cluster}.txt"
+    threads: 2
+    conda: config["conda_environment"]
+    shell:
+        """
+        augur align \
+            --sequences {input.sequences} \
+            --reference-sequence {input.reference} \
+            --output {output.alignment} \
+            --nthreads {threads} \
+            --remove-reference 2>&1 | tee {log}
+        """
+
+def _get_alignments(wildcards):
+    checkpoint_output = checkpoints.partition_sequences.get(**wildcards).output[0]
+    return expand("results/split_alignments/{i}.fasta",
+                  i=glob_wildcards(os.path.join(checkpoint_output, "{i}.fasta")).i)
+
+rule aggregate_alignments:
+    message: "Collecting alignments"
+    input:
+        alignments = _get_alignments
+    output:
+        alignment = "results/aligned.fasta"
+    log:
+        "logs/aggregate_alignments.txt"
+    conda: config["conda_environment"]
+    shell:
+        """
+        cat {input.alignments} > {output.alignment} 2> {log}
+        """
+
+rule diagnostic:
+    message: "Scanning aligned sequences {input.alignment} for problematic sequences"
+    input:
+        alignment = rules.aggregate_alignments.output.alignment,
+        metadata = rules.load.output.metadata,
+        reference = config["files"]["reference"]
+    output:
+        diagnostics = "results/sequence-diagnostics.tsv",
+        flagged = "results/flagged-sequences.tsv",
+        to_exclude = "results/to-exclude.txt"
+    log:
+        "logs/diagnostics.txt"
+    params:
+        mask_from_beginning = config["mask"]["mask_from_beginning"],
+        mask_from_end = config["mask"]["mask_from_end"]
+    conda: config["conda_environment"]
+    shell:
+        """
+        python3 scripts/diagnostic.py \
+            --alignment {input.alignment} \
+            --metadata {input.metadata} \
+            --reference {input.reference} \
+            --mask-from-beginning {params.mask_from_beginning} \
+            --mask-from-end {params.mask_from_end} \
+            --output-flagged {output.flagged} \
+            --output-diagnostics {output.diagnostics} \
+            --output-exclusion-list {output.to_exclude} 2>&1 | tee {log}
+        """
+
+
+rule refilter:
+    message:
+        """
+        excluding sequences flagged in the diagnostic step in file {input.exclude}
+        """
+    input:
+        sequences = rules.aggregate_alignments.output.alignment,
+        metadata = rules.load.output.metadata,
+        exclude = rules.diagnostic.output.to_exclude
+    output:
+        sequences = "results/aligned-filtered.fasta"
+    log:
+        "logs/refiltered.txt"
+    conda: config["conda_environment"]
+    shell:
+        """
+        augur filter \
+            --sequences {input.sequences} \
+            --metadata {input.metadata} \
+            --exclude {input.exclude} \
+            --output {output.sequences} 2>&1 | tee {log}
+        """
+
+
+rule mask:
+    message:
+        """
+        Mask bases in alignment
+          - masking {params.mask_from_beginning} from beginning
+          - masking {params.mask_from_end} from end
+          - masking other sites: {params.mask_sites}
+        """
+    input:
+        alignment = rules.refilter.output.sequences
+    output:
+        alignment = "results/masked.fasta"
+    log:
+        "logs/mask.txt"
+    params:
+        mask_from_beginning = config["mask"]["mask_from_beginning"],
+        mask_from_end = config["mask"]["mask_from_end"],
+        mask_sites = config["mask"]["mask_sites"]
+    conda: config["conda_environment"]
+    shell:
+        """
+        python3 scripts/mask-alignment.py \
+            --alignment {input.alignment} \
+            --mask-from-beginning {params.mask_from_beginning} \
+            --mask-from-end {params.mask_from_end} \
+            --mask-sites {params.mask_sites} \
+            --mask-terminal-gaps \
+            --output {output.alignment} 2>&1 | tee {log}
+        """
+
+def _get_subsampling_settings(wildcards):
+    # Allow users to override default subsampling with their own settings keyed
+    # by location type and name. For example, "region_europe" or
+    # "country_iceland". Otherwise, default to settings for the location type.
+    subsampling_scheme = _get_subsampling_scheme_by_build_name(wildcards.build_name)
+    subsampling_settings = config["subsampling"][subsampling_scheme]
+
+    if hasattr(wildcards, "subsample"):
+        return subsampling_settings[wildcards.subsample]
+    else:
+        return subsampling_settings
+
+
+def get_priorities(wildcards):
+    subsampling_settings = _get_subsampling_settings(wildcards)
+
+    if "priorities" in subsampling_settings and subsampling_settings["priorities"]["type"] == "proximity":
+        return f"results/{wildcards.build_name}/proximity_{subsampling_settings['priorities']['focus']}.tsv"
+    else:
+        # TODO: find a way to make the list of input files depend on config
+        return config["files"]["include"]
+
+
+def get_priority_argument(wildcards):
+    subsampling_settings = _get_subsampling_settings(wildcards)
+
+    if "priorities" in subsampling_settings and subsampling_settings["priorities"]["type"] == "proximity":
+        return "--priority " + get_priorities(wildcards)
+    else:
+        return ""
+
+
+def _get_specific_subsampling_setting(setting, optional=False):
+    def _get_setting(wildcards):
+        if optional:
+            value = _get_subsampling_settings(wildcards).get(setting, "")
+        else:
+            value = _get_subsampling_settings(wildcards)[setting]
+
+        if isinstance(value, str):
+            # Load build attributes including geographic details about the
+            # build's region, country, division, etc. as needed for subsampling.
+            build = config["builds"][wildcards.build_name]
+            value = value.format(**build)
+        else:
+            return value
+
+        # Check format strings that haven't been resolved.
+        if re.search(r'\{.+\}', value):
+            raise Exception(f"The parameters for the subsampling scheme '{wildcards.subsample}' of build '{wildcards.build_name}' reference build attributes that are not defined in the configuration file: '{value}'. Add these build attributes to the appropriate configuration file and try again.")
+
+        return value
+
+    return _get_setting
+
+rule subsample:
+    message:
+        """
+        Subsample all sequences into a {wildcards.subsample} set for build '{wildcards.build_name}' with {params.sequences_per_group} sequences.
+        """
+    input:
+        sequences = rules.mask.output.alignment,
+        metadata = rules.load.output.metadata,
+        include = config["files"]["include"],
+        priorities = get_priorities
+    output:
+        sequences = "results/{build_name}/sample-{subsample}.fasta"
+    params:
+        group_by = _get_specific_subsampling_setting("group_by"),
+        sequences_per_group = _get_specific_subsampling_setting("seq_per_group"),
+        #max_sequences = _get_specific_subsampling_setting("max_sequences", optional=True),
+        exclude_argument = _get_specific_subsampling_setting("exclude", optional=True),
+        include_argument = _get_specific_subsampling_setting("include", optional=True),
+        query_argument = _get_specific_subsampling_setting("query", optional=True),
+        priority_argument = get_priority_argument
+    log:
+        "logs/subsample_{build_name}_{subsample}.txt"
+    conda: config["conda_environment"]
+    shell:
+        """
+        augur filter \
+            --sequences {input.sequences} \
+            --metadata {input.metadata} \
+            --max-date 2020-03-08 \
+            --include {input.include} \
+            {params.exclude_argument} \
+            {params.include_argument} \
+            {params.query_argument} \
+            {params.priority_argument} \
+            --group-by {params.group_by} \
+            --sequences-per-group {params.sequences_per_group} \
+            --subsample-seed SEED \
+            --output {output.sequences} 2>&1 | tee {log}
+        """
+
+rule proximity_score:
+    message:
+        """
+        determine priority for inclusion in as phylogenetic context by
+        genetic similiarity to sequences in focal set for build '{wildcards.build_name}'.
+        """
+    input:
+        alignment = rules.mask.output.alignment,
+        metadata = rules.load.output.metadata,
+        reference = config["files"]["reference"],
+        focal_alignment = "results/{build_name}/sample-{focus}.fasta"
+    output:
+        priorities = "results/{build_name}/proximity_{focus}.tsv"
+    log:
+        "logs/subsampling_priorities_{build_name}_{focus}.txt"
+    resources: mem_mb = 4000
+    conda: config["conda_environment"]
+    shell:
+        """
+        python3 scripts/priorities.py --alignment {input.alignment} \
+            --metadata {input.metadata} \
+            --reference {input.reference} \
+            --focal-alignment {input.focal_alignment} \
+            --output {output.priorities} 2>&1 | tee {log}
+        """
+
+def _get_subsampled_files(wildcards):
+    subsampling_settings = _get_subsampling_settings(wildcards)
+
+    return [
+        f"results/{wildcards.build_name}/sample-{subsample}.fasta"
+        for subsample in subsampling_settings
+    ]
+
+rule combine_samples:
+    message:
+        """
+        Combine and deduplicate FASTAs
+        """
+    input:
+        _get_subsampled_files
+    output:
+        alignment = "results/{build_name}/subsampled_alignment.fasta"
+    log:
+        "logs/subsample_regions_{build_name}.txt"
+    conda: config["conda_environment"]
+    shell:
+        """
+        python3 scripts/combine-and-dedup-fastas.py \
+            --input {input} \
+            --output {output} 2>&1 | tee {log}
+        """
+
+# # TODO: This will probably not work for build names like "country_usa" where we need to know the country is "USA".
+# rule adjust_metadata_regions:
+#     message:
+#         """
+#         Adjusting metadata for build '{wildcards.build_name}'
+#         """
+#     input:
+#         metadata = rules.load.output.metadata
+#     output:
+#         metadata = "results/{build_name}/metadata_adjusted.tsv"
+#     params:
+#         region = lambda wildcards: config["builds"][wildcards.build_name]["region"]
+#     log:
+#         "logs/adjust_metadata_regions_{build_name}.txt"
+#     conda: config["conda_environment"]
+#     shell:
+#         """
+#         python3 scripts/adjust_regional_meta.py \
+#             --region {params.region:q} \
+#             --metadata {input.metadata} \
+#             --output {output.metadata} 2>&1 | tee {log}
+#         """
+
+
+rule replace_names:
+    message: "Replacing strain with full sample name in masked alignment and updating metadata."
+    input: 
+        alignment = rules.combine_samples.output.alignment,
+        metadata = rules.load.output.metadata
+    output: 
+        alignment = "results/{build_name}/final_alignment.fasta",
+        metadata = "results/{build_name}/final_metadata.tsv",
+        figure = "results/{build_name}/hist_sequences.png",
+        mrs = "results/{build_name}/mrs.txt"
+    log:
+        "logs/{build_name}_replace_names.txt"
+    shell:
+        """
+        Rscript scripts/replace_names.R \
+            --alignment {input.alignment} \
+            --metadata {input.metadata} \
+            --output_alignment {output.alignment} \
+            --output_figure {output.figure} \
+            --output_mrs {output.mrs} \
+            --output_metadata {output.metadata} 2>&1 | tee {log}
+        """
+
+
+# Build a preliminary tree
+rule tree:
+    message: "Building prerliminary tree with augur"
+    input:
+        alignment = rules.replace_names.output.alignment
+    output:
+        tree = "results/{build_name}/tree_raw.nwk"
+    params:
+        args = lambda w: config["tree"].get("tree-builder-args","") if "tree" in config else ""
+    log:
+        "logs/tree_{build_name}.txt"
+    benchmark:
+        "benchmarks/tree_{build_name}.txt"
+    threads: 16
+    resources:
+        # Multiple sequence alignments can use up to 40 times their disk size in
+        # memory, especially for larger alignments.
+        # Note that Snakemake >5.10.0 supports input.size_mb to avoid converting from bytes to MB.
+        mem_mb=lambda wildcards, input: 40 * int(input.size / 1024 / 1024)
+    conda: config["conda_environment"]
+    shell:
+        """
+        augur tree \
+            --alignment {input.alignment} \
+            --tree-builder-args {params.args} \
+            --output {output.tree} \
+            --nthreads {threads} 2>&1 | tee {log}
+        """
+
+rule refine:
+    message:
+        """
+        Refining tree
+          - estimate timetree
+          - use {params.coalescent} coalescent timescale
+          - estimate {params.date_inference} node dates
+        """
+    input:
+        tree = rules.tree.output.tree,
+        alignment = rules.combine_samples.output.alignment,
+        metadata = _get_metadata_by_wildcards
+    output:
+        tree = "results/{build_name}/tree.nwk",
+        node_data = "results/{build_name}/branch_lengths.json"
+    log:
+        "logs/refine_{build_name}.txt"
+    benchmark:
+        "benchmarks/refine_{build_name}.txt"
+    threads: 1
+    resources:
+        # Multiple sequence alignments can use up to 15 times their disk size in
+        # memory.
+        # Note that Snakemake >5.10.0 supports input.size_mb to avoid converting from bytes to MB.
+        mem_mb=lambda wildcards, input: 15 * int(input.size / 1024 / 1024)
+    params:
+        root = config["refine"]["root"],
+        clock_rate = config["refine"]["clock_rate"],
+        clock_std_dev = config["refine"]["clock_std_dev"],
+        coalescent = config["refine"]["coalescent"],
+        date_inference = config["refine"]["date_inference"],
+        divergence_unit = config["refine"]["divergence_unit"],
+        clock_filter_iqd = config["refine"]["clock_filter_iqd"],
+        timetree = "" if config["refine"].get("no_timetree", False) else "--timetree"
+    conda: config["conda_environment"]
+    shell:
+        """
+        augur refine \
+            --tree {input.tree} \
+            --alignment {input.alignment} \
+            --metadata {input.metadata} \
+            --output-tree {output.tree} \
+            --output-node-data {output.node_data} \
+            --root {params.root} \
+            {params.timetree} \
+            --clock-rate {params.clock_rate} \
+            --clock-std-dev {params.clock_std_dev} \
+            --coalescent {params.coalescent} \
+            --date-inference {params.date_inference} \
+            --divergence-unit {params.divergence_unit} \
+            --date-confidence \
+            --no-covariance \
+            --clock-filter-iqd {params.clock_filter_iqd} 2>&1 | tee {log}
+        """
+
+
+rule beast:
+    message: 
+        """
+        Running BEAST2 analysis BDMM-Prime, MCMC chain {wildcards.seed}.
+        """
+    input:
+        xml = config["beast"]["xml"],
+        alignment = rules.replace_names.output.alignment
+    output:
+        beast_log = "results/{build_name}/{analysis_name}.{seed}.log",
+        trees = "results/{build_name}/{analysis_name}.{seed}.trees",
+        typed_trees = "results/{build_name}/{analysis_name}.{seed}.typed.trees",
+        typed_node_trees = "results/{build_name}/{analysis_name}.{seed}.typed.node.trees",
+        traj = "results/{build_name}/{analysis_name}.{seed}.TL.traj"
+    log:
+        "logs/beast_{build_name}_{analysis_name}.{seed}.txt"
+    params:
+        jar = config["beast"]["jar"],
+        seed = config["beast"]["n_mcmc"],
+    resources:
+        runtime = config["beast"]["t_mcmc"]
+    shell:
+        """
+        java -jar {params.jar} -seed {wildcards.seed} -overwrite {input.xml} 2>&1 | tee {log}
+        """
+
+rule summarize_log:
+    message: 
+        """
+        Summarizing log file {input.beast_log} with Log Analyzer.
+        """
+    input: 
+        beast_log = rules.beast.output.beast_log
+    output:
+        summary = "results/{build_name}/{analysis_name}.{seed}.logsummary.txt"
+    log:
+        "logs/{build_name}_{analysis_name}.{seed}.summarize_logs.txt"
+    params:
+        log_analyser = config["beast"]["log_analyser"],
+        burnin = config["beast"]["burnin"] * config["beast"]["l_mcmc"]
+    shell:
+        """
+        {params.log_analyser} -burnin {params.burnin} {input.beast_log} {output.summary} 2> {log}
+        """
+
+def _get_logsummary(wildcards):
+    files = expand("results/{build_name}/{analysis_name}.{seed}.logsummary.txt", 
+        build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME, seed=config["beast"]["n_mcmc"])
+    return files
+
+# def _get_logfiles(wildcards):
+#     files = expand("results/{build_name}/{analysis_name}.{seed}.log", 
+#         build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME, seed=config["beast"]["n_mcmc"])
+#     return files
+
+# def _get_treefiles(wildcards):
+#     files = expand("results/{build_name}/{analysis_name}.{seed}.typed.node.trees", 
+#         build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME, seed=config["beast"]["n_mcmc"])
+#     return files
+
+
+rule check_logs:
+    message: 
+        """
+        Check that log files have all ESS values >= 200 to include in the combined log file for analysis with LogAnalyser v1.8.2.
+        """
+    input:
+        summary = _get_logsummary
+    output:
+        log_fnames = "results/{build_name}/{analysis_name}_logs_included.txt",
+        tree_fnames = "results/{build_name}/{analysis_name}_trees_included.txt",
+        traj_fnames = "results/{build_name}/{analysis_name}_trajs_included.txt"
+    log:
+        "logs/{build_name}_{analysis_name}_check_logs.txt"
+    params:
+        include_all = config["beast"]["include_all"]
+    shell:
+        """
+        Rscript scripts/check_log.R \
+            --input {input.summary} \
+            --include_all {params.include_all} \
+            --output_log {output.log_fnames} \
+            --output_tree {output.tree_fnames} \
+            --output_traj {output.traj_fnames} 2>&1 | tee -a {log}
+        """
+
+rule combine_logs:
+    message: 
+        """
+        Combine log files with ESS >= 200: {input.log_fnames} with LogCombiner v1.8.2.
+        """
+    input:
+        log_fnames = rules.check_logs.output.log_fnames,
+    output:
+        combined_log = "results/{build_name}/{analysis_name}_comb.log"
+    log:
+        "logs/{build_name}_{analysis_name}_combine_logs"
+    params:
+        log_combiner = config["beast"]["log_combiner"],
+        burnin = config["beast"]["burnin"] * config["beast"]["l_mcmc"]
+    shell:
+        """
+        {params.log_combiner} -burnin {params.burnin} $(cat {input.log_fnames}) {output.combined_log}  2>&1 | tee {log}
+        """
+
+rule combine_trees:
+    message: 
+        """
+        Combine tree files with log files with ESS >= 200: {input.tree_fnames} with LogCombiner v1.8.2
+        """
+    input:
+        tree_fnames = rules.check_logs.output.tree_fnames,
+    output:
+        combined_trees = "results/{build_name}/{analysis_name}_comb.typednodetrees"
+    log:
+        "logs/{build_name}_{analysis_name}_combine_trees"
+    params:
+        log_combiner = config["beast"]["log_combiner"],
+        burnin = config["beast"]["burnin"] * config["beast"]["l_mcmc"]
+    shell:
+        """
+        {params.log_combiner} -trees -burnin {params.burnin} $(cat {input.tree_fnames}) {output.combined_trees} 2>&1 | tee {log}
+        """
+
+rule analyze_trajs:
+    message: 
+        """
+        Combine and analyze traj files with ESS >= 200: {input.traj_fnames}.
+        """
+    input:
+        traj_fnames = rules.check_logs.output.traj_fnames,
+        mrs = rules.replace_names.output.mrs
+    output:
+        fig_traj = "results/{build_name}/{analysis_name}.figtraj.png"
+    log:
+        "logs/{build_name}_{analysis_name}_analyze_trajs"
+    params:
+        burnin = config["beast"]["burnin"]
+    shell:
+        """
+        Rscript scripts/analyze_traj.R \
+            --input {input.traj_fnames} \
+            --burnin {params.burnin} \
+            --mrs $(cat {input.mrs}) \
+            --output_fig {output.fig_traj} 2>&1 | tee -a {log}
+        """
+
+rule summarize_combined_log:
+    message: 
+        """
+        Create summary table for combined log {input.combined_log} with LogAnalyser v1.8.2.
+        """
+    input:
+        combined_log = rules.combine_logs.output.combined_log
+    output:
+        summary_log = "results/{build_name}/{analysis_name}_comb.logsummary.tsv"
+    log:
+        "logs/{build_name}_{analysis_name}.summarize_combined_log.txt"
+    params:
+        log_analyser = config["beast"]["log_analyser"]
+    shell:
+        """
+        {params.log_analyser} {input.combined_log} {output.summary_log} 2> {log}
+        """
+
+rule summarize_trees:
+    message: 
+        """
+        Summarize trees to Maximum clade credibility tree? with mean node heights with TreeAnnotator v1.8.2.
+        """
+    input:
+        combined_trees = rules.combine_trees.output.combined_trees
+    output:
+        summary_tree = "results/{build_name}/{analysis_name}.mcc.typed.node.tree"
+    log:
+        "logs/{build_name}_{analysis_name}_summarize_trees"
+    params:
+        tree_annotator = config["beast"]["tree_annotator"]
+    shell:
+        """
+        {params.tree_annotator} -heights mean {input.combined_trees} {output.summary_tree} 2>&1 | tee {log}
+        """
+
+#rule analyze_traj:
+

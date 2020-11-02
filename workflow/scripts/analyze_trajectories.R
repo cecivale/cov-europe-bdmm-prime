@@ -46,7 +46,7 @@ print(paste("Output figures:", OUTPUT_FIGURE))
 states <- data.frame()
 events <- data.frame()
 for (filename in INPUT){
-  df <- loadTrajectories(filename, burninFrac=BURNIN, subsample=100)
+  df <- loadTrajectories(filename, burninFrac=BURNIN, subsample=200)
   states <- states %>% bind_rows(df$states %>% mutate(file = filename))
   events <- events %>% bind_rows(df$events %>% mutate(file = filename))
 }
@@ -341,14 +341,14 @@ gg3 <- lapply(1:3, function(i) {
 
 gg4 <- lapply(4:nrow(demes), function(i) {
   annotate_figure(ggarrange(migbirths_box[[i]], migbirths_bar[[i]], srcmig_bar[[i]], dest_bar[[i]], 
-                            ncol = 1, heights = c(3,1,1,1.4), common.legend = FALSE), 
+                            ncol = 1, heights = c(3,1,1,2), common.legend = FALSE), 
                   top = text_grob(demes$deme[i], face = "bold", size = 16))
 })
 
 
 multi <- ggarrange(gg1, ggarrange(plotlist = gg2, nrow = 1), ggarrange(plotlist = gg3, nrow = 1), 
                    ggarrange(plotlist = gg4, nrow = 1), nrow = 1, ncol = 1, common.legend = TRUE)
-ggexport(multi, filename = OUTPUT_FIGURE, width=1500, height=1000, res=72*2)
+ggexport(multi, filename = OUTPUT_FIGURE, width=2100, height=1400, res=72*2)
 cat("done!")
 
 # ------------------------------------------------------------------------------
