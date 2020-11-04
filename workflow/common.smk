@@ -1,5 +1,14 @@
 """Small, shared functions used to generate inputs and parameters.
 """
+
+def _get_beast_analysis(wildcards):
+    beast_analysis = _get_beast_analysis_by_build_name(wildcards.build_name)
+    return beast_analysis
+
+def _get_beast_analysis_by_build_name(build_name):
+    return config["builds"][build_name].get("beast_analysis")
+
+
 def _get_subsampling_scheme_by_build_name(build_name):
     return config["builds"][build_name].get("subsampling_scheme", build_name)
 

@@ -70,6 +70,12 @@ builds:
   #   subsampling_scheme: earlyeurope2
   europe3:
     subsampling_scheme: earlyeurope3
+    beast_analysis: 
+      - "201030_europe3.xml"
+  europe3b:
+    subsampling_scheme: earlyeurope3b
+    beast_analysis: 
+      - "201030_europe3b.xml"
   #europe4GLM:
     
 
@@ -148,7 +154,52 @@ subsampling:
       max_date: "2020-03-08"
       seq_per_deme: 50
       focal: 1
-    
+
+  earlyeurope3b:
+    France:
+      country: "France"
+      region: "Europe"
+      min_date: "2020-01-23"
+      max_date: "2020-03-08"
+      seq_per_deme: 50
+      focal: 1
+    Germany:
+      country: "Germany"
+      region: "Europe"
+      min_date: "2020-01-28"
+      max_date: "2020-03-08"
+      seq_per_deme: 50
+      focal: 1
+    Hubei:
+      division: "Hubei"
+      country: "China"
+      region: "Asia"
+      min_date: "2019-12-24"
+      max_date: "2020-03-08"
+      seq_per_deme: 40
+      focal: 1
+    Italy:
+      country: "Italy"
+      region: "Europe"
+      min_date: "2020-01-29"
+      max_date: "2020-03-08"
+      seq_per_deme: 60
+      focal: 1
+    OtherEuropean:
+      region: "Europe"
+      exclude_country: ["France","Germany","Italy","Spain"]
+      min_date: "2020-01-29"
+      max_date: "2020-03-08"
+      seq_per_deme: 40
+      focal: 0
+    Spain:
+      country: "Spain"
+      region: "Europe"
+      min_date: "2020-02-24"
+      max_date: "2020-03-08"
+      seq_per_deme: 50
+      focal: 1
+
 
 tree:
   tree-builder-args: "'-ninit 10 -n 4'"
@@ -167,7 +218,7 @@ refine:
 # BEAST2 analysis settings
 beast:
   # XML file for analysis
-  xml:  "201030_europe3.xml"
+  #xml:  ["201030_europe3.xml", "201030_europe3b.xml"]
   # BEAST2 jar file path
   jar: "/cluster/home/ceciliav/BDMM-Prime.jar"
   # List of parallel mcmc chains seeds to run 
