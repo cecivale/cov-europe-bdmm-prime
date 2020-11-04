@@ -63,20 +63,14 @@ mask:
 # Each build needs a name, a defined subsampling process, and geographic attributes used for subsampling.
 # Geography is specified by build attributes (e.g., `region`, `country`, `division`, `location`) that are referenced from subsampling schemes.
 builds:
-  # This build focuses on Europe early samples
-  # europe1:
-  #   subsampling_scheme: earlyeurope1
-  # europe2:
-  #   subsampling_scheme: earlyeurope2
-  europe3:
+  europe4: # Hubei
     subsampling_scheme: earlyeurope3
     beast_analysis: 
-      - "201030_europe3.xml"
-  europe3b:
-    subsampling_scheme: earlyeurope3b
+      - "201102_europe4.xml"
+  europe4b: # China sequences
+    subsampling_scheme: earlyeurope4
     beast_analysis: 
-      - "201030_europe3b.xml"
-  #europe4GLM:
+      - "201102_europe4b.xml"
     
 
 # # Define subsampling scheme
@@ -131,7 +125,7 @@ subsampling:
       region: "Asia"
       min_date: "2019-12-24"
       max_date: "2020-01-23"
-      seq_per_deme: 40
+      seq_per_deme: 50
       focal: 1
     Italy:
       country: "Italy"
@@ -200,6 +194,52 @@ subsampling:
       seq_per_deme: 50
       focal: 1
 
+  earlyeurope4:
+    France:
+      country: "France"
+      region: "Europe"
+      min_date: "2020-01-23"
+      max_date: "2020-03-08"
+      seq_per_deme: 50
+      focal: 1
+    Germany:
+      country: "Germany"
+      region: "Europe"
+      min_date: "2020-01-28"
+      max_date: "2020-03-08"
+      seq_per_deme: 50
+      focal: 1
+    Hubei:
+      country: "China"
+      region: "Asia"
+      min_date: "2019-12-24"
+      max_date: "2020-01-23"
+      seq_per_deme: 50
+      focal: 1
+    Italy:
+      country: "Italy"
+      region: "Europe"
+      min_date: "2020-01-29"
+      max_date: "2020-03-08"
+      seq_per_deme: 60
+      focal: 1
+    OtherEuropean:
+      region: "Europe"
+      exclude_country: ["France","Germany","Italy","Spain"]
+      min_date: "2020-01-29"
+      max_date: "2020-03-08"
+      seq_per_deme: 40
+      focal: 0
+    Spain:
+      country: "Spain"
+      region: "Europe"
+      min_date: "2020-02-24"
+      max_date: "2020-03-08"
+      seq_per_deme: 50
+      focal: 1
+
+
+
 
 tree:
   tree-builder-args: "'-ninit 10 -n 4'"
@@ -238,7 +278,7 @@ beast:
   tree_annotator: treeannotator
   mcc_heights: "mean"
   # Trajectory Mapper xml
-  trajectoryMapper: "201030_europe3.trajectoryMapper.xml"
+  trajectoryMapper: "201102_europe4.trajectoryMapper.xml"
 
 
 

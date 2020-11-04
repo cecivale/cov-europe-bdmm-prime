@@ -54,7 +54,8 @@ metadata <- full_metadata %>%
            (!country.x %in% demes$country & is.na(country.y))) %>%
 # 3. Create names GISAID EPI ISL | Deme | Date
   mutate(strain_old = strain,
-         strain = paste(gisaid_epi_isl, deme, date, sep = "/"))
+         strain = paste(gisaid_epi_isl, deme, date, sep = "/")) %>%
+  unique()
 
 # Adjust alignment names -------------------------------------------------------
 strain_names <- names(alignment)

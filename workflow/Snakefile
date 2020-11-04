@@ -13,7 +13,7 @@ configfile: "config.yaml"
 validate(config, schema="schemas/config.schema.yaml")
 
 BUILD_NAMES = list(config["builds"].keys())
-ANALYSIS_NAME = list(chain.from_iterable([config["builds"][build_name]["beast_analysis"] for build_name in BUILD_NAMES]))
+ANALYSIS_NAME = [analysis[:-4] for analysis in list(chain.from_iterable([config["builds"][build_name]["beast_analysis"] for build_name in BUILD_NAMES]))]
 SEED = 1234
  
 # Define patterns we expect for wildcards.
@@ -37,8 +37,16 @@ def filter_combinator(combinator, combinations):
                 yield wc_comb
     return filtered_combinator
 
-combinations = list(chain.from_iterable([[frozenset(sett) for sett in product(frozenset({("build_name", build_name)}), frozenset(product(["analysis_name"], config["builds"][build_name]["beast_analysis"])))] for build_name in BUILD_NAMES]))
+combinations = list(chain.from_iterable([[frozenset(sett) for sett in product(frozenset({("build_name", build_name)}), frozenset(product(["analysis_name"], [analysis[:-4] for analysis in config["builds"][build_name]["beast_analysis"]])))] for build_name in BUILD_NAMES]))
 filtered_product = filter_combinator(product, combinations)
+
+# rule test:
+#     params:
+#         t = combinations
+#     shell:
+#         """
+#         echo {params.t}
+#         """
 
 rule all:
     input:
