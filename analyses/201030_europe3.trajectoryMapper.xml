@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beast namespace="beast.core
+                  :beast.core.parameter
+                  :beast.evolution.alignment
+                  :beast.evolution.tree
+                  :feast.expressions
+                  :feast.function
+                  :feast.fileio
+                  :feast.fileio.logfileiterator
+                  :bdmmprime.distribution
+                  :bdmmprime.parameterization
+                  :bdmmprime.mapping" version="2.0">
+
+
+  <!-- Modify alignment file name-->
+  <data
+  id="europe_demes"
+  spec= "AlignmentFromFasta"
+  fileName = "results/europe3/final_alignment.fasta"  
+  name="alignment"/>
+
+  <!-- Modify parameterization to match the one from the analysis-->
+  <distribution id="BDMMPrime" spec="BirthDeathMigrationDistribution" conditionOnSurvival="false" tree="@tree"> 
+    <parameterization id="EpiBDMMPrimeParameterization" spec="EpiParameterization" origin="@origin">
+      <R0 spec="SkylineVectorParameter" typeSet="@typeSet">
+        <skylineValues idref="R0"/>
+      </R0>
+      <R0AmongDemes spec="SkylineMatrixParameter" typeSet="@typeSet">
+        <skylineValues idref="R0AmongDemes"/>
+      </R0AmongDemes>
+      <becomeUninfectiousRate spec="SkylineVectorParameter" typeSet="@typeSet">
+        <skylineValues idref="becomeUninfectiousRate"/>
+      </becomeUninfectiousRate>
+      <samplingProportion spec="SkylineVectorParameter" typeSet="@typeSet" timesAreAges="true" origin="@origin">
+        <skylineValues idref="samplingProportion"/>
+        <parameter id="samplingProportionChangeTimes" spec="RealParameter" name="changeTimes">0.12 0.205</parameter>
+      </samplingProportion>
+      <rhoSampling spec="TimedParameter" id="rhoSamplingProb" typeSet="@typeSet"/>
+      <removalProb spec="SkylineVectorParameter" typeSet="@typeSet">
+        <skylineValues idref="removalProb"/>
+      </removalProb>
+      <migrationRate spec="SkylineMatrixParameter" typeSet="@typeSet">
+        <skylineValues idref="migrationRate"/>
+      </migrationRate>
+      <typeSet id="typeSet" spec="bdmmprime.parameterization.TypeSet">
+        <typeTraitSet id="typeTraitSet" spec="TraitSetFromTaxonSet" traitname="type" delimiter="/" takeGroup="1"> 
+          <taxa id="TaxonSet.1" spec="TaxonSet" alignment="@europe_demes"/> 
+        </typeTraitSet>
+      </typeSet>
+    </parameterization>
+    <parameter id="typeFrequencies" spec="RealParameter" dimension="6" estimate="false" lower="0.0" name="frequencies" upper="1.0">0.0 0.0 1.0 0.0 0.0 0.0</parameter> 
+    <typeTraitSet idref="typeTraitSet"/>
+  </distribution>
+
+  
+   <run spec="LogFileIterator">
+    <!-- Modify log file name to use and log files entries for the analysis-->
+    <logFileState spec="TraceLogFileState" logFileName="results/europe3/201030_europe3_comb.log">
+
+      <logFileEntry spec="LogFileRealParameter" fieldName="originBDMMPrime">
+        <fieldParameter id="origin" spec="RealParameter" value="1.0"/>
+      </logFileEntry>
+
+       <!-- R0 -->
+      <logFileEntry spec="LogFileRealParameter" fieldName="R0SVEpi.France" fieldParameterIndex="0">
+        <fieldParameter id="R0" spec="RealParameter" value="0.0 0.0 0.0 0.0 0.0 0.0"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="R0SVEpi.Germany" fieldParameterIndex="1">
+        <fieldParameter idref="R0"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="R0SVEpi.Hubei" fieldParameterIndex="2">
+        <fieldParameter idref="R0"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="R0SVEpi.Italy" fieldParameterIndex="3">
+        <fieldParameter idref="R0"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="R0SVEpi.OtherEuropean" fieldParameterIndex="4">
+        <fieldParameter idref="R0"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="R0SVEpi.Spain" fieldParameterIndex="5">
+        <fieldParameter idref="R0"/>
+      </logFileEntry>
+
+      <logFileEntry spec="LogFileRealParameter" fieldName="R0AmongDemesSMEpi">
+        <fieldParameter id="R0AmongDemes" spec="RealParameter" value="0.0" />
+      </logFileEntry>
+
+      <logFileEntry spec="LogFileRealParameter" fieldName="becomeUninfectiousRateSVEpi">
+        <fieldParameter id="becomeUninfectiousRate" spec="RealParameter" value="36.5"/>
+      </logFileEntry>
+
+      <!-- Migration rates -->
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.France_to_Germany" fieldParameterIndex="0">
+        <fieldParameter id="migrationRate" spec="RealParameter" value="0.1 0.0 0.1 0.1 0.1 0.1 0.0 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.0 0.1 0.1 0.1 0.1 0.0 0.1 0.1 0.1 0.1 0.0 0.1 0.1"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.France_to_Hubei" fieldParameterIndex="1">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.France_to_Italy" fieldParameterIndex="2">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.France_to_OtherEuropean" fieldParameterIndex="3">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.France_to_Spain" fieldParameterIndex="4">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Germany_to_France" fieldParameterIndex="5">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Germany_to_Hubei" fieldParameterIndex="6">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Germany_to_Italy" fieldParameterIndex="7">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Germany_to_OtherEuropean" fieldParameterIndex="8">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Germany_to_Spain" fieldParameterIndex="9">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Hubei_to_France" fieldParameterIndex="10">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Hubei_to_Germany" fieldParameterIndex="11">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Hubei_to_Italy" fieldParameterIndex="12">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Hubei_to_OtherEuropean" fieldParameterIndex="13">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Hubei_to_Spain" fieldParameterIndex="14">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Italy_to_France" fieldParameterIndex="15">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Italy_to_Germany" fieldParameterIndex="16">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Italy_to_Hubei" fieldParameterIndex="17">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Italy_to_OtherEuropean" fieldParameterIndex="18">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Italy_to_Spain" fieldParameterIndex="19">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.OtherEuropean_to_France" fieldParameterIndex="20">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.OtherEuropean_to_Germany" fieldParameterIndex="21">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.OtherEuropean_to_Hubei" fieldParameterIndex="22">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.OtherEuropean_to_Italy" fieldParameterIndex="23">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.OtherEuropean_to_Spain" fieldParameterIndex="24">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Spain_to_France" fieldParameterIndex="25">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Spain_to_Germany" fieldParameterIndex="26">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Spain_to_Hubei" fieldParameterIndex="27">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Spain_to_Italy" fieldParameterIndex="28">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Spain_to_OtherEuropean" fieldParameterIndex="29">
+        <fieldParameter idref="migrationRate"/>
+      </logFileEntry>
+
+      <!-- Sampling Proportions -->
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i2_France" fieldParameterIndex="0">
+        <fieldParameter id="samplingProportion" spec="RealParameter" value="1.0E-5 1.0E-5 0.0 1.0E-5 1.0E-5 1.0E-5 1.0E-5 1.0E-5 1.0E-5 1.0E-5 1.0E-5 1.0E-5 0.0 0.0 0.0 0.0 0.0 0.0"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i2_Germany" fieldParameterIndex="1">
+        <fieldParameter idref="samplingProportion"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i2_Hubei" fieldParameterIndex="2">
+        <fieldParameter idref="samplingProportion"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i2_Italy" fieldParameterIndex="3">
+        <fieldParameter idref="samplingProportion"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i2_OtherEuropean" fieldParameterIndex="4">
+        <fieldParameter idref="samplingProportion"/>
+      </logFileEntry>
+       <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i2_Spain" fieldParameterIndex="5">
+        <fieldParameter idref="samplingProportion"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i1_France" fieldParameterIndex="6">
+        <fieldParameter idref="samplingProportion"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i1_Germany" fieldParameterIndex="7">
+        <fieldParameter idref="samplingProportion"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i1_Hubei" fieldParameterIndex="8">
+        <fieldParameter idref="samplingProportion"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i1_Italy" fieldParameterIndex="9">
+        <fieldParameter idref="samplingProportion"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i1_OtherEuropean" fieldParameterIndex="10">
+        <fieldParameter idref="samplingProportion"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i1_Spain" fieldParameterIndex="11">
+        <fieldParameter idref="samplingProportion"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i0_France" fieldParameterIndex="12">
+        <fieldParameter idref="samplingProportion"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i0_Germany" fieldParameterIndex="13">
+        <fieldParameter idref="samplingProportion"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i0_Hubei" fieldParameterIndex="14">
+        <fieldParameter idref="samplingProportion"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i0_Italy" fieldParameterIndex="15">
+        <fieldParameter idref="samplingProportion"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i0_OtherEuropean" fieldParameterIndex="16">
+        <fieldParameter idref="samplingProportion"/>
+      </logFileEntry>
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i0_Spain" fieldParameterIndex="17">
+        <fieldParameter idref="samplingProportion"/>
+      </logFileEntry>
+
+      <logFileEntry spec="LogFileRealParameter" fieldName="removalProbSVEpi">
+        <fieldParameter id="removalProb" spec="RealParameter" value="0.0"/>
+      </logFileEntry>
+
+    </logFileState>
+
+    <!-- Modify tree file name to use-->
+    <logFileState spec="TreeLogFileState" logFileName="results/europe3/201030_europe3_comb.trees">
+      <tree spec="Tree" id="tree"/>
+    </logFileState>
+
+
+    <logger spec="Logger"
+            logEvery="10000">
+      <log idref="R0"/>
+      <log idref="samplingProportion"/>
+    </logger>
+
+    <!-- Modify typed tree file name-->
+    <logger spec="Logger" fileName="results/europe3/201030_europe3.typed.trees" logEvery="10000" mode="tree">
+        <log id="typeMappedTree" spec="TypeMappedTree" bdmmDistrib="@BDMMPrime" frequencies="@typeFrequencies" mapOnInit="false" remapOnLog="true" typeLabel="type" typeTraitSet="@typeTraitSet" untypedTree="@tree"/>
+    </logger>
+
+    <logger logEvery="10000" fileName="201030_europe3.typed.tree.log">
+      <log id="typedTreeStats" spec="TypedTreeStatsLogger" includeRootEdgeChanges="true" typeLabel="type" typeSet="@typeSet" typedTree="@typeMappedTree"/>
+    </logger>
+
+    <!-- Modify typed node tree file name-->
+    <logger id="nodeTypedTreeLogger" spec="Logger" fileName="results/europe3/201030_europe3.typed.node.trees" logEvery="1000" mode="tree">
+      <log id="nodeTypedTree" spec="TypedNodeTreeLogger" typedTree="@typeMappedTree"/>
+    </logger>
+
+    <!-- Modify trajectories file name-->
+    <logger spec="Logger" logEvery="10000" fileName="results/europe3/201030_europe3.TL.traj">
+      <log id="typedTrajectoryTL" spec="bdmmprime.trajectories.SampledTrajectory"
+           nParticles="1000"
+           useTauLeaping="true"
+           minLeapCount="100"
+           epsilon="0.03"
+           typeLabel="type"
+           typeMappedTree="@typeMappedTree"
+           parameterization="@EpiBDMMPrimeParameterization"/>
+    </logger>
+  </run>
+</beast>
+

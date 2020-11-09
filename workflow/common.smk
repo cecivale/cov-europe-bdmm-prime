@@ -3,10 +3,18 @@
 
 def _get_beast_analysis(wildcards):
     beast_analysis = _get_beast_analysis_by_build_name(wildcards.build_name)
-    return beast_analysis
+    return beast_analysis 
 
 def _get_beast_analysis_by_build_name(build_name):
-    return config["builds"][build_name].get("beast_analysis")
+    return [analysis + ".xml" for analysis in config["builds"][build_name].get("beast_analysis")]
+
+
+def _get_beast_trajectory_analysis(wildcards):
+    beast_analysis = _get_beast_trajectory_analysis_by_build_name(wildcards.build_name)
+    return beast_analysis 
+
+def _get_beast_trajectory_analysis_by_build_name(build_name):
+    return [analysis + ".trajectoryMapper.xml" for analysis in config["builds"][build_name].get("beast_analysis")]
 
 
 def _get_subsampling_scheme_by_build_name(build_name):

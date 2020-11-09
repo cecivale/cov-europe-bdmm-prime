@@ -13,7 +13,7 @@ configfile: "config.yaml"
 validate(config, schema="schemas/config.schema.yaml")
 
 BUILD_NAMES = list(config["builds"].keys())
-ANALYSIS_NAME = [analysis[:-4] for analysis in list(chain.from_iterable([config["builds"][build_name]["beast_analysis"] for build_name in BUILD_NAMES]))]
+ANALYSIS_NAME = list(chain.from_iterable([config["builds"][build_name]["beast_analysis"] for build_name in BUILD_NAMES]))
 SEED = 1234
  
 # Define patterns we expect for wildcards.
@@ -21,11 +21,12 @@ wildcard_constraints:
     # Allow build names to contain alpha characters, underscores, and hyphens
     # but not special strings used for Nextstrain builds.
     #build_name = r'(?:[_a-zA-Z-](?!(tip-frequencies|gisaid|zh)))+',
+    build_name = r"[A-Za-z0-9]+",
+    analysis_name = r"[a-zA-Z0-9_.-]+",
     date = r"[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]",
     seed = r"[0-9]*"
 
 localrules: load
-
 
 def filter_combinator(combinator, combinations):
     def filtered_combinator(*args, **kwargs):
@@ -37,23 +38,15 @@ def filter_combinator(combinator, combinations):
                 yield wc_comb
     return filtered_combinator
 
-combinations = list(chain.from_iterable([[frozenset(sett) for sett in product(frozenset({("build_name", build_name)}), frozenset(product(["analysis_name"], [analysis[:-4] for analysis in config["builds"][build_name]["beast_analysis"]])))] for build_name in BUILD_NAMES]))
+combinations = list(chain.from_iterable([[frozenset(sett) for sett in product(frozenset({("build_name", build_name)}), frozenset(product(["analysis_name"], config["builds"][build_name]["beast_analysis"])))] for build_name in BUILD_NAMES]))
 filtered_product = filter_combinator(product, combinations)
-
-# rule test:
-#     params:
-#         t = combinations
-#     shell:
-#         """
-#         echo {params.t}
-#         """
 
 rule all:
     input:
         prelim_tree = expand("results/{build_name}/tree.nwk", build_name=BUILD_NAMES),
-        summary_tree = expand("results/{build_name}/{analysis_name}/{analysis_name}.mcc.typed.node.tree", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
-        fig_traj = expand("results/{build_name}/{analysis_name}/{analysis_name}.figtraj.png", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
-        summary_log =  expand("results/{build_name}/{analysis_name}/{analysis_name}_comb.logsummary.tsv", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
+        summary_tree = expand("results/{build_name}/{analysis_name}.mcc.typed.node.tree", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
+        fig_traj = expand("results/{build_name}/{analysis_name}.figtraj.png", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
+        summary_log =  expand("results/{build_name}/{analysis_name}_comb.logsummary.tsv", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
         
 
 rule clean:
@@ -599,6 +592,7 @@ rule refine:
             --clock-filter-iqd {params.clock_filter_iqd} 2>&1 | tee {log}
         """
 
+
 rule beast:
     message: 
         """
@@ -608,10 +602,10 @@ rule beast:
         xml = _get_beast_analysis,
         alignment = rules.adjust_names.output.alignment
     output:
-        beast_log = "results/{build_name}/{analysis_name}/{analysis_name}.{seed}.log",
-        trees = "results/{build_name}/{analysis_name}/{analysis_name}.{seed}.trees",
+        beast_log = "results/{build_name}/{analysis_name}.{seed}.log",
+        trees = "results/{build_name}/{analysis_name}.{seed}.trees",
     log:
-        "logs/beast_{build_name}_{analysis_name}/{analysis_name}.{seed}.txt"
+        "logs/beast_{build_name}_{analysis_name}.{seed}.txt"
     params:
         jar = config["beast"]["jar"],
         seed = config["beast"]["n_mcmc"],
@@ -619,7 +613,9 @@ rule beast:
         runtime = config["beast"]["t_mcmc"]
     shell:
         """
-        java -jar {params.jar} -seed {wildcards.seed} -statefile {wildcards.analysis_name}.{wildcards.seed}.state -overwrite {input.xml} 2>&1 | tee {log} 
+        scp {input.xml} results/{wildcards.build_name}/
+        java -jar {params.jar} -seed {wildcards.seed} -statefile {wildcards.analysis_name}.{wildcards.seed}.state -overwrite results/{wildcards.build_name}/{input.xml} 2>&1 | tee {log} 
+        rm results/{wildcards.build_name}/{input.xml}
         """
 
 rule summarize_log:
@@ -630,19 +626,19 @@ rule summarize_log:
     input: 
         beast_log = rules.beast.output.beast_log
     output:
-        log_summary = "results/{build_name}/{analysis_name}/{analysis_name}.{seed}.logsummary.txt"
+        log_summary = "results/{build_name}/{analysis_name}.{seed}.logsummary.txt"
     log:
         "logs/{build_name}_{analysis_name}/{analysis_name}.{seed}.summarize_logs.txt"
     params:
         log_analyser = config["beast"]["log_analyser"],
-        burnin = config["beast"]["burnin"] * config["beast"]["l_mcmc"]
+        burnin = int(config["beast"]["burnin"] * config["beast"]["l_mcmc"])
     shell:
         """
         {params.log_analyser} -burnin {params.burnin} {input.beast_log} {output.log_summary} 2> {log}
         """
 
 def _get_logsummary(wildcards):
-    files = expand("results/{{build_name}}/{{analysis_name}}/{{analysis_name}}.{seed}.logsummary.txt",
+    files = expand("results/{{build_name}}/{{analysis_name}}.{seed}.logsummary.txt",
         seed=config["beast"]["n_mcmc"])
     return files
 
@@ -654,7 +650,7 @@ checkpoint chains_diagnostic:
     input:
         log_summary = _get_logsummary
     output:
-        diagnostic = "results/{build_name}/{analysis_name}/{analysis_name}_chains_diagnostic.txt",
+        diagnostic = "results/{build_name}/{analysis_name}_chains_diagnostic.txt",
     params:
         min_ess = config["beast"]["min_ess"]
     log:
@@ -668,17 +664,17 @@ checkpoint chains_diagnostic:
         """
 
 def _get_logs_tocombine(wildcards):
-    diagnostic = pd.read_csv(checkpoints.chains_diagnostic.get(**wildcards).output[0].open(), sep="\t")
+    diagnostic = pd.read_csv(checkpoints.chains_diagnostic.get(**wildcards).output.diagnostic, sep="\t")
     return expand(
-        expand("results/{build_name}/{analysis_name}/{analysis_name}.{{seed}}.log", zip,
+        expand("results/{build_name}/{analysis_name}.{{seed}}.log", zip,
         build_name=wildcards.build_name, analysis_name=wildcards.analysis_name),
         seed=diagnostic[diagnostic["included"] == 1]["seed"]
     )
 
 def _get_trees_tocombine(wildcards):
-    diagnostic = pd.read_csv(checkpoints.chains_diagnostic.get(**wildcards).output[0].open(), sep="\t")
+    diagnostic = pd.read_csv(checkpoints.chains_diagnostic.get(**wildcards).output.diagnostic, sep="\t")
     return expand(
-        expand("results/{build_name}/{analysis_name}/{analysis_name}.{{seed}}.trees", zip,
+        expand("results/{build_name}/{analysis_name}.{{seed}}.trees", zip,
         build_name=wildcards.build_name, analysis_name=wildcards.analysis_name),
         seed=diagnostic[diagnostic["included"] == 1]["seed"]
     )
@@ -687,17 +683,18 @@ def _get_trees_tocombine(wildcards):
 rule combine_logs:
     message: 
         """
-        Combine log files with ESS >= 200: {input.log_files} with LogCombiner v1.8.2.
+        Combine log files with ESS >= {params.min_ess}: {input.log_files} with LogCombiner v1.8.2.
         """
     input:
         log_files = _get_logs_tocombine
     output:
-        combined_log = "results/{build_name}/{analysis_name}/{analysis_name}_comb.log"
+        combined_log = "results/{build_name}/{analysis_name}_comb.log"
     log:
         "logs/{build_name}_{analysis_name}/{analysis_name}_combine_logs"
     params:
         log_combiner = config["beast"]["log_combiner"],
-        burnin = config["beast"]["burnin"] * config["beast"]["l_mcmc"]
+        burnin = int(config["beast"]["burnin"] * config["beast"]["l_mcmc"]),
+        min_ess = config["beast"]["min_ess"]
     shell:
         """
         {params.log_combiner} -burnin {params.burnin} {input.log_files} {output.combined_log}  2>&1 | tee {log}
@@ -706,39 +703,44 @@ rule combine_logs:
 rule combine_trees:
     message: 
         """
-        Combine tree files with log files with ESS >= 200: {input.tree_files} with LogCombiner v1.8.2
+        Combine tree files with log files with ESS >= {params.min_ess}: {input.tree_files} with LogCombiner v1.8.2
         """
     input:
         tree_files = _get_trees_tocombine
     output:
-        combined_trees = "results/{build_name}/{analysis_name}/{analysis_name}_comb.trees"
+        combined_trees = "results/{build_name}/{analysis_name}_comb.trees"
     log:
         "logs/{build_name}_{analysis_name}/{analysis_name}_combine_trees"
     params:
         log_combiner = config["beast"]["log_combiner"],
-        burnin = config["beast"]["burnin"] * config["beast"]["l_mcmc"]
+        burnin = int(config["beast"]["burnin"] * config["beast"]["l_mcmc"]),
+        min_ess = config["beast"]["min_ess"]
     shell:
         """
         {params.log_combiner} -trees -burnin {params.burnin} {input.tree_files} {output.combined_trees} 2>&1 | tee {log}
         """
 
+
 rule trajectory_mapping:
     input: 
-        xml = config["beast"]["trajectoryMapper"],
+        xml = _get_beast_trajectory_analysis,
         combined_log = rules.combine_logs.output.combined_log,
         combined_trees = rules.combine_trees.output.combined_trees
     output:
-        typed_trees = "results/{build_name}/{analysis_name}/{analysis_name}.typed.trees",
-        node_typed_trees = "results/{build_name}/{analysis_name}/{analysis_name}.typed.node.trees",
-        trajectories = "results/{build_name}/{analysis_name}/{analysis_name}.TL.traj"
+        typed_trees = "results/{build_name}/{analysis_name}.typed.trees",
+        node_typed_trees = "results/{build_name}/{analysis_name}.typed.node.trees",
+        trajectories = "results/{build_name}/{analysis_name}.TL.traj"
     log:
         "logs/{build_name}_{analysis_name}/{analysis_name}_trajectory_mapping"
     params:
         jar = config["beast"]["jar"],
     shell:
         """
-        java -jar {params.jar} -overwrite {input.xml} 2>&1 | tee {log}
+        scp {input.xml} results/{wildcards.build_name}/
+        java -jar {params.jar} -overwrite results/{wildcards.build_name}/{input.xml} 2>&1 | tee {log}
+        rm results/{wildcards.build_name}/{input.xml}
         """
+
 
 rule summarize_comb_log:
     message: 
@@ -748,7 +750,7 @@ rule summarize_comb_log:
     input:
         combined_log = rules.combine_logs.output.combined_log
     output:
-        summary_log = "results/{build_name}/{analysis_name}/{analysis_name}_comb.logsummary.tsv"
+        summary_log = "results/{build_name}/{analysis_name}_comb.logsummary.tsv"
     log:
         "logs/{build_name}_{analysis_name}/{analysis_name}.summarize_comb_log.txt"
     params:
@@ -768,7 +770,7 @@ rule summarize_trees:
     input:
         combined_trees = rules.trajectory_mapping.output.node_typed_trees
     output:
-        summary_tree = "results/{build_name}/{analysis_name}/{analysis_name}.mcc.typed.node.tree"
+        summary_tree = "results/{build_name}/{analysis_name}.mcc.typed.node.tree"
     log:
         "logs/{build_name}_{analysis_name}/{analysis_name}_summarize_trees"
     params:
@@ -790,7 +792,7 @@ rule analyze_trajectories:
         trajectories = rules.trajectory_mapping.output.trajectories,
         metadata = rules.adjust_names.output.metadata
     output:
-        fig_traj = "results/{build_name}/{analysis_name}/{analysis_name}.figtraj.png" 
+        fig_traj = "results/{build_name}/{analysis_name}.figtraj.png" 
     log:
         "logs/{build_name}_{analysis_name}/{analysis_name}_analyze_trajectories"
     params:

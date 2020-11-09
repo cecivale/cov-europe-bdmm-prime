@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beast beautitemplate='Standard' beautistatus='noAutoSetClockRate' 
+    namespace="beast.core
+    :beast.evolution.alignment
+    :beast.evolution.tree.coalescent
+    :beast.core.util
+    :beast.evolution.nuc
+    :beast.evolution.operators
+    :beast.evolution.sitemodel
+    :beast.evolution.substitutionmodel
+    :beast.evolution.likelihood
+    :bdmmprime.util.operators
+    :bdmmprime.util.priors" required="" version="2.6">
+
+
+    <data
+        id="europe_demes"
+        spec= "feast.fileio.AlignmentFromFasta"
+        fileName = "results/europe3/final_alignment.fasta"
+        name="alignment"/>
+
+    <map name="Uniform" >beast.math.distributions.Uniform</map>
+    <map name="Exponential" >beast.math.distributions.Exponential</map>
+    <map name="LogNormal" >beast.math.distributions.LogNormalDistributionModel</map>
+    <map name="Normal" >beast.math.distributions.Normal</map>
+    <map name="Beta" >beast.math.distributions.Beta</map>
+    <map name="Gamma" >beast.math.distributions.Gamma</map>
+    <map name="LaplaceDistribution" >beast.math.distributions.LaplaceDistribution</map>
+    <map name="prior" >beast.math.distributions.Prior</map>
+    <map name="InverseGamma" >beast.math.distributions.InverseGamma</map>
+    <map name="OneOnX" >beast.math.distributions.OneOnX</map>
+
+
+    <run id="mcmc" spec="MCMC" chainLength="10000000">
+        <state id="state" spec="State" storeEvery="5000">
+            <tree id="Tree.t:europe_demes" spec="beast.evolution.tree.Tree" name="stateNode">
+                <trait id="dateTrait.t:europe_demes" spec="feast.fileio.TraitSetFromTaxonSet" dateFormat="yyyy-M-dd" traitname="date" delimiter= "/" everythingAfterLast="true">
+                    <taxa id="TaxonSet.europe_demes" spec="TaxonSet">
+                        <alignment idref="europe_demes"/>
+                    </taxa>
+                </trait>
+                <taxonset idref="TaxonSet.europe_demes"/>
+            </tree>
+            <parameter id="gammaShape.s:europe_demes" spec="parameter.RealParameter" name="stateNode">1.0</parameter>
+            <parameter id="kappa.s:europe_demes" spec="parameter.RealParameter" lower="0.0" name="stateNode">2.0</parameter>
+            <parameter id="originBDMMPrime.t:europe_demes" spec="parameter.RealParameter" name="stateNode">1.0</parameter>
+            <parameter id="R0Epi.t:europe_demes" spec="parameter.RealParameter" dimension="6" name="stateNode">1.0 1.0 1.0 1.0 1.0 1.0</parameter>
+            <parameter id="samplingProportionEpi.t:europe_demes" spec="parameter.RealParameter" dimension="18" lower="0.0" name="stateNode" upper="1.0">1.0E-5 1.1E-5 0.0 1.3E-5 1.4E-5 1.5E-5 1.0E-5 1.1E-5 1.2E-5 1.3E-5 1.4E-5 1.5E-5 0.0 0.0 0.0 0.0 0.0 0.0</parameter>
+            <parameter id="migrationRateEpi.t:europe_demes" spec="parameter.RealParameter" dimension="30" name="stateNode">0.1 0.0 0.1 0.1 0.1 0.1 0.0 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.0 0.1 0.1 0.1 0.1 0.0 0.1 0.1 0.1 0.1 0.0 0.1 0.1</parameter>
+        </state>
+
+        <init id="RandomTree.t:europe_demes" spec="beast.evolution.tree.RandomTree" estimate="false" initial="@Tree.t:europe_demes" taxa="@europe_demes">
+            <populationModel id="ConstantPopulation0.t:europe_demes" spec="ConstantPopulation">
+                <parameter id="randomPopSize.t:europe_demes" spec="parameter.RealParameter" name="popSize">1.0</parameter>
+            </populationModel>
+        </init>
+
+        <distribution id="posterior" spec="util.CompoundDistribution">
+            <distribution id="prior" spec="util.CompoundDistribution">
+                <distribution id="BDMMPrime.t:europe_demes" spec="bdmmprime.distribution.BirthDeathMigrationDistribution" conditionOnSurvival="false" tree="@Tree.t:europe_demes">
+                    <parameterization id="EpiBDMMPrimeParameterization.t:europe_demes" spec="bdmmprime.parameterization.EpiParameterization" origin="@originBDMMPrime.t:europe_demes">
+                        <R0 id="R0SVEpi.t:europe_demes" spec="bdmmprime.parameterization.SkylineVectorParameter" origin="@originBDMMPrime.t:europe_demes" skylineValues="@R0Epi.t:europe_demes" timesAreAges="true">
+                            <typeSet id="typeSetBDMMPrime.t:europe_demes" spec="bdmmprime.parameterization.TypeSet">
+                                <typeTraitSet id="typeTraitSet.t:europe_demes" spec="feast.fileio.TraitSetFromTaxonSet" traitname="type" delimiter="/" takeGroup="1"> 
+                                    <taxa id="TaxonSet.1" spec="TaxonSet" alignment="@europe_demes"/> 
+                                </typeTraitSet>
+                            </typeSet>
+                        </R0>
+                        <becomeUninfectiousRate id="becomeUninfectiousRateSVEpi.t:europe_demes" spec="bdmmprime.parameterization.SkylineVectorParameter" origin="@originBDMMPrime.t:europe_demes" timesAreAges="true" typeSet="@typeSetBDMMPrime.t:europe_demes">
+                            <parameter id="becomeUninfectiousRateEpi.t:europe_demes" spec="parameter.RealParameter" estimate="false" name="skylineValues">36.5</parameter>
+                        </becomeUninfectiousRate>
+                        <samplingProportion id="samplingProportionSVEpi.t:europe_demes" spec="bdmmprime.parameterization.SkylineVectorParameter" origin="@originBDMMPrime.t:europe_demes" skylineValues="@samplingProportionEpi.t:europe_demes" timesAreAges="true" typeSet="@typeSetBDMMPrime.t:europe_demes">
+                            <parameter id="samplingProportionChangeTimesEpi.t:europe_demes" spec="parameter.RealParameter" dimension="2" estimate="false" lower="0.0" name="changeTimes">0.12 0.205</parameter>
+                        </samplingProportion>
+                        <rhoSampling id="rhoSamplingProbTPEpi.t:europe_demes" spec="bdmmprime.parameterization.TimedParameter" origin="@originBDMMPrime.t:europe_demes" timesAreAges="true" typeSet="@typeSetBDMMPrime.t:europe_demes"/>
+                        <removalProb id="removalProbSVEpi.t:europe_demes" spec="bdmmprime.parameterization.SkylineVectorParameter" origin="@originBDMMPrime.t:europe_demes" timesAreAges="true" typeSet="@typeSetBDMMPrime.t:europe_demes">
+                            <parameter id="removalProbEpi.t:europe_demes" spec="parameter.RealParameter" estimate="false" lower="0.0" name="skylineValues" upper="1.0">1.0</parameter>
+                        </removalProb>
+                        <migrationRate id="migrationRateSMEpi.t:europe_demes" spec="bdmmprime.parameterization.SkylineMatrixParameter" origin="@originBDMMPrime.t:europe_demes" skylineValues="@migrationRateEpi.t:europe_demes" timesAreAges="true" typeSet="@typeSetBDMMPrime.t:europe_demes"/>
+                        <R0AmongDemes id="R0AmongDemesSMEpi.t:europe_demes" spec="bdmmprime.parameterization.SkylineMatrixParameter" origin="@originBDMMPrime.t:europe_demes" timesAreAges="true" typeSet="@typeSetBDMMPrime.t:europe_demes">
+                            <parameter id="R0AmongDemesEpi.t:europe_demes" spec="parameter.RealParameter" estimate="false" name="skylineValues">0.0</parameter>
+                        </R0AmongDemes>
+                        <typeSet idref="typeSetBDMMPrime.t:europe_demes"/>
+                    </parameterization>
+                    <parameter id="typeFrequencies.t:europe_demes" spec="parameter.RealParameter" dimension="6" estimate="false" lower="0.0" name="frequencies" upper="1.0">0.0 0.0 1.0 0.0 0.0 0.0</parameter>
+                    <typeTraitSet idref="typeTraitSet.t:europe_demes"/>
+                </distribution>
+                <distribution id="R0EpiPrior.t:europe_demes" spec="bdmmprime.util.priors.ZeroExcludingPrior" x="@R0Epi.t:europe_demes">
+                    <LogNormal id="LogNormalDistributionModel.1" name="distr">
+                        <parameter id="RealParameter.3" spec="parameter.RealParameter" estimate="false" name="M">0.8</parameter>
+                        <parameter id="RealParameter.4" spec="parameter.RealParameter" estimate="false" lower="0.0" name="S" upper="5.0">0.5</parameter>
+                    </LogNormal>
+                </distribution>
+                <prior id="GammaShapePrior.s:europe_demes" name="distribution" x="@gammaShape.s:europe_demes">
+                    <Exponential id="Exponential.0" name="distr">
+                        <parameter id="RealParameter.0" spec="parameter.RealParameter" estimate="false" name="mean">0.5</parameter>
+                    </Exponential>
+                </prior>
+                <prior id="KappaPrior.s:europe_demes" name="distribution" x="@kappa.s:europe_demes">
+                    <LogNormal id="LogNormalDistributionModel.0" name="distr">
+                        <parameter id="RealParameter.1" spec="parameter.RealParameter" estimate="false" name="M">1.0</parameter>
+                        <parameter id="RealParameter.2" spec="parameter.RealParameter" estimate="false" name="S">1.25</parameter>
+                    </LogNormal>
+                </prior>
+                <distribution id="migrationRateEpiPrior.t:europe_demes" spec="bdmmprime.util.priors.ZeroExcludingPrior" x="@migrationRateEpi.t:europe_demes">
+                    <LogNormal id="LogNormalDistributionModel.2" name="distr">
+                        <parameter id="RealParameter.5" spec="parameter.RealParameter" estimate="false" name="M">0.0</parameter>
+                        <parameter id="RealParameter.6" spec="parameter.RealParameter" estimate="false" lower="0.0" name="S" upper="5.0">1.0</parameter>
+                    </LogNormal>
+                </distribution>
+                <prior id="originBDMMPrimePrior.t:europe_demes" name="distribution" x="@originBDMMPrime.t:europe_demes">
+                    <LogNormal id="LogNormalDistributionModel.3" name="distr">
+                        <parameter id="RealParameter.7" spec="parameter.RealParameter" estimate="false" name="M">-1.0</parameter>
+                        <parameter id="RealParameter.8" spec="parameter.RealParameter" estimate="false" lower="0.0" name="S" upper="5.0">0.2</parameter>
+                    </LogNormal>
+                </prior>
+    			<!--  <distribution id="samplingProportionEpiPrior.t:europe_demes" spec="bdmmprime.util.ZeroExcludingPrior" x="@samplingProportionEpi.t:europe_demes">
+    			    <Uniform id="Uniform.4" name="distr" upper="Infinity"/>
+    			</distribution> -->
+
+    			<!-- Prior for sampling proportion for France Epoch 1 (post-Jan 23) -->
+    			<distribution spec="SmartZeroExcludingPrior">
+    				<x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="0" count="1"/>
+    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.070"/>
+    			</distribution>
+    			<!-- Prior for sampling proportion for Germany Epoch 1 (post-Jan 23) -->
+    			<distribution spec="SmartZeroExcludingPrior">
+    				<x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="1" count="1"/>
+    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.060"/>
+    			</distribution>
+    			<!-- Prior for sampling proportion for Italy Epoch 1 (post-Jan 23) -->
+    			<distribution spec="SmartZeroExcludingPrior">
+    				<x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="3" count="1"/>
+    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.011"/>
+    			</distribution>
+                <!-- Prior for sampling proportion for OtherEuropean Epoch 1 (post-Jan 23) -->
+                <distribution spec="SmartZeroExcludingPrior">
+                    <x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="4" count="1"/>
+                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.021"/>
+                </distribution>
+    			<!-- Prior for sampling proportion for Spain Epoch 1 (post-Jan 23) -->
+    			<distribution spec="SmartZeroExcludingPrior">
+    				<x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="5" count="1"/>
+    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.046"/>
+    			</distribution>
+
+    			<!-- Prior for sampling proportion for France Epoch 2 (post-first sample date) -->
+    			<distribution spec="SmartZeroExcludingPrior">
+    				<x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="6" count="1"/>
+    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.070"/>
+    			</distribution>
+    			<!-- Prior for sampling proportion for Germany Epoch 2 (post-first sample date) -->
+    			<distribution spec="SmartZeroExcludingPrior">
+    				<x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="7" count="1"/>
+    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.060"/>
+    			</distribution>
+    			<!-- Prior for sampling proportion for Hubei Epoch 2 (post-first sample date) -->
+    			<distribution spec="SmartZeroExcludingPrior">
+    				<x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="8" count="1"/>
+    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.065"/>
+    			</distribution>
+    			<!-- Prior for sampling proportion for Italy Epoch 2 (post-first sample date) -->
+    			<distribution spec="SmartZeroExcludingPrior">
+    				<x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="9" count="1"/>
+    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.011"/>
+    			</distribution>
+    			<!-- Prior for sampling proportion for OtherEuropean Epoch 2 (post-first sample date) -->
+    			<distribution spec="SmartZeroExcludingPrior">
+    				<x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="10" count="1"/>
+    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.021"/>
+    			</distribution>
+                <!-- Prior for sampling proportion for Spain Epoch 2 (post-first sample date) -->
+                <distribution spec="SmartZeroExcludingPrior">
+                    <x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="11" count="1"/>
+                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.046"/>
+                </distribution>
+            </distribution>
+            <distribution id="likelihood" spec="util.CompoundDistribution" useThreads="true">
+                <distribution id="treeLikelihood.europe_demes" spec="ThreadedTreeLikelihood" data="@europe_demes" tree="@Tree.t:europe_demes">
+                    <siteModel id="SiteModel.s:europe_demes" spec="SiteModel" gammaCategoryCount="4" shape="@gammaShape.s:europe_demes">
+                        <parameter id="mutationRate.s:europe_demes" spec="parameter.RealParameter" estimate="false" name="mutationRate">1.0</parameter>
+                        <parameter id="proportionInvariant.s:europe_demes" spec="parameter.RealParameter" estimate="false" lower="0.0" name="proportionInvariant" upper="1.0">0.0</parameter>
+                        <substModel id="hky.s:europe_demes" spec="HKY" kappa="@kappa.s:europe_demes">
+                            <frequencies id="empiricalFreqs.s:europe_demes" spec="Frequencies" data="@europe_demes"/>
+                        </substModel>
+                    </siteModel>
+                    <branchRateModel id="StrictClock.c:europe_demes" spec="beast.evolution.branchratemodel.StrictClockModel">
+                        <parameter id="clockRate.c:europe_demes" spec="parameter.RealParameter" estimate="false" name="clock.rate">8.0E-4</parameter>
+                    </branchRateModel>
+                </distribution>
+            </distribution>
+        </distribution>
+
+        <operator id="gammaShapeScaler.s:europe_demes" spec="ScaleOperator" parameter="@gammaShape.s:europe_demes" scaleFactor="0.5" weight="0.1"/>
+
+        <operator id="KappaScaler.s:europe_demes" spec="ScaleOperator" parameter="@kappa.s:europe_demes" scaleFactor="0.5" weight="0.1"/>
+
+        <operator id="BDMMPrimeLeafToSA.t:europe_demes" spec="LeafToSampledAncestorJump" tree="@Tree.t:europe_demes" weight="10.0"/>
+
+        <operator id="BDMMPrimeSAWilsonBalding.t:europe_demes" spec="SAWilsonBalding" tree="@Tree.t:europe_demes" weight="10.0"/>
+
+        <operator id="BDMMPrimeSAWide.t:europe_demes" spec="SAExchange" isNarrow="false" tree="@Tree.t:europe_demes" weight="10.0"/>
+
+        <operator id="BDMMPrimeSANarrow.t:europe_demes" spec="SAExchange" tree="@Tree.t:europe_demes" weight="10.0"/>
+
+        <operator id="BDMMPrimeSAUniformOperator.t:europe_demes" spec="SAUniform" tree="@Tree.t:europe_demes" weight="20.0"/>
+
+        <operator id="BDMMPrimeSATreeRootScaler.t:europe_demes" spec="SAScaleOperator" rootOnly="true" scaleFactor="0.95" tree="@Tree.t:europe_demes" weight="1.0"/>
+
+        <operator id="BDMMPrimeSATreeScaler.t:europe_demes" spec="SAScaleOperator" scaleFactor="0.95" tree="@Tree.t:europe_demes" weight="3.0"/>
+
+        <operator id="originBDMMPrimeScaler.t:europe_demes" spec="ScaleOperator" parameter="@originBDMMPrime.t:europe_demes" scaleFactor="0.75" weight="3.0"/>
+
+        <operator id="R0EpiScaler.t:europe_demes" spec="ScaleOperator" parameter="@R0Epi.t:europe_demes" scaleFactor="0.75" weight="3.0"/>
+
+        <operator id="samplingProportionEpiScaler.t:europe_demes" spec="SmartScaleOperator" parameter="@samplingProportionEpi.t:europe_demes" scaleFactor="0.75" weight="3.0"/>
+
+        <operator id="migrationRateEpiScaler.t:europe_demes" spec="ScaleOperator" parameter="@migrationRateEpi.t:europe_demes" scaleFactor="0.75" weight="3.0"/>
+
+        <logger id="tracelog" spec="Logger" fileName="results/europe3/$(filebase).$(seed).log" logEvery="1000" model="@posterior" sanitiseHeaders="true" sort="smart">
+            <log idref="posterior"/>
+            <log idref="likelihood"/>
+            <log idref="prior"/>
+            <log idref="treeLikelihood.europe_demes"/>
+            <log id="TreeHeight.t:europe_demes" spec="beast.evolution.tree.TreeHeightLogger" tree="@Tree.t:europe_demes"/>
+            <log idref="gammaShape.s:europe_demes"/>
+            <log idref="kappa.s:europe_demes"/>
+            <log idref="originBDMMPrime.t:europe_demes"/>
+            <log idref="R0SVEpi.t:europe_demes"/>
+            <log idref="R0AmongDemesSMEpi.t:europe_demes"/>
+            <log idref="becomeUninfectiousRateSVEpi.t:europe_demes"/>
+            <log idref="migrationRateSMEpi.t:europe_demes"/>
+            <log idref="samplingProportionSVEpi.t:europe_demes"/>
+            <log idref="removalProbSVEpi.t:europe_demes"/>
+            <log idref="rhoSamplingProbTPEpi.t:europe_demes"/>
+        </logger>
+
+        <logger id="screenlog" spec="Logger" logEvery="10000">
+            <log idref="posterior"/>
+            <log idref="likelihood"/>
+            <log idref="prior"/>
+        </logger>
+
+        <logger id="treelog.t:europe_demes" spec="Logger" fileName="results/europe3/$(filebase).$(seed).trees" logEvery="1000" mode="tree">
+            <log id="TreeWithMetaDataLogger.t:europe_demes" spec="beast.evolution.tree.TreeWithMetaDataLogger" tree="@Tree.t:europe_demes"/>
+        </logger>
+
+        <operatorschedule id="OperatorSchedule" spec="OperatorSchedule"/>
+
+    </run>
+
+</beast>

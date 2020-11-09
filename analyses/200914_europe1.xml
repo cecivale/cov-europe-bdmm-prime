@@ -32,7 +32,7 @@
     <run id="mcmc" spec="MCMC" chainLength="10000000">
         <state id="state" spec="State" storeEvery="5000">
             <tree id="Tree.t:europe_demes" spec="beast.evolution.tree.Tree" name="stateNode">
-                <trait id="dateTrait.t:europe_demes" spec="feast.fileio.TraitSetFromTaxonSet" dateFormat="yyyy-M-dd" traitname="date" delimiter= "|" everythingAfterLast="true">
+                <trait id="dateTrait.t:europe_demes" spec="feast.fileio.TraitSetFromTaxonSet" dateFormat="yyyy-M-dd" traitname="date" delimiter= "/" everythingAfterLast="true">
                     <taxa id="TaxonSet.europe_demes" spec="TaxonSet">
                         <alignment idref="europe_demes"/>
                     </taxa>
@@ -59,7 +59,7 @@
                     <parameterization id="EpiBDMMPrimeParameterization.t:europe_demes" spec="bdmmprime.parameterization.EpiParameterization" origin="@originBDMMPrime.t:europe_demes">
                         <R0 id="R0SVEpi.t:europe_demes" spec="bdmmprime.parameterization.SkylineVectorParameter" origin="@originBDMMPrime.t:europe_demes" skylineValues="@R0Epi.t:europe_demes" timesAreAges="true">
                             <typeSet id="typeSetBDMMPrime.t:europe_demes" spec="bdmmprime.parameterization.TypeSet">
-                                <typeTraitSet id="typeTraitSet.t:europe_demes" spec="feast.fileio.TraitSetFromTaxonSet" traitname="type" delimiter="|" takeGroup="1"> 
+                                <typeTraitSet id="typeTraitSet.t:europe_demes" spec="feast.fileio.TraitSetFromTaxonSet" traitname="type" delimiter="/" takeGroup="1"> 
                                     <taxa id="TaxonSet.1" spec="TaxonSet" alignment="@europe_demes"/> 
                                 </typeTraitSet>
                             </typeSet>
