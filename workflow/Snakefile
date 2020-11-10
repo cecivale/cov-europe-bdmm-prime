@@ -614,9 +614,12 @@ rule beast:
     shell:
         """
         scp {input.xml} results/{wildcards.build_name}/
-        java -jar {params.jar} -seed {wildcards.seed} -statefile {wildcards.analysis_name}.{wildcards.seed}.state -overwrite results/{wildcards.build_name}/{input.xml} 2>&1 | tee {log} 
+        cd results/{wildcards.build_name}/
+        java -jar {params.jar} -seed {wildcards.seed} -statefile {wildcards.analysis_name}.{wildcards.seed}.state -overwrite {input.xml} 2>&1 | tee {log}
+        cd ../../
         rm results/{wildcards.build_name}/{input.xml}
         """
+
 
 rule summarize_log:
     message: 
@@ -628,7 +631,7 @@ rule summarize_log:
     output:
         log_summary = "results/{build_name}/{analysis_name}.{seed}.logsummary.txt"
     log:
-        "logs/{build_name}_{analysis_name}/{analysis_name}.{seed}.summarize_logs.txt"
+        "logs/summarize_logs_{build_name}_{analysis_name}.{seed}.txt"
     params:
         log_analyser = config["beast"]["log_analyser"],
         burnin = int(config["beast"]["burnin"] * config["beast"]["l_mcmc"])
@@ -654,7 +657,7 @@ checkpoint chains_diagnostic:
     params:
         min_ess = config["beast"]["min_ess"]
     log:
-        "logs/{build_name}_{analysis_name}/{analysis_name}_chains_diagnostic.txt"
+        "logs/chains_diagnostic_{build_name}_{analysis_name}.txt"
     shell:
         """
         Rscript scripts/chains_diagnostic.R \
@@ -690,7 +693,7 @@ rule combine_logs:
     output:
         combined_log = "results/{build_name}/{analysis_name}_comb.log"
     log:
-        "logs/{build_name}_{analysis_name}/{analysis_name}_combine_logs"
+        "logs/combine_logs_{build_name}_{analysis_name}.txt"
     params:
         log_combiner = config["beast"]["log_combiner"],
         burnin = int(config["beast"]["burnin"] * config["beast"]["l_mcmc"]),
@@ -710,7 +713,7 @@ rule combine_trees:
     output:
         combined_trees = "results/{build_name}/{analysis_name}_comb.trees"
     log:
-        "logs/{build_name}_{analysis_name}/{analysis_name}_combine_trees"
+        "logs/combine_trees_{build_name}_{analysis_name}.txt"
     params:
         log_combiner = config["beast"]["log_combiner"],
         burnin = int(config["beast"]["burnin"] * config["beast"]["l_mcmc"]),
@@ -731,14 +734,18 @@ rule trajectory_mapping:
         node_typed_trees = "results/{build_name}/{analysis_name}.typed.node.trees",
         trajectories = "results/{build_name}/{analysis_name}.TL.traj"
     log:
-        "logs/{build_name}_{analysis_name}/{analysis_name}_trajectory_mapping"
+        "logs/trajectory_mapping_{build_name}_{analysis_name}.txt"
     params:
-        jar = config["beast"]["jar"],
+        jar = config["beast"]["jar"]
+    resources:
+        runtime = config["beast"]["t_mcmc"]
     shell:
         """
-        scp {input.xml} results/{wildcards.build_name}/
-        java -jar {params.jar} -overwrite results/{wildcards.build_name}/{input.xml} 2>&1 | tee {log}
-        rm results/{wildcards.build_name}/{input.xml}
+        scp {input.xml} results/{wildcards.build_name}/{wildcards.analysis_name}.xml
+        cd results/{wildcards.build_name}/
+        java -jar {params.jar} -overwrite {wildcards.analysis_name}.xml 2>&1 | tee {log}
+        cd ../../
+        rm results/{wildcards.build_name}/{wildcards.analysis_name}.xml
         """
 
 
@@ -752,7 +759,7 @@ rule summarize_comb_log:
     output:
         summary_log = "results/{build_name}/{analysis_name}_comb.logsummary.tsv"
     log:
-        "logs/{build_name}_{analysis_name}/{analysis_name}.summarize_comb_log.txt"
+        "logs/summarize_comb_log_{build_name}_{analysis_name}.txt"
     params:
         log_analyser = config["beast"]["log_analyser"]
     shell:
@@ -772,7 +779,7 @@ rule summarize_trees:
     output:
         summary_tree = "results/{build_name}/{analysis_name}.mcc.typed.node.tree"
     log:
-        "logs/{build_name}_{analysis_name}/{analysis_name}_summarize_trees"
+        "logs/summarize_trees_{build_name}_{analysis_name}.txt"
     params:
         tree_annotator = config["beast"]["tree_annotator"],
         heights = config["beast"]["mcc_heights"]
@@ -794,7 +801,7 @@ rule analyze_trajectories:
     output:
         fig_traj = "results/{build_name}/{analysis_name}.figtraj.png" 
     log:
-        "logs/{build_name}_{analysis_name}/{analysis_name}_analyze_trajectories"
+        "logs/analyze_trajectories_{build_name}_{analysis_name}.txt"
     params:
         burnin = config["beast"]["burnin"],
         demes = _get_subsampling_settings

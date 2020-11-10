@@ -41,7 +41,7 @@ subsample <- function(alignment, metadata, include = NA, exclude = NA,
            date <= as.Date(to))
   
   # Get case counts for deme
-  cases_deme <- get_cases(region_name, country_name, division_name, 
+  cases_deme <- get_cases_deme(region_name, country_name, division_name, 
                           exclude_country, exclude_division, 
                           from, to)  
 

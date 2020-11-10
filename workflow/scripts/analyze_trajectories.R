@@ -22,62 +22,73 @@ source("./scripts/utils.R")
 
 # Parser -----------------------------------------------------------------------
 parser <- argparse::ArgumentParser()
-parser$add_argument("--input", nargs="+", 
-                    help=".txt with trajectory filenames to be included in the analysis")
+parser$add_argument("--input", type = "character", help="trajectory file")
 parser$add_argument("--burnin", type = "double", help = "Burning fraction for trajectory files")
 parser$add_argument("--metadata", type = "character", help = "Alignment sequences metadata")
 parser$add_argument("--demes", type = "character", help = "Demes configuration")
 parser$add_argument("--output_figure", type = "character", help = "Output path for the figures")
 args <- parser$parse_args()
 
-INPUT <- read_lines(args$input)
-BURNIN <- args$burnin
-METADATA <- args$metadata
-DEMES <- args$demes
-OUTPUT_FIGURE <- args$output_figure
+print(args)
 
-print(paste("Trajectory file:", INPUT))
-print(paste("Burning fraction:", BURNIN))
-print(paste("Alignment sequences metadata: ", METADATA))
-print(paste("Demes: ", "Demes specification in config file"))
-print(paste("Output figures:", OUTPUT_FIGURE))
 
 # Load trajectory data ---------------------------------------------------------
-states <- data.frame()
-events <- data.frame()
-for (filename in INPUT){
-  df <- loadTrajectories(filename, burninFrac=BURNIN, subsample=200)
-  states <- states %>% bind_rows(df$states %>% mutate(file = filename))
-  events <- events %>% bind_rows(df$events %>% mutate(file = filename))
-}
+df <- loadTrajectories(args$input, burninFrac = args$burnin, subsample = 200)
+cat("\nNumber of analyzed trajectories (subsampled):", length(unique(df$states$traj)))
+
+
+# Load demes configuration and sequence metadata -------------------------------
+demes <- data.frame(deme = NA, region = NA, country = NA, division = NA, 
+                    exclude_country = NA, exclude_division = NA,
+                    min_date = NA, max_date = NA, seq_per_deme = NA) %>%
+  bind_rows(bind_rows(lapply(yaml::yaml.load(string = paste(args$demes, collapse = " ")),
+                          data.frame, stringsAsFactors = FALSE), .id = "deme")) %>%
+  group_by(deme) %>% 
+  mutate(exclude_country = ifelse(is.na(exclude_country), NA, paste0(exclude_country, collapse = ","))) %>%
+  distinct() %>%
+  filter_all(any_vars(!is.na(.)))
+  
+cat("\nDeme configuration:\n")
+knitr::kable(demes)
+metadata <- read_tsv(args$metadata)
+
+
+# Case data information from ECDC ----------------------------------------------
+case_data <- get_cases(demes, to = MRS) %>%
+  arrange(date) %>%
+  group_by(deme) %>%
+  mutate(cumcases = cumsum(cases),
+         cumdeaths = cumsum(deaths))
+
 
 # Data wrangling ---------------------------------------------------------------
 cat("Data preparation...")
-states <- states %>%
-  mutate(type = factor(type, 
-                       levels=c(0,1,2,3,4), 
-                       labels=c("France", "Germany", "Hubei", "Italy", "Other European")),
-         file = as.numeric(factor(file)),
-         traj = paste0(file, ".", traj),
-         date = date(date_decimal(decimal_date(ymd(MRS)) - age)))
 
-events <- events %>%
-  mutate(src = factor(src, levels=c(0,1,2,3,4),
-                      labels=c("France", "Germany", "Hubei", "Italy", "Other European")),
-         dest = ifelse(is.na(dest), as.character(src),
-                       as.character(factor(dest, levels=c(0,1,2,3,4),
-                       labels=c("France", "Germany", "Hubei", "Italy", "Other European")))),
-         file = as.numeric(factor(file)),
-         traj = paste0(file, ".", traj),
-         date = date(date_decimal(decimal_date(ymd(MRS)) - age)))
-
-# Date values
-MRS <- min(metadata$date)
+# Most recent sample values
+MRS <- max(metadata$date)
 mrs <- ymd_hms(paste(MRS, '23:59:00 UTC'))
+
+states <- df$states %>%
+  mutate(type = factor(type, 
+                       levels = 0:(nrow(demes) - 1), 
+                       labels = sort(demes$deme)),
+         date = date(date_decimal(decimal_date(ymd(MRS)) - age)))
+
+events <- df$events %>%
+  mutate(src = factor(src, 
+                      levels = 0:(nrow(demes) - 1),
+                      labels = sort(demes$deme)),
+         dest = ifelse(is.na(dest), as.character(src),
+                       as.character(factor(dest, 
+                                           levels = 0:(nrow(demes) - 1),
+                                           labels = sort(demes$deme)))),
+         date = date(date_decimal(decimal_date(ymd(MRS)) - age)))
+
+# Date grids
 max_age <- max(states$age)
-max_date <- date_decimal(decimal_date(mrs) - max_age)
-ages_5day <- rev(decimal_date(mrs) - decimal_date(seq(mrs,max_date, by = '-5 days')))
-ages_1day <- rev(decimal_date(mrs) - decimal_date(seq(mrs,max_date, by = '-1 days')))
+min_date <- date_decimal(decimal_date(mrs) - max_age)
+ages_5day <- rev(decimal_date(mrs) - decimal_date(seq(mrs,min_date, by = '-5 days')))
+ages_1day <- rev(decimal_date(mrs) - decimal_date(seq(mrs,min_date, by = '-1 days')))
 
 # Grid trajectories, time grid of 5 days taking maximum value
 gt <- gridTrajectoriesByAge(states, ages_5day) %>%
@@ -95,11 +106,11 @@ gt_summary <- gt %>%
 
 # Grid events, time grid of 1 day, taking the sum of events 
 ge <- gridEventsByAge(events, ages_1day) %>%
-  filter(event %in% c("B", "M", "D", "S")) %>%
   mutate(date = date(date_decimal(decimal_date(mrs) - age)),
          dest = ifelse(is.na(dest), as.character(src), as.character(dest)))
 
 ge_summary <- ge %>%
+  filter(event %in% c("B", "M", "D", "S")) %>%
   group_by(event, date, src, dest) %>%
   summarize(Imedian = median(N), 
             Ilow    = quantile(N, 0.25), 
@@ -109,13 +120,6 @@ ge_summary <- ge %>%
             .groups = "drop_last") %>%
   ungroup() 
 
-
-# Case data information from ECDC
-demes <- bind_rows(lapply(yaml::yaml.load(string = paste(DEMES, collapse = " ")),
-                          data.frame, stringsAsFactors = FALSE), .id = "deme")
-
-#case_dataECDC <- get_casesECDC(demes, to = MRS)
-case_data <- get_casesWHO(demes, max_date = MRS)
 
 # Plotting ---------------------------------------------------------------------
 cat("\nPlotting...")
@@ -139,7 +143,7 @@ gribbon <- ggplot(gt_summary) +
        title = "SARS-CoV-2 early epidemics in Europe and Hubei",
        subtitle = "Case trajectories Median and IQR by deme") +
   scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
-  scale_color_npg()+
+  scale_color_npg() +
   scale_fill_npg()
 
 # 1.2 All trajectories single deme in log scale with ECDC case count data 
@@ -147,11 +151,10 @@ trajs <- lapply(demes$deme, function(deme) {
   states %>% 
     # 1. Prepare data
     filter(type == deme) %>%
+    mutate(traj = as.character(traj)) %>%
     bind_rows(case_data %>% 
-                rename(#type = deme,
-                       #N = sumcases) %>% 
-                       type = deme,
-                       N = cases_deme) %>% 
+                rename(type = deme,
+                       N = cumcases) %>% 
                 filter(type == deme) %>%
                 mutate(traj = "ecdc")) %>%
     # 2. Plot
@@ -171,22 +174,22 @@ trajs <- lapply(demes$deme, function(deme) {
                       labels = c("trajectories", "ECDC case count data"), ) +
     scale_x_date(limits = c(ymd("2019-11-01"), ymd("2020-03-08"))) +
     scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
-    labs(subtitle = "Case trajectories") +
-    theme(axis.title.x=element_blank(),
-          axis.text.x=element_blank())
+    labs(subtitle = paste("Case trajectories", deme)) 
+    #theme(axis.title.x=element_blank(),
+          #axis.text.x=element_blank())
   })
 
 # 2. Events
 # 2.1 First introduction distribution boxplot by deme and time of first sequence
 first_box <- events %>%
-  filter(event == "M" | (event == "B" & dest == "Hubei")) %>%
+  filter(event == "M") %>%
   group_by(dest, traj) %>%
   arrange(time) %>%
   slice(1) %>%
   left_join(demes %>% rename(dest = deme), by = "dest") %>%
   ggplot() +
   geom_boxplot(aes(x = dest, y = date, color = dest)) +
-  geom_point(aes(x = dest, y = ymd(from)), pch = 4, size = 3) + 
+  geom_point(aes(x = dest, y = ymd(min_date)), pch = 4, size = 3) + 
   coord_flip() +
   scale_color_manual(values = dcolors) +
   labs(title = "First case time distribution by deme", 
@@ -313,9 +316,9 @@ sample_hist <- lapply(demes$deme, function(deme) {
     ggplot() +
     geom_histogram(stat = "identity", aes(x = date, y = N, fill = src)) +
     scale_fill_manual(values = dcolors) +
-    labs(subtitle = paste0("Samples in the analysis")) +
-    theme(axis.title.x=element_blank(),
-          axis.text.x=element_blank())
+    labs(subtitle = paste0("Samples in the analysis")) #+
+    # theme(axis.title.x=element_blank(),
+    #       axis.text.x=element_blank())
   })
 
 # Saving the figures -----------------------------------------------------------
@@ -324,7 +327,7 @@ cat("\nSaving the figures...")
 gg1 <- annotate_figure(ggarrange(gribbon, first_box, 
                                  ncol=2, common.legend = TRUE),
                        top = text_grob(paste("Analysis ", 
-                                             str_split(INPUT[1], pattern = "\\.")[[1]][1]), 
+                                             str_split(args$input[1], pattern = "\\.")[[1]][1]), 
                                        face = "bold", size = 16))
 
 gg2 <- lapply(1:nrow(demes), function(i) {
@@ -348,7 +351,7 @@ gg4 <- lapply(4:nrow(demes), function(i) {
 
 multi <- ggarrange(gg1, ggarrange(plotlist = gg2, nrow = 1), ggarrange(plotlist = gg3, nrow = 1), 
                    ggarrange(plotlist = gg4, nrow = 1), nrow = 1, ncol = 1, common.legend = TRUE)
-ggexport(multi, filename = OUTPUT_FIGURE, width=2100, height=1400, res=72*2)
+ggexport(multi, filename = args$output_figure, width=2100, height=1400, res=72*2)
 cat("done!")
 
 # ------------------------------------------------------------------------------
