@@ -25,7 +25,7 @@ parser <- argparse::ArgumentParser()
 parser$add_argument("--input", type = "character", help="trajectory file")
 parser$add_argument("--burnin", type = "double", help = "Burning fraction for trajectory files")
 parser$add_argument("--metadata", type = "character", help = "Alignment sequences metadata")
-parser$add_argument("--demes", type = "character", help = "Demes configuration")
+parser$add_argument("--demes", nargs = "+", help = "Demes configuration")
 parser$add_argument("--output_figure", type = "character", help = "Output path for the figures")
 args <- parser$parse_args()
 

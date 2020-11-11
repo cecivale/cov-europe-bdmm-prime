@@ -21,7 +21,7 @@ wildcard_constraints:
     # Allow build names to contain alpha characters, underscores, and hyphens
     # but not special strings used for Nextstrain builds.
     #build_name = r'(?:[_a-zA-Z-](?!(tip-frequencies|gisaid|zh)))+',
-    build_name = r"[A-Za-z0-9]+",
+    build_name = r"[a-zA-Z0-9_.-]+",
     analysis_name = r"[a-zA-Z0-9_.-]+",
     date = r"[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]",
     seed = r"[0-9]*"
@@ -60,6 +60,7 @@ rule clean:
 
 # Include small, shared functions that help build inputs and parameters.
 include: "common.smk"
+
 
 rule load:
     message: "Loading sequences and metadata from files"
@@ -313,6 +314,7 @@ def _get_specific_subsampling_setting(setting, optional=False):
 
     return _get_setting
 
+
 # rule subsample:
 #     message:
 #         """
@@ -395,6 +397,7 @@ rule rsubsample:
             --output {output.sequences} \
             --output_figure {output.fig} 2>&1 | tee {log}
         """
+        
 
 # Not sure if we are interested in this
 rule proximity_score:
@@ -618,6 +621,7 @@ rule beast:
         java -jar {params.jar} -seed {wildcards.seed} -statefile {wildcards.analysis_name}.{wildcards.seed}.state -overwrite {input.xml} 2>&1 | tee {log}
         cd ../../
         rm results/{wildcards.build_name}/{input.xml}
+        exit 0
         """
 
 
@@ -746,6 +750,7 @@ rule trajectory_mapping:
         java -jar {params.jar} -overwrite {wildcards.analysis_name}.xml 2>&1 | tee {log}
         cd ../../
         rm results/{wildcards.build_name}/{wildcards.analysis_name}.xml
+        exit 0
         """
 
 
@@ -816,4 +821,12 @@ rule analyze_trajectories:
         """
 
 
-
+rule get_sampling_proportions:
+    params:
+        demes = str(config["subsampling"]["earlyeurope_dsChina"])
+    output:
+        sampling_proportions = "results/sampling_proportions_earlyeurope_dsChina.tsv"
+    shell:
+        """
+        Rscript scripts/sampling_proportion.R --input {params.demes} --output {output.sampling_proportions}
+        """
