@@ -12,11 +12,11 @@
                   :bdmmprime.mapping" version="2.0">
 
 
-  <!-- Modify alignment file name-->
+  <!-- Alignment-->
   <data
   id="europe_demes"
   spec= "AlignmentFromFasta"
-  fileName = "results/europe3/final_alignment.fasta"  
+  fileName = "final_alignment.fasta"  
   name="alignment"/>
 
   <!-- Modify parameterization to match the one from the analysis-->
@@ -54,8 +54,8 @@
 
   
    <run spec="LogFileIterator">
-    <!-- Modify log file name to use and log files entries for the analysis-->
-    <logFileState spec="TraceLogFileState" logFileName="results/europe3/201030_europe3_comb.log">
+    <!-- Trace log to load-->
+    <logFileState spec="TraceLogFileState" logFileName="$(filebase)_comb.log">
 
       <logFileEntry spec="LogFileRealParameter" fieldName="originBDMMPrime">
         <fieldParameter id="origin" spec="RealParameter" value="1.0"/>
@@ -243,34 +243,23 @@
 
     </logFileState>
 
-    <!-- Modify tree file name to use-->
-    <logFileState spec="TreeLogFileState" logFileName="results/europe3/201030_europe3_comb.trees">
+    <!-- Tree log to load-->
+    <logFileState spec="TreeLogFileState" logFileName="$(filebase)_comb.trees">
       <tree spec="Tree" id="tree"/>
     </logFileState>
 
-
-    <logger spec="Logger"
-            logEvery="10000">
-      <log idref="R0"/>
-      <log idref="samplingProportion"/>
-    </logger>
-
-    <!-- Modify typed tree file name-->
-    <logger spec="Logger" fileName="results/europe3/201030_europe3.typed.trees" logEvery="10000" mode="tree">
+    <!-- Typed tree log-->
+    <logger spec="Logger" fileName="$(filebase).typed.trees" logEvery="10000" mode="tree">
         <log id="typeMappedTree" spec="TypeMappedTree" bdmmDistrib="@BDMMPrime" frequencies="@typeFrequencies" mapOnInit="false" remapOnLog="true" typeLabel="type" typeTraitSet="@typeTraitSet" untypedTree="@tree"/>
     </logger>
 
-    <logger logEvery="10000" fileName="201030_europe3.typed.tree.log">
-      <log id="typedTreeStats" spec="TypedTreeStatsLogger" includeRootEdgeChanges="true" typeLabel="type" typeSet="@typeSet" typedTree="@typeMappedTree"/>
-    </logger>
-
-    <!-- Modify typed node tree file name-->
-    <logger id="nodeTypedTreeLogger" spec="Logger" fileName="results/europe3/201030_europe3.typed.node.trees" logEvery="1000" mode="tree">
+    <!-- Typed node tree log-->
+    <logger id="nodeTypedTreeLogger" spec="Logger" fileName="$(filebase).typed.node.trees" logEvery="1000" mode="tree">
       <log id="nodeTypedTree" spec="TypedNodeTreeLogger" typedTree="@typeMappedTree"/>
     </logger>
 
-    <!-- Modify trajectories file name-->
-    <logger spec="Logger" logEvery="10000" fileName="results/europe3/201030_europe3.TL.traj">
+    <!-- Trajectories log-->
+    <logger spec="Logger" logEvery="10000" fileName="$(filebase).TL.traj">
       <log id="typedTrajectoryTL" spec="bdmmprime.trajectories.SampledTrajectory"
            nParticles="1000"
            useTauLeaping="true"

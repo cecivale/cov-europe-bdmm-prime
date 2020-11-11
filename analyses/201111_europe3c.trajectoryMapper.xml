@@ -1,3 +1,5 @@
+TODO
+
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <beast namespace="beast.core
                   :beast.core.parameter
@@ -12,7 +14,7 @@
                   :bdmmprime.mapping" version="2.0">
 
 
-  <!-- Modify alignment file name-->
+  <!-- Alignment-->
   <data
   id="europe_demes"
   spec= "AlignmentFromFasta"
@@ -54,7 +56,7 @@
 
   
    <run spec="LogFileIterator">
-    <!-- Modify log file name to use and log files entries for the analysis-->
+    <!-- Trace log to load-->
     <logFileState spec="TraceLogFileState" logFileName="$(filebase)_comb.log">
 
       <logFileEntry spec="LogFileRealParameter" fieldName="originBDMMPrime">
@@ -243,29 +245,22 @@
 
     </logFileState>
 
-    <!-- Modify tree file name to use-->
+    <!-- Tree log to load-->
     <logFileState spec="TreeLogFileState" logFileName="$(filebase)_comb.trees">
       <tree spec="Tree" id="tree"/>
     </logFileState>
 
-
-    <logger spec="Logger"
-            logEvery="10000">
-      <log idref="R0"/>
-      <log idref="samplingProportion"/>
-    </logger>
-
-    <!-- Modify typed tree file name-->
+    <!-- Typed tree log-->
     <logger spec="Logger" fileName="$(filebase).typed.trees" logEvery="10000" mode="tree">
         <log id="typeMappedTree" spec="TypeMappedTree" bdmmDistrib="@BDMMPrime" frequencies="@typeFrequencies" mapOnInit="false" remapOnLog="true" typeLabel="type" typeTraitSet="@typeTraitSet" untypedTree="@tree"/>
     </logger>
 
-    <!-- Modify typed node tree file name-->
+    <!-- Typed node tree log-->
     <logger id="nodeTypedTreeLogger" spec="Logger" fileName="$(filebase).typed.node.trees" logEvery="1000" mode="tree">
       <log id="nodeTypedTree" spec="TypedNodeTreeLogger" typedTree="@typeMappedTree"/>
     </logger>
 
-    <!-- Modify trajectories file name-->
+    <!-- Trajectories log-->
     <logger spec="Logger" logEvery="10000" fileName="$(filebase).TL.traj">
       <log id="typedTrajectoryTL" spec="bdmmprime.trajectories.SampledTrajectory"
            nParticles="1000"

@@ -1,0 +1,283 @@
+# Modified Nextrain workflow from 2020-09-11
+# MIT License
+# Copyright (c) 2020 Nextstrain, full text https://github.com/nextstrain/ncov/blob/master/LICENSE
+
+
+# This file contains defaults for the "config" object used in the Snakefile.
+# To temporarily override or provide a value, you can use snakemake's --config
+# or --configfile options.
+---
+
+# conda environment file to use by default
+conda_environment: "/envs/nextstrain.yaml"
+
+# These are the two main starting files for the run
+# Files are previously downloaded from GISAID database, Downloads > nextmeta and nextfasta to the data folder
+sequences: "data/201014_sequences.fasta"
+metadata: "data/201014_metadata.tsv"
+
+
+# Define files used for external configuration. Common examples consist of a
+# list of strains to include and exclude from analyses, a reference sequence to
+# align sequences to.
+files:
+  include: "files/include.txt"
+  exclude: "files/exclude.txt"
+  reference: "files/reference_seq.gb"
+
+# Filter settings
+filter:
+  # Require nearly full-length genomes.
+  min_length: 27000
+
+  # Omit sequences with incomplete date annotations, and USA seqs without a state.
+  exclude_where: "division='USA' date='2020' date='2020-01-XX' date='2020-02-XX' date='2020-03-XX' date='2020-04-XX' date='2020-05-XX' date='2020-06-XX' date='2020-07-XX' date='2020-08-XX' date='2020-09-XX' date='2020-10-XX' date='2020-11-XX' date='2020-12-XX' date='2020-01' date='2020-02' date='2020-03' date='2020-04' date='2020-05' date='2020-06' date='2020-07' date='2020-08' date='2020-09' date='2020-10' date='2020-11' date='2020-12'"
+
+  # Exclude sequences which are from before late 2019 (likely date mix-ups)
+  min_date: 2019.74
+
+  # Exclude sequences that are after this date
+  max_date: 2020.183 # 2020-03-08
+
+# Alignment settings
+# Alignments are partitioned into smaller groups to speed up the overall alignment process.
+# The number of sequences per group determines the run time of a single alignment job.
+partition_sequences:
+  sequences_per_group: 150
+
+# Mask settings determine how the multiple sequence alignment is masked prior to phylogenetic inference.
+mask:
+  # Number of bases to mask from the beginning and end of the alignment. These regions of the genome
+  # are difficult to sequence accurately.
+  mask_from_beginning: 100
+  mask_from_end: 50
+
+  # Specific sites to mask in the reference genome's coordinates.
+  # These are 1-indexed coordinates of sites that have been identified as prone to sequencing errors.
+  # 13402, 24389 and 24390 are restricted to Belgian samples
+  mask_sites: "13402 24389 24390"
+
+
+# This is where we define which builds we'd like to run.
+# Each build needs a name, a defined subsampling process, and geographic attributes used for subsampling.
+# Geography is specified by build attributes (e.g., `region`, `country`, `division`, `location`) that are referenced from subsampling schemes.
+builds:
+  # This build focuses on Europe early samples
+  # europe1:
+  #   subsampling_scheme: earlyeurope1
+  # europe2:
+  #   subsampling_scheme: earlyeurope2
+  # europe3:
+  #   subsampling_scheme: earlyeurope3
+  #   beast_analysis: 
+  #     - "201030_europe3.xml"
+  # europe3b:
+  #   subsampling_scheme: earlyeurope3b
+  #   beast_analysis: 
+  #     - "201030_europe3b.xml"
+  europe3c:
+    subsampling_scheme: earlyeurope_dsChina
+    beast_analysis: 
+      - 201111_europe3c
+
+  #europe4GLM:
+    
+
+# # Define subsampling scheme
+# Custom subsampling logic for regions like Europe where grouping by country
+# is the smallest resolution required.
+subsampling:
+  earlyeurope12:
+    # Focal samples
+    hubei:
+      group_by: "division"
+      seq_per_group: 30
+      query: --query "(division == 'Hubei') & (date<='2020-01-23')"
+    italy:
+      group_by: "country"
+      seq_per_group: 60
+      query: --query "(country == 'Italy') & (date<='2020-03-08')"
+    germany:
+      group_by: "country"
+      seq_per_group: 50
+      query: --query "(country == 'Germany') & (date<='2020-03-08')"
+    france:
+      group_by: "country"
+      seq_per_group: 50
+      query: --query "(country == 'France') & (date<='2020-03-08')"
+    spain:
+      group_by: "country"
+      seq_per_group: 40
+      query: --query "(country == 'Spain') & (date<='2020-03-08')"
+    othereuropean:
+      group_by: "region"
+      seq_per_group: 20
+      query: --query "(region == 'Europe') & (country not in ['Italy', 'France', 'Germany', 'Spain']) & (date<='2020-03-08')"
+
+  earlyeurope3:
+    France:
+      country: "France"
+      region: "Europe"
+      min_date: "2020-01-23"
+      max_date: "2020-03-08"
+      seq_per_deme: 50
+      focal: 1
+    Germany:
+      country: "Germany"
+      region: "Europe"
+      min_date: "2020-01-28"
+      max_date: "2020-03-08"
+      seq_per_deme: 50
+      focal: 1
+    Hubei:
+      division: "Hubei"
+      country: "China"
+      region: "Asia"
+      min_date: "2019-12-24"
+      max_date: "2020-01-23"
+      seq_per_deme: 50
+      focal: 1
+    Italy:
+      country: "Italy"
+      region: "Europe"
+      min_date: "2020-01-29"
+      max_date: "2020-03-08"
+      seq_per_deme: 60
+      focal: 1
+    OtherEuropean:
+      region: "Europe"
+      exclude_country: ["France","Germany","Italy","Spain"]
+      min_date: "2020-01-29"
+      max_date: "2020-03-08"
+      seq_per_deme: 40
+      focal: 0
+    Spain:
+      country: "Spain"
+      region: "Europe"
+      min_date: "2020-02-24"
+      max_date: "2020-03-08"
+      seq_per_deme: 50
+      focal: 1
+
+  earlyeurope3b:
+    France:
+      country: "France"
+      region: "Europe"
+      min_date: "2020-01-23"
+      max_date: "2020-03-08"
+      seq_per_deme: 50
+      focal: 1
+    Germany:
+      country: "Germany"
+      region: "Europe"
+      min_date: "2020-01-28"
+      max_date: "2020-03-08"
+      seq_per_deme: 50
+      focal: 1
+    Hubei:
+      division: "Hubei"
+      country: "China"
+      region: "Asia"
+      min_date: "2019-12-24"
+      max_date: "2020-03-08"
+      seq_per_deme: 40
+      focal: 1
+    Italy:
+      country: "Italy"
+      region: "Europe"
+      min_date: "2020-01-29"
+      max_date: "2020-03-08"
+      seq_per_deme: 60
+      focal: 1
+    OtherEuropean:
+      region: "Europe"
+      exclude_country: ["France","Germany","Italy","Spain"]
+      min_date: "2020-01-29"
+      max_date: "2020-03-08"
+      seq_per_deme: 40
+      focal: 0
+    Spain:
+      country: "Spain"
+      region: "Europe"
+      min_date: "2020-02-24"
+      max_date: "2020-03-08"
+      seq_per_deme: 50
+      focal: 1
+
+  earlyeurope_dsChina:
+    China:
+      country: "China"
+      region: "Asia"
+      min_date: "2019-12-24"
+      max_date: "2020-01-23"
+      seq_per_deme: 40
+    France:
+      country: "France"
+      region: "Europe"
+      min_date: "2020-01-23"
+      max_date: "2020-03-08"
+      seq_per_deme: 30
+    Germany:
+      country: "Germany"
+      region: "Europe"
+      min_date: "2020-01-28"
+      max_date: "2020-03-08"
+      seq_per_deme: 30
+    Italy:
+      country: "Italy"
+      region: "Europe"
+      min_date: "2020-01-29"
+      max_date: "2020-03-08"
+      seq_per_deme: 40
+    OtherEuropean:
+      region: "Europe"
+      exclude_country: ["France","Germany","Italy","Spain"]
+      min_date: "2020-01-29"
+      max_date: "2020-03-08"
+      seq_per_deme: 20
+    Spain:
+      country: "Spain"
+      region: "Europe"
+      min_date: "2020-02-24"
+      max_date: "2020-03-08"
+      seq_per_deme: 30
+
+
+tree:
+  tree-builder-args: "'-ninit 10 -n 4'"
+
+# TreeTime settings
+refine:
+  root: "EPI_ISL_402125/Hubei/2019-12-26 EPI_ISL_406798/Hubei/2019-12-26" 
+  clock_rate: 0.0008
+  clock_std_dev: 0.0004
+  coalescent: "skyline"
+  date_inference: "marginal"
+  divergence_unit: "mutations"
+  clock_filter_iqd: 4
+
+
+# BEAST2 analysis settings
+beast:
+  # BEAST2 jar file path
+  jar: "/cluster/home/ceciliav/BDMM-Prime.jar"
+  # List of parallel mcmc chains seeds to run 
+  n_mcmc: [1,2,3,4,5]
+  # Length of a mcmc chain, it has to be the same length than the one specified in the xml file
+  l_mcmc: 10000000
+  # Time for mcmc chains in cluster in minutes
+  t_mcmc: 7200
+  # Burnin fraction 
+  burnin: 0.1
+  # Log analyser bin
+  log_analyser: loganalyser
+  min_ess: 0
+  # Log combiner bin
+  log_combiner: logcombiner
+  # Tree annotator bin
+  tree_annotator: treeannotator
+  mcc_heights: "mean"
+
+
+
+

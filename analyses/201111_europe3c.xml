@@ -45,8 +45,8 @@
             <parameter id="kappa.s:europe_demes" spec="parameter.RealParameter" lower="0.0" name="stateNode">2.0</parameter>
             <parameter id="originBDMMPrime.t:europe_demes" spec="parameter.RealParameter" name="stateNode">1.0</parameter>
             <parameter id="R0Epi.t:europe_demes" spec="parameter.RealParameter" dimension="6" name="stateNode">1.0 1.0 1.0 1.0 1.0 1.0</parameter>
-            <parameter id="samplingProportionEpi.t:europe_demes" spec="parameter.RealParameter" dimension="18" lower="0.0" name="stateNode" upper="1.0">1.0E-5 1.1E-5 1.2E-5 1.3E-5 1.4E-5 1.5E-5 1.0E-5 1.1E-5 1.2E-5 1.3E-5 1.4E-5 1.5E-5 0.0 0.0 0.0 0.0 0.0 0.0</parameter>
-            <parameter id="migrationRateEpi.t:europe_demes" spec="parameter.RealParameter" dimension="30" name="stateNode">0.1 0.0 0.1 0.1 0.1 0.1 0.0 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.0 0.1 0.1 0.1 0.1 0.0 0.1 0.1 0.1 0.1 0.0 0.1 0.1</parameter>
+            <parameter id="samplingProportionEpi.t:europe_demes" spec="parameter.RealParameter" dimension="18" lower="0.0" name="stateNode" upper="1.0">0.0 1.0E-5 1.1E-5 1.3E-5 1.4E-5 1.5E-5  1.2E-5 1.0E-5 1.1E-5 1.3E-5 1.4E-5 1.5E-5 0.0 0.0 0.0 0.0 0.0 0.0</parameter>
+            <parameter id="migrationRateEpi.t:europe_demes" spec="parameter.RealParameter" dimension="30" name="stateNode">0.1 0.1 0.1 0.1 0.1 0 0.1 0.1 0.1 0.1 0 0.1 0.1 0.1 0.1 0 0.1 0.1 0.1 0.1 0 0.1 0.1 0.1 0.1 0 0.1 0.1 0.1 0.1</parameter>
         </state>
 
         <init id="RandomTree.t:europe_demes" spec="beast.evolution.tree.RandomTree" estimate="false" initial="@Tree.t:europe_demes" taxa="@europe_demes">
@@ -82,7 +82,7 @@
                         </R0AmongDemes>
                         <typeSet idref="typeSetBDMMPrime.t:europe_demes"/>
                     </parameterization>
-                    <parameter id="typeFrequencies.t:europe_demes" spec="parameter.RealParameter" dimension="6" estimate="false" lower="0.0" name="frequencies" upper="1.0">0.0 0.0 1.0 0.0 0.0 0.0</parameter>
+                    <parameter id="typeFrequencies.t:europe_demes" spec="parameter.RealParameter" dimension="6" estimate="false" lower="0.0" name="frequencies" upper="1.0">1.0 0.0 0.0 0.0 0.0 0.0</parameter>
                     <typeTraitSet idref="typeTraitSet.t:europe_demes"/>
                 </distribution>
                 <distribution id="R0EpiPrior.t:europe_demes" spec="bdmmprime.util.priors.ZeroExcludingPrior" x="@R0Epi.t:europe_demes">
@@ -119,67 +119,63 @@
     			</distribution> -->
 
     			<!-- Prior for sampling proportion for France Epoch 1 (post-Jan 23) -->
-                <distribution spec="SmartZeroExcludingPrior">
-                    <x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="0" count="1"/>
-                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.070"/>
-                </distribution>
-                <!-- Prior for sampling proportion for Germany Epoch 1 (post-Jan 23) -->
-                <distribution spec="SmartZeroExcludingPrior">
-                    <x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="1" count="1"/>
-                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.060"/>
-                </distribution>
-                <!-- Prior for sampling proportion for Hubei Epoch 1 (post-Jan 23) -->
-                <distribution spec="SmartZeroExcludingPrior">
-                    <x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="2" count="1"/>
-                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.0007"/>
-                </distribution>
-                <!-- Prior for sampling proportion for Italy Epoch 1 (post-Jan 23) -->
-                <distribution spec="SmartZeroExcludingPrior">
-                    <x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="3" count="1"/>
-                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.011"/>
-                </distribution>
+    			<distribution spec="SmartZeroExcludingPrior">
+    				<x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="1" count="1"/>
+    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.042"/>
+    			</distribution>
+    			<!-- Prior for sampling proportion for Germany Epoch 1 (post-Jan 23) -->
+    			<distribution spec="SmartZeroExcludingPrior">
+    				<x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="2" count="1"/>
+    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.036"/>
+    			</distribution>
+    			<!-- Prior for sampling proportion for Italy Epoch 1 (post-Jan 23) -->
+    			<distribution spec="SmartZeroExcludingPrior">
+    				<x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="3" count="1"/>
+    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.007"/>
+    			</distribution>
                 <!-- Prior for sampling proportion for OtherEuropean Epoch 1 (post-Jan 23) -->
                 <distribution spec="SmartZeroExcludingPrior">
                     <x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="4" count="1"/>
-                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.021"/>
-                </distribution>
-                <!-- Prior for sampling proportion for Spain Epoch 1 (post-Jan 23) -->
-                <distribution spec="SmartZeroExcludingPrior">
-                    <x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="5" count="1"/>
-                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.046"/>
-                </distribution>
-
-                <!-- Prior for sampling proportion for France Epoch 2 (post-first sample date) -->
-                <distribution spec="SmartZeroExcludingPrior">
-                    <x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="6" count="1"/>
-                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.070"/>
-                </distribution>
-                <!-- Prior for sampling proportion for Germany Epoch 2 (post-first sample date) -->
-                <distribution spec="SmartZeroExcludingPrior">
-                    <x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="7" count="1"/>
-                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.060"/>
-                </distribution>
-                <!-- Prior for sampling proportion for Hubei Epoch 2 (post-first sample date) -->
-                <distribution spec="SmartZeroExcludingPrior">
-                    <x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="8" count="1"/>
-                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.0007"/>
-                </distribution>
-                <!-- Prior for sampling proportion for Italy Epoch 2 (post-first sample date) -->
-                <distribution spec="SmartZeroExcludingPrior">
-                    <x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="9" count="1"/>
                     <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.011"/>
                 </distribution>
-                <!-- Prior for sampling proportion for OtherEuropean Epoch 2 (post-first sample date) -->
+    			<!-- Prior for sampling proportion for Spain Epoch 1 (post-Jan 23) -->
+    			<distribution spec="SmartZeroExcludingPrior">
+    				<x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="5" count="1"/>
+    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.028"/>
+    			</distribution>
+
+    			<!-- Prior for sampling proportion for China Epoch 2 (post-first sample date) -->
                 <distribution spec="SmartZeroExcludingPrior">
-                    <x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="10" count="1"/>
-                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.021"/>
+                    <x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="6" count="1"/>
+                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.065"/>
                 </distribution>
+                <!-- Prior for sampling proportion for France Epoch 2 (post-first sample date) -->
+    			<distribution spec="SmartZeroExcludingPrior">
+    				<x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="7" count="1"/>
+    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.042"/>
+    			</distribution>
+    			<!-- Prior for sampling proportion for Germany Epoch 2 (post-first sample date) -->
+    			<distribution spec="SmartZeroExcludingPrior">
+    				<x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="8" count="1"/>
+    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.036"/>
+    			</distribution>
+    			<!-- Prior for sampling proportion for Italy Epoch 2 (post-first sample date) -->
+    			<distribution spec="SmartZeroExcludingPrior">
+    				<x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="9" count="1"/>
+    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.006"/>
+    			</distribution>
+    			<!-- Prior for sampling proportion for OtherEuropean Epoch 2 (post-first sample date) -->
+    			<distribution spec="SmartZeroExcludingPrior">
+    				<x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="10" count="1"/>
+    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.011"/>
+    			</distribution>
                 <!-- Prior for sampling proportion for Spain Epoch 2 (post-first sample date) -->
                 <distribution spec="SmartZeroExcludingPrior">
                     <x spec="feast.function.Slice" arg="@samplingProportionEpi.t:europe_demes" index="11" count="1"/>
-                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.046"/>
+                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.028"/>
                 </distribution>
             </distribution>
+
             <distribution id="likelihood" spec="util.CompoundDistribution" useThreads="true">
                 <distribution id="treeLikelihood.europe_demes" spec="ThreadedTreeLikelihood" data="@europe_demes" tree="@Tree.t:europe_demes">
                     <siteModel id="SiteModel.s:europe_demes" spec="SiteModel" gammaCategoryCount="4" shape="@gammaShape.s:europe_demes">
