@@ -18,7 +18,7 @@
 subsample <- function(alignment, metadata, include = NA, exclude = NA,
                       region_name = NA, country_name = NA, division_name = NA,
                       exclude_country = NA, exclude_division = NA,
-                      from, to, seq_per_deme, seed) {
+                      from, to, seq_per_deme, seed, prob = "time") {
   set.seed(seed)
   # Read files
   alignment <- read.FASTA(file = alignment)
@@ -40,30 +40,51 @@ subsample <- function(alignment, metadata, include = NA, exclude = NA,
            date >= as.Date(from),
            date <= as.Date(to))
   
-  # Get case counts for deme
-  cases_deme <- get_cases_deme(region_name, country_name, division_name, 
-                          exclude_country, exclude_division, 
-                          from, to)  
-
-  # Compute weights and probabilities for each date
-  by_date <- metadata_deme %>%
-    count(date, country) %>%
-    left_join(cases_deme, by = c("date", "country")) %>%
-    replace_na(list(cases = 0, cumcases = 0)) %>%
-    mutate(p_case = (cases + 1)/sum(cases),
-           w_date = sum(n)/n,
-           p_date = (p_case * w_date)/sum(p_case * w_date)) %>%
-    select(date, country, p_case, w_date, p_date) 
-
-  #Compute weights for each division
-  by_div <- metadata_deme %>%
-    count(division, country) %>%
-    mutate(w_div = case_when(
-                        is.na(country_name) ~ 1,
-                        TRUE ~ sum(n)/n),
-           p_div = w_div/sum(w_div)) %>%
-    select(division, country, w_div, p_div)
-
+  if (prob %in% c("cases", "cases_and_location")){
+    # Get case counts for deme
+    cases_deme <- get_cases_deme("deme", region_name, country_name, division_name, 
+                            exclude_country, exclude_division, 
+                            from, to)  
+  
+    # Compute weights and probabilities for each date
+    # TODO delay in deaths
+    by_date <- metadata_deme %>%
+      count(date, country) %>%
+      left_join(cases_deme, by = c("date", "country")) %>%
+      replace_na(list(cases = 0, cumcases = 0, deaths = 0, cumdeaths = 0)) %>%
+      mutate(p_case = ifelse(country == "China", (deaths + 1)/sum(deaths), (cases + 1)/sum(cases)),
+             w_date = sum(n)/n,
+             p_date = (p_case * w_date)/sum(p_case * w_date)) %>%
+      select(date, country, p_case, w_date, p_date) 
+  } else if (prob %in% c("location", "cases_and_location")) {
+    #Compute weights for each division
+    by_div <- metadata_deme %>%
+      count(division, country) %>%
+      mutate(w_div = case_when(
+                          is.na(country_name) ~ 1,
+                          TRUE ~ sum(n)/n),
+             p_div = w_div/sum(w_div)) %>%
+      select(division, country, w_div, p_div)
+  }
+  
+  if (prob == "cases") {
+    metadata_deme2 <- metadata_deme %>%
+      left_join(by_date, by = c("date", "country")) %>%
+      mutate(p = p_date)
+  } else if (prob == "location") {
+    metadata_deme2 <- metadata_deme %>%
+      left_join(by_div, by = c("division", "country")) %>%
+      mutate(p = p_div)
+  } else if (prob == "cases_and_location") {
+    metadata_deme2 <- metadata_deme %>%
+      left_join(by_date, by = c("date", "country")) %>%
+      left_join(by_div, by = c("division", "country")) %>%
+      mutate(p = (p_case * w_date * w_div)/sum(p_case * w_date  * w_div))
+  } else if (prob == "uniform") {
+    metadata_deme2 <- metadata_deme %>%
+      mutate(p = 1/nrow(metadata_deme))
+  } else {warning("Incorrect value for prob argument in subsample function")}
+  
   # Compute weighted probability for each sequence
   metadata_deme2 <- metadata_deme %>%
     left_join(by_date, by = c("date", "country")) %>%
@@ -91,7 +112,7 @@ subsample <- function(alignment, metadata, include = NA, exclude = NA,
                           replace = FALSE, 
                           prob = metadata_deme2 %>% filter(!strain %in% metadata_include$strain) %>% pull(p))
       subsample_seqs <- alignment[c(metadata_include$strain, subsample)]
-      } else {
+    } else {
       subsample_seqs <- alignment[metadata_include$strain]
     }
   }
@@ -102,7 +123,8 @@ subsample <- function(alignment, metadata, include = NA, exclude = NA,
     geom_histogram(data = metadata_deme2, aes(x = date), fill = "#979da1", binwidth = 1) +
     geom_histogram(data = metadata_deme2 %>% filter(strain %in% names(subsample_seqs)), 
                    aes(x = date), fill = "#91D1C2", binwidth = 1) +
-    geom_line(data = cases_deme,  aes(x = date, y = cases)) +
+    geom_line(data = cases_deme,  aes(x = date, y = cases), linetype = 1) +
+    geom_line(data = cases_deme,  aes(x = date, y = deaths), linetype = 2) +
     scale_fill_npg()
   
   return(list(seqs = subsample_seqs, fig = hist))
@@ -142,6 +164,7 @@ parser$add_argument("--seq_per_deme", type = "integer")
 parser$add_argument("--output", type = "character",
                     help = "Output file for subsample alignment")
 parser$add_argument("--seed", type = "integer")
+parser$add_argument("--prob", type = "character")
 parser$add_argument("--output_figure", type = "character",
                     help = "Output file for histogram of sequences")
 
@@ -152,7 +175,7 @@ print(args)
 subsample_output <- subsample(args$alignment, args$metadata, args$include, args$exclude,
                               args$region, args$country, args$division,
                               args$exclude_country, args$exclude_division,
-                              args$from, args$to, args$seq_per_deme, args$seed)
+                              args$from, args$to, args$seq_per_deme, args$seed, args$prob)
 
 ape::write.FASTA(x = subsample_output$seqs, file = args$output)
 
