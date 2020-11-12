@@ -394,6 +394,7 @@ rule rsubsample:
             --to {params.max_date} \
             --seq_per_deme {params.seq_per_deme} \
             --seed {SEED} \
+            --prob "cases" \
             --output {output.sequences} \
             --output_figure {output.fig} 2>&1 | tee {log}
         """
