@@ -5,14 +5,19 @@
 ##------------------------------------------------------
 
 library(countrycode)
+library(ggpubr)
 
 set_plotopts <- function() {
   theme_set(theme_minimal())
-  theme_update(strip.background = element_rect(fill = "grey95", color = "grey95", size = 1),
+  theme_update(#strip.background = element_rect(fill = "grey95", color = "grey95", size = 1),
+               panel.grid = element_blank(),
+               panel.background = element_rect(fill = "white", colour = "grey50"),
+               axis.ticks = element_line(),
                legend.position = "bottom",
                legend.box="vertical",
                #legend.title = element_text(size = 9, face = "bold"),
-               axis.text.x = element_text(angle = 270),
+               #axis.text.x = element_text(angle = 270),
+               #axis.text.y = element_text(),
                axis.title.y = element_text(size = 9, face = "bold", margin = margin(r = 10)),
                axis.title.x = element_text(size = 9, face = "bold", margin = margin(t = 10)))
 }

@@ -46,7 +46,8 @@ demes <- data.frame(deme = NA, region = NA, country = NA, division = NA,
   group_by(deme) %>% 
   mutate(exclude_country = ifelse(is.na(exclude_country), NA, paste0(exclude_country, collapse = ","))) %>%
   distinct() %>%
-  filter_all(any_vars(!is.na(.)))
+  filter_all(any_vars(!is.na(.))) %>%
+  mutate(deme = ifelse(deme == "OtherEuropean", "Other European", deme))
   
 cat("\nDeme configuration:\n")
 knitr::kable(demes)
@@ -54,7 +55,10 @@ metadata <- read_tsv(args$metadata)
 
 
 # Case data information from ECDC ----------------------------------------------
-case_data <- get_cases(demes, to = MRS) %>%
+# Most recent sample values
+MRS <- max(metadata$date)
+mrs <- ymd_hms(paste(MRS, '23:59:00 UTC'))
+case_data <- get_cases(demes, from = ymd("2019-09-01"), to = MRS) %>%
   arrange(date) %>%
   group_by(deme) %>%
   mutate(cumcases = cumsum(cases),
@@ -63,10 +67,6 @@ case_data <- get_cases(demes, to = MRS) %>%
 
 # Data wrangling ---------------------------------------------------------------
 cat("Data preparation...")
-
-# Most recent sample values
-MRS <- max(metadata$date)
-mrs <- ymd_hms(paste(MRS, '23:59:00 UTC'))
 
 states <- df$states %>%
   mutate(type = factor(type, 
@@ -139,12 +139,17 @@ gribbon <- ggplot(gt_summary) +
   geom_line(aes(date, Imedian, colour = type)) +
   ylab("Population size") +
   xlab("Date") +
-  labs(color = "Median", fill = "IQR", 
-       title = "SARS-CoV-2 early epidemics in Europe and Hubei",
-       subtitle = "Case trajectories Median and IQR by deme") +
+  #labs(title = "SARS-CoV-2 early epidemics in Europe and Hubei",
+       #subtitle = "Case trajectories Median and IQR by deme") +
   scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
-  scale_color_npg() +
-  scale_fill_npg()
+  scale_fill_manual(name = "", values = dcolors) +
+  scale_color_manual(name = "", values = dcolors) +
+  theme(legend.position = c(0.2, 0.7),
+        legend.box="horizontal")
+
+ggexport(gribbon,
+         filename = paste0(args$output_figure, "01.png"),
+         width = 1500, height = 1000, res = 300)
 
 # 1.2 All trajectories single deme in log scale with ECDC case count data 
 trajs <- lapply(demes$deme, function(deme) {
@@ -156,7 +161,9 @@ trajs <- lapply(demes$deme, function(deme) {
                 rename(type = deme,
                        N = cumcases) %>% 
                 filter(type == deme) %>%
-                mutate(traj = "ecdc")) %>%
+                mutate(traj = "ecdc") %>%
+                select(type, traj, date, N) %>%
+                distinct()) %>%
     # 2. Plot
     ggplot() +
     geom_line(aes(date, N, group = traj,
@@ -165,54 +172,73 @@ trajs <- lapply(demes$deme, function(deme) {
                   linetype = traj == "ecdc", 
                   size = traj == "ecdc")) +
     scale_color_manual(name = "", 
-                       labels = c("trajectories", "ECDC case count data"), 
+                       labels = c(paste0(deme, " inferred\n population trajectories"), 
+                                  paste0(ifelse(deme == "Hubei", "China", deme), " ECDC total case count")), 
                        values = c(dcolors[[deme]], dark_dcolors[[deme]])) +
-    scale_alpha_manual(name = "", values = c(0.3, 1), guide = FALSE) +
+    scale_alpha_manual(name = "", values = c(0.2, 1), guide = FALSE) +
     scale_linetype_manual(name = "", values = c(1, 2),
-                          labels = c("trajectories", "ECDC case count data"), ) +
+                          labels = c(paste0(deme, " inferred\n population trajectories"), 
+                                     paste0(ifelse(deme == "Hubei", "China", deme), " ECDC total case count"))) +
     scale_size_manual(name = "", values = c(0.5, 1),
-                      labels = c("trajectories", "ECDC case count data"), ) +
+                      labels = c(paste0(deme, " inferred\n population trajectories"), 
+                                 paste0(ifelse(deme == "Hubei", "China", deme), " ECDC total case count")), ) +
     scale_x_date(limits = c(ymd("2019-11-01"), ymd("2020-03-08"))) +
     scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
-    labs(subtitle = paste("Case trajectories", deme)) 
-    #theme(axis.title.x=element_blank(),
-          #axis.text.x=element_blank())
+    ylab("Population size") + 
+    theme(legend.position = c(0.4, 0.9),
+          axis.title.x=element_blank())
   })
+
+ggexport(ggarrange(plotlist = trajs, labels = chartr("123456789", "ABCDEFGHI", 1:length(trajs)), nrow = 3, ncol = 2), 
+         filename = paste0(args$output_figure, "02.png"),
+         width = 2300, height = 3000, res = 300)
+
 
 # 2. Events
 # 2.1 First introduction distribution boxplot by deme and time of first sequence
 first_box <- events %>%
-  filter(event == "M") %>%
+  filter(event == "M" | event == "O") %>%
+  mutate(dest = ifelse(is.na(dest), "Hubei", dest)) %>%
   group_by(dest, traj) %>%
   arrange(time) %>%
   slice(1) %>%
-  left_join(demes %>% rename(dest = deme), by = "dest") %>%
+  #left_join(demes %>% rename(dest = deme), by = "dest") %>%
+  left_join(case_data %>% group_by(deme) %>% filter(cases != 0) %>% filter(date == min(date))  %>% rename(dest = deme, min_date = date), by = "dest") %>%
   ggplot() +
   geom_boxplot(aes(x = dest, y = date, color = dest)) +
-  geom_point(aes(x = dest, y = ymd(min_date)), pch = 4, size = 3) + 
+  geom_point(aes(x = dest, y = min_date), pch = 4, size = 3) + 
   coord_flip() +
   scale_color_manual(values = dcolors) +
-  labs(title = "First case time distribution by deme", 
-       subtitle = "X First known sequence date") 
+  theme(legend.position = "none",
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank())
+  #labs(title = "First case time distribution by deme", 
+  #     subtitle = "X First known sequence date") 
+
+ggexport(first_box,
+         filename = paste0(args$output_figure, "03.png"),
+         width = 1300, height = 1000, res = 300)
+
 
 # 2.2 First introduction date histogram single deme
-first_hist <- lapply(demes$deme, function(deme) {
-  events %>%
-    filter(dest == deme, event == "M") %>%
-    group_by(traj) %>%
-    arrange(time) %>%
-    slice(1) %>%
+first_hist <-  events %>%
+    filter(event == "M") %>%
+    group_by(traj, dest) %>%
+    filter(time == min(time)) %>%
     # Plot
     ggplot() +
     geom_histogram(aes(x = date, fill = src), binwidth = 1) +
-    scale_x_date(date_breaks = "1 month", date_labels = "%b", 
-                 limits = c(ymd("2019-11-01"), ymd("2020-03-08"))) +
-    scale_y_continuous(breaks=c(0,5)) +
-    scale_fill_manual(values = dcolors) +
-    labs(subtitle = "First introduction by source") +
-    theme(axis.title.x=element_blank(),
-          axis.text.x=element_blank())
-  })
+    facet_wrap(~dest) +
+    scale_x_date(date_breaks = "1 month", date_labels = "%b") +
+    scale_y_continuous(breaks=c(0,5,10)) +
+    scale_fill_manual(name = "", values = dcolors) +
+    ylab("Trajectory count") +
+    theme(legend.position = c(0.85, 0.25),
+          axis.title.x=element_blank())
+
+ggexport(first_hist,
+         filename = paste0(args$output_figure, "04.png"),
+         width = 1300, height = 1000, res = 300)
 
 # 2.3 Migration and births boxplots by date single deme
 migbirths_box <- lapply(demes$deme, function(deme) {
@@ -324,6 +350,7 @@ sample_hist <- lapply(demes$deme, function(deme) {
 # Saving the figures -----------------------------------------------------------
 cat("\nSaving the figures...")
 
+
 gg1 <- annotate_figure(ggarrange(gribbon, first_box, 
                                  ncol=2, common.legend = TRUE),
                        top = text_grob(paste("Analysis ", 
@@ -351,7 +378,14 @@ gg4 <- lapply(4:nrow(demes), function(i) {
 
 multi <- ggarrange(gg1, ggarrange(plotlist = gg2, nrow = 1), ggarrange(plotlist = gg3, nrow = 1), 
                    ggarrange(plotlist = gg4, nrow = 1), nrow = 1, ncol = 1, common.legend = TRUE)
-ggexport(multi, filename = args$output_figure, width=2100, height=1400, res=72*2)
+
+
+# One plot per file
+multi <- ggarrange(gribbon, 
+                   ggarrange(plotlist = trajs, nrow = 2, ncol = 3), 
+                   nrow = 1, ncol = 1)
+
+ggexport(multi, filename = args$output_figure, width=1000, height=500, res=72*2)
 cat("done!")
 
 # ------------------------------------------------------------------------------
