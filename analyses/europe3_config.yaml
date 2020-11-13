@@ -13,8 +13,8 @@ conda_environment: "/envs/nextstrain.yaml"
 
 # These are the two main starting files for the run
 # Files are previously downloaded from GISAID database, Downloads > nextmeta and nextfasta to the data folder
-sequences: "data/201014_sequences.fasta"
-metadata: "data/201014_metadata.tsv"
+sequences: "data/201113_sequences.fasta"
+metadata: "data/201113_metadata.tsv"
 
 
 # Define files used for external configuration. Common examples consist of a
@@ -62,187 +62,109 @@ mask:
 # Each build needs a name, a defined subsampling process, and geographic attributes used for subsampling.
 # Geography is specified by build attributes (e.g., `region`, `country`, `division`, `location`) that are referenced from subsampling schemes.
 builds:
-  # This build focuses on Europe early samples
-  # europe1:
-  #   subsampling_scheme: earlyeurope1
-  # europe2:
-  #   subsampling_scheme: earlyeurope2
-  # europe3:
-  #   subsampling_scheme: earlyeurope3
-  #   beast_analysis: 
-  #     - "201030_europe3.xml"
-  # europe3b:
-  #   subsampling_scheme: earlyeurope3b
-  #   beast_analysis: 
-  #     - "201030_europe3b.xml"
-  europe3c:
-    subsampling_scheme: earlyeurope_dsChina
+  europe3a:
+    subsampling_scheme: ssprop_Hubei
     beast_analysis: 
-      - 201111_europe3c
+      - 201030_europe3
+  europe3b:
+    subsampling_scheme: ssprop_China
+    beast_analysis: 
+      - 201030_europe3
+      - 201113_europe3v2 # Uniformative priors for sampling proportions
 
-  #europe4GLM:
-    
 
-# # Define subsampling scheme
-# Custom subsampling logic for regions like Europe where grouping by country
-# is the smallest resolution required.
+# Define subsampling scheme
 subsampling:
-  earlyeurope12:
-    # Focal samples
-    hubei:
-      group_by: "division"
-      seq_per_group: 30
-      query: --query "(division == 'Hubei') & (date<='2020-01-23')"
-    italy:
-      group_by: "country"
-      seq_per_group: 60
-      query: --query "(country == 'Italy') & (date<='2020-03-08')"
-    germany:
-      group_by: "country"
-      seq_per_group: 50
-      query: --query "(country == 'Germany') & (date<='2020-03-08')"
-    france:
-      group_by: "country"
-      seq_per_group: 50
-      query: --query "(country == 'France') & (date<='2020-03-08')"
-    spain:
-      group_by: "country"
-      seq_per_group: 40
-      query: --query "(country == 'Spain') & (date<='2020-03-08')"
-    othereuropean:
-      group_by: "region"
-      seq_per_group: 20
-      query: --query "(region == 'Europe') & (country not in ['Italy', 'France', 'Germany', 'Spain']) & (date<='2020-03-08')"
-
-  earlyeurope3:
+  ssprop_Hubei:
     France:
       country: "France"
       region: "Europe"
       min_date: "2020-01-23"
       max_date: "2020-03-08"
       seq_per_deme: 50
-      focal: 1
+      prob: "cases"
     Germany:
       country: "Germany"
       region: "Europe"
       min_date: "2020-01-28"
       max_date: "2020-03-08"
       seq_per_deme: 50
-      focal: 1
+      prob: "cases"
     Hubei:
       division: "Hubei"
       country: "China"
       region: "Asia"
       min_date: "2019-12-24"
       max_date: "2020-01-23"
-      seq_per_deme: 50
-      focal: 1
+      seq_per_deme: 60
+      prob: "deaths"
     Italy:
       country: "Italy"
       region: "Europe"
       min_date: "2020-01-29"
       max_date: "2020-03-08"
       seq_per_deme: 60
-      focal: 1
+      prob: "cases"
     OtherEuropean:
       region: "Europe"
       exclude_country: ["France","Germany","Italy","Spain"]
       min_date: "2020-01-29"
       max_date: "2020-03-08"
-      seq_per_deme: 40
-      focal: 0
+      seq_per_deme: 30
+      prob: "cases_and_location"
     Spain:
       country: "Spain"
       region: "Europe"
       min_date: "2020-02-24"
       max_date: "2020-03-08"
       seq_per_deme: 50
-      focal: 1
+      prob: "cases"
 
-  earlyeurope3b:
+  ssprop_China:
     France:
       country: "France"
       region: "Europe"
       min_date: "2020-01-23"
       max_date: "2020-03-08"
       seq_per_deme: 50
-      focal: 1
+      prob: "cases"
     Germany:
       country: "Germany"
       region: "Europe"
       min_date: "2020-01-28"
       max_date: "2020-03-08"
       seq_per_deme: 50
-      focal: 1
-    Hubei:
-      division: "Hubei"
-      country: "China"
-      region: "Asia"
-      min_date: "2019-12-24"
-      max_date: "2020-03-08"
-      seq_per_deme: 40
-      focal: 1
-    Italy:
-      country: "Italy"
-      region: "Europe"
-      min_date: "2020-01-29"
-      max_date: "2020-03-08"
-      seq_per_deme: 60
-      focal: 1
-    OtherEuropean:
-      region: "Europe"
-      exclude_country: ["France","Germany","Italy","Spain"]
-      min_date: "2020-01-29"
-      max_date: "2020-03-08"
-      seq_per_deme: 40
-      focal: 0
-    Spain:
-      country: "Spain"
-      region: "Europe"
-      min_date: "2020-02-24"
-      max_date: "2020-03-08"
-      seq_per_deme: 50
-      focal: 1
-
-  earlyeurope_dsChina:
-    China:
+      prob: "cases"
+    Hubei-China:
       country: "China"
       region: "Asia"
       min_date: "2019-12-24"
       max_date: "2020-01-23"
-      seq_per_deme: 40
-    France:
-      country: "France"
-      region: "Europe"
-      min_date: "2020-01-23"
-      max_date: "2020-03-08"
-      seq_per_deme: 30
-    Germany:
-      country: "Germany"
-      region: "Europe"
-      min_date: "2020-01-28"
-      max_date: "2020-03-08"
-      seq_per_deme: 30
+      seq_per_deme: 60
+      prob: "deaths"
     Italy:
       country: "Italy"
       region: "Europe"
       min_date: "2020-01-29"
       max_date: "2020-03-08"
-      seq_per_deme: 40
+      seq_per_deme: 60
+      prob: "cases"
     OtherEuropean:
       region: "Europe"
       exclude_country: ["France","Germany","Italy","Spain"]
       min_date: "2020-01-29"
       max_date: "2020-03-08"
-      seq_per_deme: 20
+      seq_per_deme: 30
+      prob: "cases_and_location"
     Spain:
       country: "Spain"
       region: "Europe"
       min_date: "2020-02-24"
       max_date: "2020-03-08"
-      seq_per_deme: 30
+      seq_per_deme: 50
+      prob: "cases"
 
-
+  
 tree:
   tree-builder-args: "'-ninit 10 -n 4'"
 
@@ -264,14 +186,15 @@ beast:
   # List of parallel mcmc chains seeds to run 
   n_mcmc: [1,2,3,4,5]
   # Length of a mcmc chain, it has to be the same length than the one specified in the xml file
-  l_mcmc: 10000000
+  l_mcmc: 20000000
   # Time for mcmc chains in cluster in minutes
   t_mcmc: 7200
   # Burnin fraction 
   burnin: 0.1
   # Log analyser bin
   log_analyser: loganalyser
-  min_ess: 0
+  # Minimum ESS value to combine chains
+  min_ess: 100
   # Log combiner bin
   log_combiner: logcombiner
   # Tree annotator bin

@@ -1,5 +1,3 @@
-TODO
-
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <beast namespace="beast.core
                   :beast.core.parameter
@@ -56,7 +54,7 @@ TODO
 
   
    <run spec="LogFileIterator">
-    <!-- Trace log to load-->
+    <!-- Trace log for the analysis-->
     <logFileState spec="TraceLogFileState" logFileName="$(filebase)_comb.log">
 
       <logFileEntry spec="LogFileRealParameter" fieldName="originBDMMPrime">
@@ -64,200 +62,201 @@ TODO
       </logFileEntry>
 
        <!-- R0 -->
-      <logFileEntry spec="LogFileRealParameter" fieldName="R0SVEpi.France" fieldParameterIndex="0">
+      <logFileEntry spec="LogFileRealParameter" fieldName="R0SV.France" fieldParameterIndex="0">
         <fieldParameter id="R0" spec="RealParameter" value="0.0 0.0 0.0 0.0 0.0 0.0"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="R0SVEpi.Germany" fieldParameterIndex="1">
+      <logFileEntry spec="LogFileRealParameter" fieldName="R0SV.Germany" fieldParameterIndex="1">
         <fieldParameter idref="R0"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="R0SVEpi.Hubei" fieldParameterIndex="2">
+      <logFileEntry spec="LogFileRealParameter" fieldName="R0SV.Hubei" fieldParameterIndex="2">
         <fieldParameter idref="R0"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="R0SVEpi.Italy" fieldParameterIndex="3">
+      <logFileEntry spec="LogFileRealParameter" fieldName="R0SV.Italy" fieldParameterIndex="3">
         <fieldParameter idref="R0"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="R0SVEpi.OtherEuropean" fieldParameterIndex="4">
+      <logFileEntry spec="LogFileRealParameter" fieldName="R0SV.OtherEuropean" fieldParameterIndex="4">
         <fieldParameter idref="R0"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="R0SVEpi.Spain" fieldParameterIndex="5">
+      <logFileEntry spec="LogFileRealParameter" fieldName="R0SV.Spain" fieldParameterIndex="5">
         <fieldParameter idref="R0"/>
       </logFileEntry>
 
-      <logFileEntry spec="LogFileRealParameter" fieldName="R0AmongDemesSMEpi">
+      <logFileEntry spec="LogFileRealParameter" fieldName="R0AmongDemesSM">
         <fieldParameter id="R0AmongDemes" spec="RealParameter" value="0.0" />
       </logFileEntry>
 
-      <logFileEntry spec="LogFileRealParameter" fieldName="becomeUninfectiousRateSVEpi">
+      <logFileEntry spec="LogFileRealParameter" fieldName="becomeUninfectiousRateSV">
         <fieldParameter id="becomeUninfectiousRate" spec="RealParameter" value="36.5"/>
       </logFileEntry>
 
       <!-- Migration rates -->
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.France_to_Germany" fieldParameterIndex="0">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.France_to_Germany" fieldParameterIndex="0">
         <fieldParameter id="migrationRate" spec="RealParameter" value="0.1 0.0 0.1 0.1 0.1 0.1 0.0 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.0 0.1 0.1 0.1 0.1 0.0 0.1 0.1 0.1 0.1 0.0 0.1 0.1"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.France_to_Hubei" fieldParameterIndex="1">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.France_to_Hubei" fieldParameterIndex="1">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.France_to_Italy" fieldParameterIndex="2">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.France_to_Italy" fieldParameterIndex="2">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.France_to_OtherEuropean" fieldParameterIndex="3">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.France_to_OtherEuropean" fieldParameterIndex="3">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.France_to_Spain" fieldParameterIndex="4">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.France_to_Spain" fieldParameterIndex="4">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Germany_to_France" fieldParameterIndex="5">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.Germany_to_France" fieldParameterIndex="5">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Germany_to_Hubei" fieldParameterIndex="6">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.Germany_to_Hubei" fieldParameterIndex="6">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Germany_to_Italy" fieldParameterIndex="7">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.Germany_to_Italy" fieldParameterIndex="7">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Germany_to_OtherEuropean" fieldParameterIndex="8">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.Germany_to_OtherEuropean" fieldParameterIndex="8">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Germany_to_Spain" fieldParameterIndex="9">
+       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.Germany_to_Spain" fieldParameterIndex="9">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Hubei_to_France" fieldParameterIndex="10">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.Hubei_to_France" fieldParameterIndex="10">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Hubei_to_Germany" fieldParameterIndex="11">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.Hubei_to_Germany" fieldParameterIndex="11">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Hubei_to_Italy" fieldParameterIndex="12">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.Hubei_to_Italy" fieldParameterIndex="12">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Hubei_to_OtherEuropean" fieldParameterIndex="13">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.Hubei_to_OtherEuropean" fieldParameterIndex="13">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Hubei_to_Spain" fieldParameterIndex="14">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.Hubei_to_Spain" fieldParameterIndex="14">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Italy_to_France" fieldParameterIndex="15">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.Italy_to_France" fieldParameterIndex="15">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Italy_to_Germany" fieldParameterIndex="16">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.Italy_to_Germany" fieldParameterIndex="16">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Italy_to_Hubei" fieldParameterIndex="17">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.Italy_to_Hubei" fieldParameterIndex="17">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Italy_to_OtherEuropean" fieldParameterIndex="18">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.Italy_to_OtherEuropean" fieldParameterIndex="18">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Italy_to_Spain" fieldParameterIndex="19">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.Italy_to_Spain" fieldParameterIndex="19">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.OtherEuropean_to_France" fieldParameterIndex="20">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.OtherEuropean_to_France" fieldParameterIndex="20">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.OtherEuropean_to_Germany" fieldParameterIndex="21">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.OtherEuropean_to_Germany" fieldParameterIndex="21">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.OtherEuropean_to_Hubei" fieldParameterIndex="22">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.OtherEuropean_to_Hubei" fieldParameterIndex="22">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.OtherEuropean_to_Italy" fieldParameterIndex="23">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.OtherEuropean_to_Italy" fieldParameterIndex="23">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.OtherEuropean_to_Spain" fieldParameterIndex="24">
+       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.OtherEuropean_to_Spain" fieldParameterIndex="24">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Spain_to_France" fieldParameterIndex="25">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.Spain_to_France" fieldParameterIndex="25">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Spain_to_Germany" fieldParameterIndex="26">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.Spain_to_Germany" fieldParameterIndex="26">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Spain_to_Hubei" fieldParameterIndex="27">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.Spain_to_Hubei" fieldParameterIndex="27">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Spain_to_Italy" fieldParameterIndex="28">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.Spain_to_Italy" fieldParameterIndex="28">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMEpi.Spain_to_OtherEuropean" fieldParameterIndex="29">
+       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSM.Spain_to_OtherEuropean" fieldParameterIndex="29">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
 
       <!-- Sampling Proportions -->
-      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i2_France" fieldParameterIndex="0">
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSV.i2_France" fieldParameterIndex="0">
         <fieldParameter id="samplingProportion" spec="RealParameter" value="1.0E-5 1.0E-5 0.0 1.0E-5 1.0E-5 1.0E-5 1.0E-5 1.0E-5 1.0E-5 1.0E-5 1.0E-5 1.0E-5 0.0 0.0 0.0 0.0 0.0 0.0"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i2_Germany" fieldParameterIndex="1">
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSV.i2_Germany" fieldParameterIndex="1">
         <fieldParameter idref="samplingProportion"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i2_Hubei" fieldParameterIndex="2">
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSV.i2_Hubei" fieldParameterIndex="2">
         <fieldParameter idref="samplingProportion"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i2_Italy" fieldParameterIndex="3">
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSV.i2_Italy" fieldParameterIndex="3">
         <fieldParameter idref="samplingProportion"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i2_OtherEuropean" fieldParameterIndex="4">
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSV.i2_OtherEuropean" fieldParameterIndex="4">
         <fieldParameter idref="samplingProportion"/>
       </logFileEntry>
-       <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i2_Spain" fieldParameterIndex="5">
+       <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSV.i2_Spain" fieldParameterIndex="5">
         <fieldParameter idref="samplingProportion"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i1_France" fieldParameterIndex="6">
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSV.i1_France" fieldParameterIndex="6">
         <fieldParameter idref="samplingProportion"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i1_Germany" fieldParameterIndex="7">
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSV.i1_Germany" fieldParameterIndex="7">
         <fieldParameter idref="samplingProportion"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i1_Hubei" fieldParameterIndex="8">
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSV.i1_Hubei" fieldParameterIndex="8">
         <fieldParameter idref="samplingProportion"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i1_Italy" fieldParameterIndex="9">
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSV.i1_Italy" fieldParameterIndex="9">
         <fieldParameter idref="samplingProportion"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i1_OtherEuropean" fieldParameterIndex="10">
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSV.i1_OtherEuropean" fieldParameterIndex="10">
         <fieldParameter idref="samplingProportion"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i1_Spain" fieldParameterIndex="11">
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSV.i1_Spain" fieldParameterIndex="11">
         <fieldParameter idref="samplingProportion"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i0_France" fieldParameterIndex="12">
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSV.i0_France" fieldParameterIndex="12">
         <fieldParameter idref="samplingProportion"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i0_Germany" fieldParameterIndex="13">
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSV.i0_Germany" fieldParameterIndex="13">
         <fieldParameter idref="samplingProportion"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i0_Hubei" fieldParameterIndex="14">
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSV.i0_Hubei" fieldParameterIndex="14">
         <fieldParameter idref="samplingProportion"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i0_Italy" fieldParameterIndex="15">
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSV.i0_Italy" fieldParameterIndex="15">
         <fieldParameter idref="samplingProportion"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i0_OtherEuropean" fieldParameterIndex="16">
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSV.i0_OtherEuropean" fieldParameterIndex="16">
         <fieldParameter idref="samplingProportion"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVEpi.i0_Spain" fieldParameterIndex="17">
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSV.i0_Spain" fieldParameterIndex="17">
         <fieldParameter idref="samplingProportion"/>
       </logFileEntry>
 
-      <logFileEntry spec="LogFileRealParameter" fieldName="removalProbSVEpi">
+      <logFileEntry spec="LogFileRealParameter" fieldName="removalProbSV">
         <fieldParameter id="removalProb" spec="RealParameter" value="0.0"/>
       </logFileEntry>
 
     </logFileState>
 
-    <!-- Tree log to load-->
+    <!-- Tree log for the analysis-->
     <logFileState spec="TreeLogFileState" logFileName="$(filebase)_comb.trees">
       <tree spec="Tree" id="tree"/>
     </logFileState>
 
+    <logger spec="Logger"
+            logEvery="10000">
+      <log idref="R0"/>
+      <log idref="samplingProportion"/>
+    </logger>
+
     <!-- Typed tree log-->
     <logger spec="Logger" fileName="$(filebase).typed.trees" logEvery="10000" mode="tree">
         <log id="typeMappedTree" spec="TypeMappedTree" bdmmDistrib="@BDMMPrime" frequencies="@typeFrequencies" mapOnInit="false" remapOnLog="true" typeLabel="type" typeTraitSet="@typeTraitSet" untypedTree="@tree"/>
-    </logger>
-
-    <!-- Typed node tree log-->
-    <logger id="nodeTypedTreeLogger" spec="Logger" fileName="$(filebase).typed.node.trees" logEvery="1000" mode="tree">
-      <log id="nodeTypedTree" spec="TypedNodeTreeLogger" typedTree="@typeMappedTree"/>
     </logger>
 
     <!-- Trajectories log-->

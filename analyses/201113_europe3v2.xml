@@ -156,61 +156,10 @@
                     </LogNormal>
                 </prior>
 
-    			<!-- Prior for sampling proportion for France Epoch 1 (post-Jan 23) -->
-    			<distribution spec="SmartZeroExcludingPrior">
-    				<x spec="feast.function.Slice" arg="@samplingProportion" index="0" count="1"/>
-    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.070"/>
-    			</distribution>
-    			<!-- Prior for sampling proportion for Germany Epoch 1 (post-Jan 23) -->
-    			<distribution spec="SmartZeroExcludingPrior">
-    				<x spec="feast.function.Slice" arg="@samplingProportion" index="1" count="1"/>
-    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.060"/>
-    			</distribution>
-    			<!-- Prior for sampling proportion for Italy Epoch 1 (post-Jan 23) -->
-    			<distribution spec="SmartZeroExcludingPrior">
-    				<x spec="feast.function.Slice" arg="@samplingProportion" index="3" count="1"/>
-    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.011"/>
-    			</distribution>
-                <!-- Prior for sampling proportion for OtherEuropean Epoch 1 (post-Jan 23) -->
-                <distribution spec="SmartZeroExcludingPrior">
-                    <x spec="feast.function.Slice" arg="@samplingProportion" index="4" count="1"/>
-                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.016"/>
-                </distribution>
-    			<!-- Prior for sampling proportion for Spain Epoch 1 (post-Jan 23) -->
-    			<distribution spec="SmartZeroExcludingPrior">
-    				<x spec="feast.function.Slice" arg="@samplingProportion" index="5" count="1"/>
-    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.046"/>
-    			</distribution>
-    			<!-- Prior for sampling proportion for France Epoch 2 (post-first sample date) -->
-    			<distribution spec="SmartZeroExcludingPrior">
-    				<x spec="feast.function.Slice" arg="@samplingProportion" index="6" count="1"/>
-    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.070"/>
-    			</distribution>
-    			<!-- Prior for sampling proportion for Germany Epoch 2 (post-first sample date) -->
-    			<distribution spec="SmartZeroExcludingPrior">
-    				<x spec="feast.function.Slice" arg="@samplingProportion" index="7" count="1"/>
-    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.060"/>
-    			</distribution>
-    			<!-- Prior for sampling proportion for Hubei-China Epoch 2 (post-first sample date) -->
-    			<distribution spec="SmartZeroExcludingPrior">
-    				<x spec="feast.function.Slice" arg="@samplingProportion" index="8" count="1"/>
-    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.097"/>
-    			</distribution>
-    			<!-- Prior for sampling proportion for Italy Epoch 2 (post-first sample date) -->
-    			<distribution spec="SmartZeroExcludingPrior">
-    				<x spec="feast.function.Slice" arg="@samplingProportion" index="9" count="1"/>
-    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.011"/>
-    			</distribution>
-    			<!-- Prior for sampling proportion for OtherEuropean Epoch 2 (post-first sample date) -->
-    			<distribution spec="SmartZeroExcludingPrior">
-    				<x spec="feast.function.Slice" arg="@samplingProportion" index="10" count="1"/>
-    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.016"/>
-    			</distribution>
-                <!-- Prior for sampling proportion for Spain Epoch 2 (post-first sample date) -->
-                <distribution spec="SmartZeroExcludingPrior">
-                    <x spec="feast.function.Slice" arg="@samplingProportion" index="11" count="1"/>
-                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.046"/>
-                </distribution>
+                <prior id="samplingProportionPrior" name="distribution" spec="SmartZeroExcludingPrior" x="@samplingProportion">
+                    <Uniform id="Uniform.4" name="distr" lower="0" upper="1"/>
+                </prior>
+
             </distribution>
 
              <!-- Likelihood -->
