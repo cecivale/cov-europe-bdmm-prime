@@ -603,19 +603,20 @@ rule beast:
         Running BEAST2 analysis BDMM-Prime, MCMC chain {wildcards.seed}.
         """
     input:
-        xml = _get_beast_analysis,
+        #xml = _get_beast_analysis,
+        xml = "{analysis_name}.xml",
         alignment = rules.adjust_names.output.alignment
     output:
         trace = "results/{build_name}/{analysis_name}.{seed}.log",
         trees = "results/{build_name}/{analysis_name}.{seed}.trees",
     params:
-        log = "logs/beast_{build_name}_{analysis_name}.{seed}.txt"
+        log = "logs/beast_{build_name}_{analysis_name}.{seed}.txt",
         jar = config["beast"]["jar"],
         seed = config["beast"]["n_mcmc"],
     resources:
         runtime = config["beast"]["t_mcmc"],
         mem_mb = 4096,
-        cpus = 2
+    threads: 4
     shell:
         """
         scp {input.xml} results/{wildcards.build_name}/
@@ -734,7 +735,8 @@ rule combine_trees:
 
 rule trajectory_mapping:
     input: 
-        xml = _get_beast_trajectory_analysis,
+        #xml = _get_beast_trajectory_analysis,
+        xml = "{analysis_name}.trajectoryMapper.xml",
         combined_log = rules.combine_logs.output.combined_log,
         combined_trees = rules.combine_trees.output.combined_trees
     output:
@@ -742,7 +744,7 @@ rule trajectory_mapping:
         node_typed_trees = "results/{build_name}/{analysis_name}.typed.node.trees",
         trajectories = "results/{build_name}/{analysis_name}.TL.traj"
     params:
-        log = "logs/trajectory_mapping_{build_name}_{analysis_name}.txt"
+        log = "logs/trajectory_mapping_{build_name}_{analysis_name}.txt",
         jar = config["beast"]["jar"]
     resources:
         runtime = config["beast"]["t_mcmc"],
@@ -825,12 +827,12 @@ rule analyze_trajectories:
         """
 
 
-# rule get_sampling_proportions:
-#     params:
-#         demes = str(config["subsampling"]["earlyeurope_dsChina"])
-#     output:
-#         sampling_proportions = "results/sampling_proportions_earlyeurope_dsChina.tsv"
-#     shell:
-#         """
-#         Rscript scripts/sampling_proportion.R --input {params.demes} --output {output.sampling_proportions}
-#         """
+rule get_sampling_proportions:
+    params:
+        demes = str(config["subsampling"]["ssprop_Hubei"])
+    output:
+        sampling_proportions = "results/sampling_proportions_ssprop_Hubei.tsv"
+    shell:
+        """
+        Rscript scripts/sampling_proportion.R --input {params.demes} --output {output.sampling_proportions}
+        """

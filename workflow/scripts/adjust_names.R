@@ -52,14 +52,15 @@ metadata <- full_metadata %>%
   left_join(demes, by = c("region")) %>%
   filter((country.x == country.y) | 
            (!country.x %in% demes$country & is.na(country.y))) %>%
-# 3. Create names GISAID EPI ISL | Deme | Date
-  mutate(strain_old = strain,
-         strain = paste(gisaid_epi_isl, deme, date, sep = "/")) %>%
-  unique()
+# 3. Create names GISAID EPI ISL / Deme / Date
+  rename(strain_old = strain) %>%
+  mutate(strain = paste(gisaid_epi_isl, deme, date, sep = "/")) %>%
+  distinct(strain, .keep_all = TRUE)
 
 # Adjust alignment names -------------------------------------------------------
 strain_names <- names(alignment)
 full_names <- metadata$strain[match(strain_names, metadata$strain_old)]
+print(full_names)
 if (any(is.na(full_names))) {
   stop("Not all strains have full names in metadata.")
 }
