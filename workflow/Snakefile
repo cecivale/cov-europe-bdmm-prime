@@ -606,33 +606,35 @@ rule beast:
         xml = _get_beast_analysis,
         alignment = rules.adjust_names.output.alignment
     output:
-        beast_log = "results/{build_name}/{analysis_name}.{seed}.log",
+        trace = "results/{build_name}/{analysis_name}.{seed}.log",
         trees = "results/{build_name}/{analysis_name}.{seed}.trees",
-    log:
-        "logs/beast_{build_name}_{analysis_name}.{seed}.txt"
     params:
+        log = "logs/beast_{build_name}_{analysis_name}.{seed}.txt"
         jar = config["beast"]["jar"],
         seed = config["beast"]["n_mcmc"],
     resources:
-        runtime = config["beast"]["t_mcmc"]
+        runtime = config["beast"]["t_mcmc"],
+        mem_mb = 4096,
+        cpus = 2
     shell:
         """
         scp {input.xml} results/{wildcards.build_name}/
         cd results/{wildcards.build_name}/
-        java -jar {params.jar} -seed {wildcards.seed} -statefile {wildcards.analysis_name}.{wildcards.seed}.state -overwrite {input.xml} 2>&1 | tee {log}
+        java -Xmx3G -jar {params.jar} -seed {wildcards.seed} -statefile {wildcards.analysis_name}.{wildcards.seed}.state -overwrite {input.xml} 2>&1 | tee {params.log} || :
         cd ../../
         rm results/{wildcards.build_name}/{input.xml}
-        exit 0
+        mv results/{wildcards.build_name}/{params.log} logs/
+        touch {output.trace} {output.trees}
         """
 
 
 rule summarize_log:
     message: 
         """
-        Summarizing log file {input.beast_log} with Log Analyser v1.8.2.
+        Summarizing log file {input.trace} with Log Analyser v1.8.2.
         """
     input: 
-        beast_log = rules.beast.output.beast_log
+        trace = rules.beast.output.trace
     output:
         log_summary = "results/{build_name}/{analysis_name}.{seed}.logsummary.txt"
     log:
@@ -642,7 +644,8 @@ rule summarize_log:
         burnin = int(config["beast"]["burnin"] * config["beast"]["l_mcmc"])
     shell:
         """
-        {params.log_analyser} -burnin {params.burnin} {input.beast_log} {output.log_summary} 2> {log}
+        {params.log_analyser} -burnin {params.burnin} {input.trace} {output.log_summary} 2> {log} || :
+        touch {output.log_summary}
         """
 
 def _get_logsummary(wildcards):
@@ -738,20 +741,21 @@ rule trajectory_mapping:
         typed_trees = "results/{build_name}/{analysis_name}.typed.trees",
         node_typed_trees = "results/{build_name}/{analysis_name}.typed.node.trees",
         trajectories = "results/{build_name}/{analysis_name}.TL.traj"
-    log:
-        "logs/trajectory_mapping_{build_name}_{analysis_name}.txt"
     params:
+        log = "logs/trajectory_mapping_{build_name}_{analysis_name}.txt"
         jar = config["beast"]["jar"]
     resources:
-        runtime = config["beast"]["t_mcmc"]
+        runtime = config["beast"]["t_mcmc"],
+        mem_mb = 4096,
+        cpus = 2
     shell:
         """
         scp {input.xml} results/{wildcards.build_name}/{wildcards.analysis_name}.xml
         cd results/{wildcards.build_name}/
-        java -jar {params.jar} -overwrite {wildcards.analysis_name}.xml 2>&1 | tee {log}
+        java -Xmx3G -jar {params.jar} -overwrite {wildcards.analysis_name}.xml 2>&1 | tee {params.log}
         cd ../../
         rm results/{wildcards.build_name}/{wildcards.analysis_name}.xml
-        exit 0
+        mv results/{wildcards.build_name}/{params.log} logs/
         """
 
 
@@ -773,7 +777,6 @@ rule summarize_comb_log:
         {params.log_analyser} {input.combined_log} {output.summary_log} 2> {log}
         """
 
-#rule analyze_log:
 
 rule summarize_trees:
     message: 
@@ -822,12 +825,12 @@ rule analyze_trajectories:
         """
 
 
-rule get_sampling_proportions:
-    params:
-        demes = str(config["subsampling"]["earlyeurope_dsChina"])
-    output:
-        sampling_proportions = "results/sampling_proportions_earlyeurope_dsChina.tsv"
-    shell:
-        """
-        Rscript scripts/sampling_proportion.R --input {params.demes} --output {output.sampling_proportions}
-        """
+# rule get_sampling_proportions:
+#     params:
+#         demes = str(config["subsampling"]["earlyeurope_dsChina"])
+#     output:
+#         sampling_proportions = "results/sampling_proportions_earlyeurope_dsChina.tsv"
+#     shell:
+#         """
+#         Rscript scripts/sampling_proportion.R --input {params.demes} --output {output.sampling_proportions}
+#         """
