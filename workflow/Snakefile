@@ -610,7 +610,7 @@ rule beast:
         trace = "results/{build_name}/{analysis_name}.{seed}.log",
         trees = "results/{build_name}/{analysis_name}.{seed}.trees",
     params:
-        log = "logs/beast_{build_name}_{analysis_name}.{seed}.txt",
+        log = "beast_{build_name}_{analysis_name}.{seed}.txt",
         jar = config["beast"]["jar"],
         seed = config["beast"]["n_mcmc"],
     resources:
@@ -623,11 +623,9 @@ rule beast:
         cd results/{wildcards.build_name}/
         java -Xmx3G -jar {params.jar} -seed {wildcards.seed} -statefile {wildcards.analysis_name}.{wildcards.seed}.state -overwrite {input.xml} 2>&1 | tee {params.log} || :
         cd ../../
-        rm results/{wildcards.build_name}/{input.xml}
         mv results/{wildcards.build_name}/{params.log} logs/
         touch {output.trace} {output.trees}
         """
-
 
 rule summarize_log:
     message: 
@@ -732,6 +730,15 @@ rule combine_trees:
         {params.log_combiner} -trees -burnin {params.burnin} {input.tree_files} {output.combined_trees} 2>&1 | tee {log}
         """
 
+rule clean_beast:
+    input:
+        xml = "results/{build_name}/{analysis_name}.xml",
+        combined_log = rules.combine_logs.output.combined_log,
+        combined_trees = rules.combine_trees.output.combined_trees
+    shell:
+        """
+        rm results/{wildcards.build_name}/{input.xml} results/{wildcards.build_name}/beast_*
+        """
 
 rule trajectory_mapping:
     input: 
@@ -744,7 +751,7 @@ rule trajectory_mapping:
         node_typed_trees = "results/{build_name}/{analysis_name}.typed.node.trees",
         trajectories = "results/{build_name}/{analysis_name}.TL.traj"
     params:
-        log = "logs/trajectory_mapping_{build_name}_{analysis_name}.txt",
+        log = "trajectory_mapping_{build_name}_{analysis_name}.txt",
         jar = config["beast"]["jar"]
     resources:
         runtime = config["beast"]["t_mcmc"],
@@ -756,10 +763,17 @@ rule trajectory_mapping:
         cd results/{wildcards.build_name}/
         java -Xmx3G -jar {params.jar} -overwrite {wildcards.analysis_name}.xml 2>&1 | tee {params.log}
         cd ../../
-        rm results/{wildcards.build_name}/{wildcards.analysis_name}.xml
         mv results/{wildcards.build_name}/{params.log} logs/
         """
 
+rule clean_trajectory_mapping:
+    input:
+        xml = "results/{build_name}/{analysis_name}.xml",
+        trajectories = rules.trajectory_mapping.output.trajectories
+    shell:
+        """
+        rm results/{wildcards.build_name}/{wildcards.analysis_name}.xml results/{wildcards.build_name}/trajectory_mapping_*
+        """
 
 rule summarize_comb_log:
     message: 
