@@ -761,7 +761,7 @@ rule trajectory_mapping:
         """
         scp {input.xml} results/{wildcards.build_name}/{wildcards.analysis_name}.xml
         cd results/{wildcards.build_name}/
-        java -Xmx3G -jar {params.jar} -overwrite {wildcards.analysis_name}.xml 2>&1 | tee {params.log}
+        java -Xmx3G -jar {params.jar} -overwrite {wildcards.analysis_name}.xml 2>&1 | tee {params.log}  || :
         cd ../../
         mv results/{wildcards.build_name}/{params.log} logs/
         """
@@ -810,7 +810,7 @@ rule summarize_trees:
         heights = config["beast"]["mcc_heights"]
     shell:
         """
-        {params.tree_annotator} -heights {params.heights} {input.combined_trees} {output.summary_tree} 2>&1 | tee {log}
+        {params.tree_annotator} -heights {params.heights} {input.combined_trees} {output.summary_tree} 2>&1 | tee {log} 
         """
 
 #rule analyze/plot_tree:
@@ -829,24 +829,26 @@ rule analyze_trajectories:
         "logs/analyze_trajectories_{build_name}_{analysis_name}.txt"
     params:
         burnin = config["beast"]["burnin"],
-        demes = _get_subsampling_settings
+        demes = _get_subsampling_settings,
+        n_traj =  config["beast"]["n_traj"]
     shell:
         """
         Rscript scripts/analyze_trajectories.R \
             --input {input.trajectories} \
             --burnin {params.burnin} \
-            --demes {params.demes} \
             --metadata {input.metadata} \
+            --demes {params.demes} \
+            --n {params.n_traj} \
             --output_fig {output.fig_traj} 2>&1 | tee -a {log}
         """
 
 
-rule get_sampling_proportions:
-    params:
-        demes = str(config["subsampling"]["ssprop_Hubei"])
-    output:
-        sampling_proportions = "results/sampling_proportions_ssprop_Hubei.tsv"
-    shell:
-        """
-        Rscript scripts/sampling_proportion.R --input {params.demes} --output {output.sampling_proportions}
-        """
+# rule get_sampling_proportions:
+#     params:
+#         demes = str(config["subsampling"]["ssprop_Hubei"])
+#     output:
+#         sampling_proportions = "results/sampling_proportions_ssprop_Hubei.tsv"
+#     shell:
+#         """
+#         Rscript scripts/sampling_proportion.R --input {params.demes} --output {output.sampling_proportions}
+#         """

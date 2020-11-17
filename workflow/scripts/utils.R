@@ -11,10 +11,12 @@ set_plotopts <- function() {
   theme_set(theme_minimal())
   theme_update(#strip.background = element_rect(fill = "grey95", color = "grey95", size = 1),
                panel.grid = element_blank(),
-               panel.background = element_rect(fill = "white", colour = "grey50"),
+               panel.background = element_rect(fill = "white", colour = "grey80"),
                axis.ticks = element_line(),
                legend.position = "bottom",
                legend.box="vertical",
+               strip.background = element_rect(fill = "grey80", colour = "grey80"),
+               strip.text = element_text(color = "white"),
                #legend.title = element_text(size = 9, face = "bold"),
                #axis.text.x = element_text(angle = 270),
                #axis.text.y = element_text(),
