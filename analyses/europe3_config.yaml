@@ -184,7 +184,7 @@ beast:
   # BEAST2 jar file path
   jar: "/cluster/home/ceciliav/BDMM-Prime.jar"
   # List of parallel mcmc chains seeds to run 
-  n_mcmc: [1,2,3,4,5]
+
   # Length of a mcmc chain, it has to be the same length than the one specified in the xml file
   l_mcmc: 20000000
   # Time for mcmc chains in cluster in minutes
@@ -202,5 +202,29 @@ beast:
   mcc_heights: "mean"
 
 
+
+# BEAST2 analysis settings
+beast:
+  # XML file for analysis
+  #xml:  ["201030_europe3.xml", "201030_europe3b.xml"]
+  # BEAST2 jar file path
+  jar: "/cluster/home/ceciliav/BDMM-Prime.jar"
+    log_analyser: loganalyser
+  log_combiner: logcombiner
+  tree_annotator: treeannotator
+  # TODO use newer version of beast tools in euler
+  # log_analyser: "/cluster/home/ceciliav/beast/bin/loaganalyser"
+  # log_combiner: "/cluster/home/ceciliav/logcombiner"
+  # tree_annotator: "/cluster/home/ceciliav/treeannotator"
+  # List of parallel mcmc chains seeds to run 
+  n_mcmc: [1,2,3,4,5]
+  # Length of a mcmc chain, it has to be the same length than the one specified in the xml file
+  l_mcmc: 20000000
+  # Time for mcmc chains in cluster in minutes
+  t_mcmc: 7200
+  # Burnin fraction 
+  burnin: 0.1
+  min_ess: 100
+  mcc_heights: "mean"
 
 

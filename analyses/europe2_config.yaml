@@ -271,6 +271,14 @@ beast:
   #xml:  ["201030_europe3.xml", "201030_europe3b.xml"]
   # BEAST2 jar file path
   jar: "/cluster/home/ceciliav/BDMM-Prime.jar"
+  log_analyser: loganalyser
+  log_combiner: logcombiner
+  tree_annotator: treeannotator
+  # TODO use newer version of beast tools in euler
+  # log_analyser: "/cluster/home/ceciliav/beast/bin/loaganalyser"
+  # log_combiner: "/cluster/home/ceciliav/logcombiner"
+  # tree_annotator: "/cluster/home/ceciliav/treeannotator"
+  # List of parallel mcmc chains seeds to run 
   # List of parallel mcmc chains seeds to run 
   n_mcmc: [1,4,10]
   # Length of a mcmc chain, it has to be the same length than the one specified in the xml file
@@ -279,16 +287,8 @@ beast:
   t_mcmc: 7200
   # Burnin fraction 
   burnin: 0.1
-  # Log analyser bin
-  log_analyser: loganalyser
-  min_ess: 0
-  # Log combiner bin
-  log_combiner: logcombiner
-  # Tree annotator bin
-  tree_annotator: treeannotator
+  min_ess: 100
   mcc_heights: "mean"
-  # Trajectory Mapper xml
-  trajectoryMapper: "201102_europe4.trajectoryMapper.xml"
 
 
 
