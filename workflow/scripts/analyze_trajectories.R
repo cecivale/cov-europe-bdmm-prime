@@ -15,6 +15,10 @@ library(scales)
 library(ggpubr)
 library(ggsci)
 library(ggridges)
+library(patchwork)
+library(hrbrthemes)
+library(circlize)
+library(chorddiag) 
 
 # Source files -----------------------------------------------------------------
 source("./scripts/trajProcessing.R")
@@ -27,7 +31,7 @@ parser$add_argument("--input", type = "character", help="trajectory file")
 parser$add_argument("--burnin", type = "double", help = "Burning fraction for trajectory files")
 parser$add_argument("--metadata", type = "character", help = "Alignment sequences metadata")
 parser$add_argument("--demes", nargs = "+", help = "Demes configuration")
-parser$add_argument("--n", nargs = "integer", help = "Number of trajectories to analyze")
+parser$add_argument("--n", type = "integer", help = "Number of trajectories to analyze")
 parser$add_argument("--output_figure", type = "character", help = "Output path for the figures")
 args <- parser$parse_args()
 
@@ -86,9 +90,9 @@ events <- df$events %>%
                                            labels = sort(demes$deme)))),
          date = date(date_decimal(decimal_date(ymd(MRS)) - age)))
 
-events2 <- events %>%
-  mutate(mult = ifelse(is.na(mult), 1, mult)) %>%
-  tidyr::uncount(mult)
+# events2 <- events %>%
+#   mutate(mult = ifelse(is.na(mult), 1, mult)) %>%
+#   tidyr::uncount(mult)
 
 # Date grids
 max_age <- max(states$age)
@@ -136,6 +140,7 @@ gribbon <- ggplot(gt_summary) +
   #labs(title = "SARS-CoV-2 early epidemics in Europe and Hubei",
        #subtitle = "Case trajectories Median and IQR by deme") +
   scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
+  scale_x_date(limits = c(ymd("2019-10-01"), ymd("2020-03-08")), date_breaks = "1 month", date_labels = "%b") +
   scale_fill_manual(name = "", values = dcolors) +
   scale_color_manual(name = "", values = dcolors) +
   theme(legend.position = c(0.2, 0.7),
@@ -167,16 +172,16 @@ trajs <- lapply(demes$deme, function(deme) {
                   size = traj == "ecdc")) +
     scale_color_manual(name = "", 
                        labels = c(paste0(deme, " inferred\n population trajectories"), 
-                                  paste0(ifelse(deme == "Hubei", "China", deme), " ECDC total case count")), 
+                                  paste0(ifelse(deme == "Hubei", "China", as.character(deme)), " ECDC total case count")), 
                        values = c(dcolors[[deme]], dark_dcolors[[deme]])) +
     scale_alpha_manual(name = "", values = c(0.2, 1), guide = FALSE) +
     scale_linetype_manual(name = "", values = c(1, 2),
                           labels = c(paste0(deme, " inferred\n population trajectories"), 
-                                     paste0(ifelse(deme == "Hubei", "China", deme), " ECDC total case count"))) +
+                                     paste0(ifelse(deme == "Hubei", "China", as.character(deme)), " ECDC total case count"))) +
     scale_size_manual(name = "", values = c(0.5, 1),
                       labels = c(paste0(deme, " inferred\n population trajectories"), 
-                                 paste0(ifelse(deme == "Hubei", "China", deme), " ECDC total case count")), ) +
-    scale_x_date(limits = c(ymd("2019-11-01"), ymd("2020-03-08"))) +
+                                 paste0(ifelse(deme == "Hubei", "China", as.character(deme)), " ECDC total case count"))) +
+    scale_x_date(limits = c(ymd("2019-11-01"), ymd("2020-03-08")), date_breaks = "1 month", date_labels = "%b") +
     scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
     ylab("Population size") + 
     theme(legend.position = c(0.4, 0.9),
@@ -198,7 +203,7 @@ df_first_eu <-  events %>%
   slice(1)  %>%
   mutate(dest = "Europe")
 
-first_den <- events %>%
+first_prob <- events %>%
   filter(event == "M" | event == "O") %>%
   mutate(dest = ifelse(is.na(dest), "Hubei", dest)) %>%
   group_by(dest, traj) %>%
@@ -217,13 +222,13 @@ first_den <- events %>%
         axis.title.y=element_blank(),
         panel.background = element_rect(fill = "white", colour = "white"))
 
-ggexport(first_den,
-         filename = paste0(args$output_figure, "03.png"),
-         width = 1300, height = 1000, res = 300)
-
+# ggexport(first_prob,
+#          filename = paste0(args$output_figure, "03.png"),
+#          width = 1300, height = 1000, res = 300)
+# 
 
 # 2.2 First introduction date and source probability single deme
-first_prob <-  events %>%
+first_source <-  events %>%
   filter(event == "M") %>%
   group_by(traj, dest) %>%
   arrange(time) %>%
@@ -240,10 +245,14 @@ first_prob <-  events %>%
   theme(legend.position = c(0.85, 0.25),
         axis.title.x=element_blank())
 
-ggexport(first_prob,
-         filename = paste0(args$output_figure, "04.png"),
-         width = 1300, height = 1000, res = 300)
+# ggexport(first_source,
+#          filename = paste0(args$output_figure, "04.png"),
+#          width = 1300, height = 1000, res = 300)
 
+
+ggexport(ggarrange(plotlist = list(first_prob, first_source), labels = c("A", "B"), nrow = 1, ncol = 2),
+         filename = paste0(args$output_figure, "03.png"),
+         width = 2600, height = 1000, res = 300)
 
 # 2.5 Absolute numbers migrations and births single deme
 migbirths_line <- ge  %>% 
@@ -275,14 +284,14 @@ migbirths_line <- ge  %>%
                      values = ecolors) +
   scale_fill_manual(name="", labels = c("Birth", "Incoming migration", "Outcoming migration"),
                      values = ecolors) +
-  scale_y_log10() +
+  scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
   facet_wrap(~deme_var, strip.position = "top") +
   theme(#legend.position = "none",
     axis.title.x = element_blank(),
     axis.title.y = element_blank())
 
 ggexport(migbirths_line,
-         filename = paste0(args$output_figure, "05.png"),
+         filename = paste0(args$output_figure, "04.png"),
          width = 1300, height = 1000, res = 300)
 # TODO smooth these lines
 
@@ -324,87 +333,88 @@ destmig_bar <- ge %>%
   facet_grid(src~type)
 
 ggexport(ggarrange(plotlist = list(srcmig_bar, destmig_bar), ncol = 2),
-         filename = paste0(args$output_figure, "06.png"),
+         filename = paste0(args$output_figure, "05.png"),
          width = 2300, height = 3000, res = 300)
 
 
 # 2.7 Chord plot two times, before and after Hubei Lockdown
 # Sum all events in each period
-# TODO Improve labeling
 
-df1 <- ge %>%
-  filter(date <= "2020-01-23", event == "M") %>%
-  group_by(src, dest, date) %>%
-  summarise(Nmean = mean(N), .groups = "drop_last") %>%
-  summarise(N = sum(Nmean), .groups = "drop") %>%
-  drop_na()
+plot_chord <- function(grid_df, min_date, max_date) {
+  df <- grid_df %>%
+    filter(date > min_date, date <= max_date, event == "M") %>%
+    group_by(src, dest, date) %>%
+    # Take mean value over all trajectories
+    summarise(Nmean = mean(N), .groups = "drop_last") %>%
+    # Sum mean values of each day over all the time period
+    summarise(N = sum(Nmean), .groups = "drop") %>%
+    drop_na()
   
-df2 <- ge %>%
-  filter(date > "2020-01-23" & date <= "2020-02-28", event == "M") %>%
-  group_by(src, dest, date) %>%
-  summarise(Nmean = mean(N), .groups = "drop_last") %>%
-  summarise(N = sum(Nmean), .groups = "drop") %>%
-  drop_na()
+  # parameters
+  cplot <- circos.clear()
+  cplot <- circos.par(start.degree = 90, gap.degree = 4, track.margin = c(-0.1, 0.1), 
+             points.overflow.warning = FALSE)
+  par(mar = rep(0, 4))
+  # Base plot
+  chordDiagram(
+    x = df, 
+    grid.col = dcolors,
+    transparency = 0.25,
+    directional = 1,
+    direction.type = c("arrows", "diffHeight"), 
+    diffHeight  = -0.04,
+    annotationTrack = "grid", 
+    #annotationTrackHeight = c(0.05, 0.1),
+    link.arr.type = "big.arrow", 
+    link.sort = TRUE, 
+    link.largest.ontop = TRUE)
+  # Add text and axis
+  circos.trackPlotRegion(
+    track.index = 1, 
+    bg.border = NA, 
+    panel.fun = function(x, y) {
+      xlim = get.cell.meta.data("xlim")
+      sector.index = get.cell.meta.data("sector.index")
+      # Add names to the sector. 
+      circos.text(
+        x = mean(xlim), 
+        y = 3.2, 
+        labels = sector.index, 
+        facing = "bending", 
+        cex = 0.9
+      )
+      # Add graduation on axis
+      circos.axis(
+        h = "top", 
+        major.at = seq(from = 0, to = xlim[2], by = ifelse(xlim[2]>50, 
+                                                           ifelse(xlim[2]>200, 
+                                                                  ifelse(xlim[2]>800, 500, 100), 25), 1)), 
+        minor.ticks = 1, 
+        major.tick.length = 0.5,
+        labels.niceFacing = FALSE,
+        labels.cex = 0.6)
+    }
+  )
+  return(cplot)
+}
 
-df3 <- ge %>%
-  filter(date > "2020-02-28", event == "M") %>%
-  group_by(src, dest, date) %>%
-  summarise(Nmean = mean(N), .groups = "drop_last") %>%
-  summarise(N = sum(Nmean), .groups = "drop") %>%
-  drop_na()
+# Period 1
+plot_chord(ge, ymd("2019-09-01"), ymd("2020-01-23")) 
+mtext(text = "A", at = -1, cex = 1.5, font = 2)
+c1 <- recordPlot()
+# Period 2
+plot_chord(ge, ymd("2020-01-23"), ymd("2020-02-28"))
+mtext(text = "B", at = -1, cex = 1.5, font = 2)
+c2 <- recordPlot()
+# Period 3
+plot_chord(ge, ymd("2020-02-28"), ymd("2020-03-08"))
+mtext(text = "C", at = -1, cex = 1.5, font = 2)
+c3 <- recordPlot()
 
+ggexport(ggarrange(plotlist = list(c1,c2,c3), nrow = 1, ncol = 1),
+         filename = paste0(args$output_figure, "06.png"),
+         width = 1000, height = 1000, res = 200)
 
-library(patchwork)
-library(hrbrthemes)
-library(circlize)
-library(chorddiag) 
-
-# parameters
-circos.clear()
-circos.par(start.degree = 90, gap.degree = 4, track.margin = c(-0.1, 0.1), points.overflow.warning = FALSE)
-par(mar = rep(0, 4))
-
-# Base plot
-chordDiagram(
-  x = df1, 
-  grid.col = dcolors,
-  transparency = 0.25,
-  directional = 1,
-  direction.type = c("arrows", "diffHeight"), 
-  diffHeight  = -0.04,
-  annotationTrack = "grid", 
-  #annotationTrackHeight = c(0.05, 0.1),
-  link.arr.type = "big.arrow", 
-  link.sort = TRUE, 
-  link.largest.ontop = TRUE)
-
-# Add text and axis
-circos.trackPlotRegion(
-  track.index = 1, 
-  bg.border = NA, 
-  panel.fun = function(x, y) {
-    
-    xlim = get.cell.meta.data("xlim")
-    sector.index = get.cell.meta.data("sector.index")
-    
-    # Add names to the sector. 
-    circos.text(
-      x = mean(xlim), 
-      y = 3.2, 
-      labels = sector.index, 
-      facing = "bending", 
-      cex = 0.8
-    )
-    
-    # Add graduation on axis
-    circos.axis(
-      h = "top", 
-      major.at = seq(from = 0, to = xlim[2], by = 500), 
-      minor.ticks = 1, 
-      major.tick.length = 0.5,
-      labels.niceFacing = FALSE)
-  }
-)
 
 # 2.7 Sample times
 sample_hist <- lapply(demes$deme, function(deme) {
