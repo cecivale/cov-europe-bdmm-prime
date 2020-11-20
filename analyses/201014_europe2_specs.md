@@ -1,38 +1,42 @@
-# Analysis 200910_ds_europe0
+# Analysis 201014_europe2
 
-**DATE**: 2020-09-10
+**DATE**: 2020-10-14
 
-**LOCATION**: `/maceci/code/mt-analysis/200910_ds_europe0`
+**LOCATION**: `/maceci/code/mt-analysis/201014_europe2`
 
 **STATUS**: Finished
 
-Analysis with same specifications than Sarah BDMM-prime analysis `2020-05-18_european_origins` (the one from the paper *Sarah Nadeau et al. doi:10.1101/2020.06.10.20127738*) but adding trajectory logger BDMM-Prime and downsampling sequence data for a faster analysis.
-
-## Data Alignment
-
-File: [200910_ds_europe0.fasta](data/200910_ds_europe0.fasta)
-
-Downsampled Sarah's alignment based on data available on GISAID as of 2020-04-01. 
+Analysis with same specifications than Sarah BDMM-prime analysis `2020-05-18_european_origins` (the one from the paper *Sarah Nadeau et al. doi:10.1101/2020.06.10.20127738*) but adding a deme for Spain, trajectory logger BDMM-Prime and an extended sequence dataset.
 
 
 ## Preprocessing
 
-Preprocessing steps done by Sarah in `analyses/2020-05-04_bdmm_european_origins/april_19_redo_downsample_based_on_mar_8_deaths/assign_demes_and_downsample_alignment.R`
+Preprocessing steps done by nextstrain pipeline:
 
-Assign demes, filter to date of Lombardy lockdown and downsample within demes.
- - Only European samples collected on or beforde Mar 8 (Lombardy lockdown).
- - Only Hubei samples before Jan 23 (Wuhan lockdown)
- - Downsampled OtherEuropean by taking # seqs = # deaths (or 1 seq where no dealths)
- - Downsample valid sequences so that BDMM runs in reasonable time
+- Filter sequences with bad quality: sequences less than 27,000 bases in length or with more than 3,000 N (unknown) bases are omitted from the analysis.
+- Exclude sequences from exclude.txt file, this file is maintained by nextstrain with sequences that are from the same patient or cluster of sequences such as the Diamond Princess.
+- Filter minimum and maximum date. Exclude incomplete dates.
+- Mask 100 from beginning and 50 from end. Mask sites 13402, 24389 and 24390.
+- Subsample sequences uniformly at random for each of the five demes, **but including all the sequences in Sarah's original alignment.**
 
- Downsample again for a faster test analysis, done in [downsample_seq.R](utils/downsample_seq.R), 5 sequence per deme, 25 sequences in total.
+## Data Alignment
+
+File: [201014_europe2.fasta](data/201014_europe2.fasta)
+
+Extended Sarah's alignment based on data available on GISAID as of 2020-10-14. 
+Total number of sequences: 322
+- France: 75
+- Germany: 51
+- Hubei: 31
+- Italy: 68
+- Other European: 43
+- Spain: 54
 
 
 ## XML
 
-- Created using BEAUti and modify afterwards
-- Template: BEAUti BDMM-prime?
-- File: [200910_ds_europe0.xml](analyses/200910_dsEurope0.xml)
+- BDMM-Prime, same specifications that in previous analysis.
+- File: [201014_europe2.xml](analyses/201014_europe2.xml)
 
 #### Tip Dates
 Use tip dates auto-configure.
@@ -91,7 +95,7 @@ Use tip dates auto-configure.
 | **R0Among Demes**                        
 | Number of change times    | 0                    |
 | Values ALL                | 0.0 		           | x          |              |
-| **Origin**                | 1.0                 |            | x            |
+| **Origin**                | 1.0                  |            | x            |
 | **Final Sample Offset**   | ?                    |
 | **Frequencies** F G H I O | 0.0 0.0 1.0 0.0 0.0  |
 | Condition on Survival     | False?               |
@@ -170,20 +174,19 @@ Use tip dates auto-configure.
 The **sampling proportion prior** is manually modified afterwards:
 
 - Upper bounds based on # seqs/confirmed cases according to WHO situation reports 
-unless otherwise noted. This is done using function `feast.function.Slice` with a uniform distribution 
-0-upperbound and removing the prior set in BEAUti. Lines 262-308 of xml.
+unless otherwise noted. This is done using function `feast.function.Slice` with a uniform distribution 0-upperbound and removing the prior set in BEAUti. Lines 121-177 of xml. In this analysis the uuper bound was not modified exactly to the new number of sequences 
 
-| deme          | last_seq   | upper bound            |
-| ------------- | ---------- | ---------------------- |
-| France        | 08.03.2020 | 66/706 = 0.093         |
-| Germany       | 03.03.2020 | 15/157 = 0.10          |
-| Hubei         | 18.01.2020 | 10/66 = 0.15 *[4]*     |
-| Italy	        | 04.03.2020 | 13/2502 = 0.005        |
-| OtherEuropean	| 08.03.2020 | 41 / 714 = 0.057 *[5]* |
+| deme          | until      | seqs/cases      | upper bound |
+| ------------- | ---------- | --------------- | ----------- |
+| France        | 08.03.2020 | 75/716 = 0.1    | 0.093       |
+| Germany       | 08.03.2020 | 51/847 = 0.06   | 0.048       |
+| Hubei         | 23.01.2020 | 31/623 = 0.05   | 0.06        |
+| Italy	        | 08.03.2020 | 68/5883 = 0.011 | 0.011       |
+| OtherEuropean	| 08.03.2020 | 43/1958 = 0.02  | 0.012       |
+| Spain      	| 08.03.2020 | 54/1092 =0.049  | 0.046       |
 
-*[4] Source: https://www.statista.com/statistics/1103040/cumulative-coronavirus-covid19-cases-number-worldwide-by-day/*
 
-*[5] Source: https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Europe and linked country pages*
+*Case data info from ECDC*
 
 
 - Enforce that sampling proportion should be the same before and after the Jan 23 
@@ -198,16 +201,19 @@ the operator `feast.operators.BlockScaleOperator`. Lines 349-368 of xml.
 | **Parameter**      | **Value** |
 | nParticles         | 1000      |
 | useTauLeaping      | True      |              
-| stepsPerInterval   | 10        |              
-| typeLabel          | type      |       
+| minLeapCount       | 100       |              
+| epsilon            | 0.03      |  
+| typeLabel          | type      |  
+| logEvery           | 10000     |  
+
 
 #### MCMC
 
-Four chains run.
+Three succesful chains run with seeds 1,4,10.
 
 | Parameter              | Value    |
 | ---------------------- | :------: | 
-| Chain Length           | 10000000 |
+| Chain Length           | 20000000 |
 | Store Every            | -1       |              
 | Pre Burnin             | 0        | 
 | Num Init Attempts      | 10       | 
@@ -220,37 +226,23 @@ Four chains run.
 
 ## Analysis
 
-- Analysis run using *BEAST v2.6.3* on Euler with BDMM-PrimeMCMC.jar, 10 concurrent analysis
+- Analysis run using *BEAST v2.6.3* on Euler with BDMM-Prime.jar with snakemake workflow
 ```
-#!/bin/sh
-#BSUB -W 72:00
-#BSUB -R "rusage[mem=4096]"
-#BSUB -J "ds_europe0[1-10]"
-module load java
-JAVA="java"
-JAR=$HOME/BDMM-Prime.jar
-SEED=$LSB_JOBINDEX
-FILE="200910_ds_europe0"
-$JAVA -jar $JAR -seed $SEED  -overwrite $FILE.xml
+bsub -W 120:00 snakemake --profile euler  -p -j 100
 ```
-- Final chain length: 10000000/chain, first chain failed -> 27002000 (10% burnin)
-- Time: -
-- Files raw results in dsEurope0/rResults: `200910_dsEurope0.(1-4).log, 200910_dsEurope0.(1-4).trees, 200910_dsEurope0.(1-4).typed.trees, 200910_dsEurope0.(1-4).typed.node.trees, 200910_dsEurope0.(1-4).TL.traj, 200910_dsEurope0.(1-4).xml.state`
-- Files combined chains in dsEurope0/pResults: `combined_200910_dsEurope0.log, combined_200910_dsEurope0.typed.node.trees`
+- Snakemake, config files and rule scripts in `workflow/`. Workflow dag `results/201014_europe2.dag.svg`
+- Final chain length: 54e6, 2e7/chain.
+- Files raw results in 200914_europe1/results/eEurope:
 
 ## Results processing
 
-- Summary log table [open](results/200910_dsEurope0.logsummary.tsv)
-- Summary tree, maximum clade credibility tree mean height 10% burnin [open](results/200910_dsEurope0.typed.node.tree)
-- Trajectory figures
- ![](results/200910_dsEurope0_trajplots.png) 
+- Summary log table 10% burnin [open](results/201014_europe2.summary.tsv)
+- Summary tree, maximum clade credibility tree mean height 4% burnin [open](results/201014_europe2.typed.node.tree)
+- Trajectory figures 10% burnin 
+ ![](results/201014_europe2.figtraj{01-08}.png) 
 
 
 ## Notes
 
-Analysis with trajectories done before BDMM-Prime bug in number of events was fixed, 
-before several events recorded but just one executed resultin in an underestimate of population size.
 
-In trajectory plots, we can nicely see how the population trajectories follow what is expected: epidemic in wuhan started earlier and italian epidemics have a higher population size. 
-In comparison with ECDC case counts, we do not observe a clear underestimation. We should be careful since in this analysis we used a small dataset (only 5 sequences per deme) and this dataset could not be representative of all the outbreaks dynamics in each deme.
 
