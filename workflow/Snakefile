@@ -775,7 +775,7 @@ rule trajectory_mapping:
         """
         scp {input.xml} results/{wildcards.build_name}/{wildcards.analysis_name}.xml
         cd results/{wildcards.build_name}/
-        java -Xmx3G -jar {params.jar} -seed SEED -overwrite {wildcards.analysis_name}.xml 2>&1 | tee {params.log}  || :
+        java -Xmx3G -jar {params.jar} -seed {SEED} -overwrite {wildcards.analysis_name}.xml 2>&1 | tee {params.log}  || :
         cd ../../
         mv results/{wildcards.build_name}/{params.log} logs/
         """
