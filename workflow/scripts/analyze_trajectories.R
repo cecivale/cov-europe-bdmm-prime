@@ -119,7 +119,7 @@ ge <- gridEventsByAge(events, ages_1day) %>%
 # Plotting ---------------------------------------------------------------------
 cat("\nPlotting...")
 set_plotopts()
-dcolors <- pal_npg("nrc")(nrow(demes))
+dcolors <- pal_npg("nrc")(10)[c(1:5,9)]
 names(dcolors) <- demes$deme
 dark_dcolors <- rgb(t(col2rgb(dcolors)/2), maxColorValue=255)
 names(dark_dcolors) <- demes$deme
@@ -193,7 +193,6 @@ ggexport(ggarrange(plotlist = trajs, labels = chartr("123456789", "ABCDEFGHI", 1
 # 2. Events
 # 2.1 First introduction distribution boxplot by deme and time of first reported cases
 # TODO Add 12 Dec for Wuhan instead of first reported cases to ECDC?
-
 first_prob <- events %>%
   # 1. Prepare data
   filter(event == "M" | event == "O") %>%
@@ -244,10 +243,8 @@ ggexport(ggarrange(plotlist = list(first_prob, first_source), labels = c("A", "B
          filename = paste0(args$output_figure, "03.png"),
          width = 2600, height = 1000, res = 300)
 
-# Temporal order of events, support
-
-
-time_imig <-  events %>%
+# 2.3. Order set of first case
+order_imig_df <-  events %>%
   # 1. Prepare data
   filter(event == "M") %>%
   group_by(traj, dest) %>%
@@ -257,17 +254,17 @@ time_imig <-  events %>%
   mutate(order = rep(c("second", "third", "fourth", "fifth", "sixth"), 200)) %>%
   pivot_wider(names_from = order, values_from = dest) %>%
   count(second, third, fourth, fifth, sixth) %>%
-  mutate(first = "Hubei", 
-         n = n/200) %>%
+  mutate(first = "Hubei") %>%
   select(first, everything())
+order_imig_set <- gather_set_data(order_imig_df, 1:6)
+order_imig_set$x <- factor(order_imig_set$x, levels = c("first", "second", "third", "fourth", "fifth", "sixth"))
 
-time_imig_set <- gather_set_data(time_imig, 1:6)
-time_imig_set$x <- factor(time_imig_set$x, levels = c("first", "second", "third", "fourth", "fifth", "sixth"))
-ggplot(time_imig_set, aes(x, id = id, split = y, value = n)) +
-  geom_parallel_sets(aes(fill = second), alpha = 0.3, axis.width = 0.22) +
+  # 2. Plot
+order_imig <- ggplot(order_imig_set, aes(x, id = id, split = y, value = n)) +
+  geom_parallel_sets(aes(fill = second), alpha = 0.5, axis.width = 0.22) +
   geom_parallel_sets_axes(axis.width = 0.15, fill = "grey80", color = "grey80") +
   geom_parallel_sets_labels(color = 'grey30', size = 9/.pt, angle = 90) +
-  scale_x_discrete(name = NULL, expand = c(0, 0.2)) +
+  scale_x_discrete(breaks = NULL, name = NULL, expand = c(0, 0.2)) +
   scale_y_continuous(breaks = NULL, expand = c(0, 0))+
   theme(axis.line = element_blank(),
         axis.ticks = element_blank(),
@@ -275,8 +272,12 @@ ggplot(time_imig_set, aes(x, id = id, split = y, value = n)) +
         panel.background = element_rect(fill = "white", colour = "white")) +
   scale_fill_manual(name = "", values = dcolors, guide = "none")
 
+ggexport(order_imig,
+         filename = paste0(args$output_figure, "04.png"),
+         width = 1500, height = 1000, res = 200)
 
-time_omig <-  events %>%
+# 2.4 Order set of first outgoing migration
+order_omig_df <-  events %>%
   # 1. Prepare data
   filter(event == "M") %>%
   group_by(traj, src) %>%
@@ -286,14 +287,15 @@ time_omig <-  events %>%
   mutate(order = rep(c("first", "second", "third", "fourth", "fifth", "sixth"), 200)) %>%
   pivot_wider(names_from = order, values_from = src) %>%
   count(first, second, third, fourth, fifth, sixth)
+order_omig_set <- gather_set_data(order_omig_df, 1:6)
+order_omig_set$x <- factor(order_omig_set$x, levels = c("first", "second", "third", "fourth", "fifth", "sixth"))
 
-time_omig_set <- gather_set_data(time_omig, 1:6)
-time_omig_set$x <- factor(time_omig_set$x, levels = c("first", "second", "third", "fourth", "fifth", "sixth"))
-ggplot(time_omig_set, aes(x, id = id, split = y, value = n)) +
-  geom_parallel_sets(aes(fill = sixth), alpha = 0.3, axis.width = 0.22) +
+  # 2. Plot
+order_omig <- ggplot(order_omig_set, aes(x, id = id, split = y, value = n)) +
+  geom_parallel_sets(aes(fill = sixth), alpha = 0.5, axis.width = 0.22) +
   geom_parallel_sets_axes(axis.width = 0.15, fill = "grey80", color = "grey80") +
   geom_parallel_sets_labels(color = 'grey30', size = 9/.pt, angle = 90) +
-  scale_x_discrete(name = NULL, expand = c(0, 0.2)) +
+  scale_x_discrete(breaks = NULL, name = NULL, expand = c(0, 0.2)) +
   scale_y_continuous(breaks = NULL, expand = c(0, 0))+
   theme(axis.line = element_blank(),
         axis.ticks = element_blank(),
@@ -301,6 +303,9 @@ ggplot(time_omig_set, aes(x, id = id, split = y, value = n)) +
         panel.background = element_rect(fill = "white", colour = "white")) +
   scale_fill_manual(name = "", values = dcolors, guide = "none")
 
+ggexport(order_omig,
+         filename = paste0(args$output_figure, "05.png"),
+         width = 1500, height = 1000, res = 200)
 
 # 2.5 Cumulative numbers migrations and births single deme
 migbirths_line <- ge  %>% 
@@ -343,11 +348,11 @@ migbirths_line <- ge  %>%
          axis.title.y = element_blank())
 
 ggexport(migbirths_line,
-         filename = paste0(args$output_figure, "04.png"),
+         filename = paste0(args$output_figure, "06.png"),
          width = 1300, height = 1000, res = 300)
 
 
-# 2.5 Proportion barplot source of migrations single deme
+# 2.6 Proportion barplot source of migrations single deme
 srcmig_bar <- ge %>%
   # 1. Prepare data
   filter(event == "M") %>%
@@ -368,7 +373,7 @@ srcmig_bar <- ge %>%
   facet_grid(dest~type, switch = "y") 
 
 
-# 2.6 Proportion barplot destination  of migrations single deme 
+# 2.7 Proportion barplot destination  of migrations single deme 
 destmig_bar <- ge %>%
   # 1. Prepare data
   filter(event == "M") %>%
@@ -389,11 +394,11 @@ destmig_bar <- ge %>%
   facet_grid(src~type)
 
 ggexport(ggarrange(plotlist = list(srcmig_bar, destmig_bar), ncol = 2),
-         filename = paste0(args$output_figure, "05.png"),
+         filename = paste0(args$output_figure, "07.png"),
          width = 2300, height = 3000, res = 300)
 
 
-# 2.7 Chord plot two times, before and after Hubei Lockdown
+# 2.8 Chord plot two times, before and after Hubei Lockdown
 # Sum all events in each period
 
 plot_chord <- function(grid_df, min_date, max_date) {
@@ -468,185 +473,22 @@ mtext(text = "C", at = -1, cex = 1.5, font = 2)
 c3 <- recordPlot()
 
 ggexport(ggarrange(plotlist = list(c1,c2,c3), nrow = 1, ncol = 1),
-         filename = paste0(args$output_figure, "06.png"),
+         filename = paste0(args$output_figure, "08.png"),
          width = 1000, height = 1000, res = 200)
 
 
-# 2.7 Sample times
-sample_hist <- lapply(demes$deme, function(deme) {
-  ge %>%
-    select(-traj) %>%
-    filter(src == deme, event == "S") %>%
-    unique() %>%
-    ggplot() +
-    geom_histogram(stat = "identity", aes(x = date, y = N, fill = src)) +
-    scale_fill_manual(values = dcolors) +
-    labs(subtitle = paste0("Samples in the analysis")) #+
-    # theme(axis.title.x=element_blank(),
-    #       axis.text.x=element_blank())
-  })
-
-# Saving the figures -----------------------------------------------------------
-cat("\nSaving the figures...")
-
-# 
-# gg1 <- annotate_figure(ggarrange(gribbon, first_box, 
-#                                  ncol=2, common.legend = TRUE),
-#                        top = text_grob(paste("Analysis ", 
-#                                              str_split(args$input[1], pattern = "\\.")[[1]][1]), 
-#                                        face = "bold", size = 16))
-# 
-# gg2 <- lapply(1:nrow(demes), function(i) {
-#   annotate_figure(ggarrange(sample_hist[[i]], trajs[[i]], first_hist[[i]], 
-#                             ncol = 1, heights = c(1,3,1), common.legend = TRUE), 
-#                   top = text_grob(demes$deme[i], face = "bold", size = 16))
+# # 2.7 Sample times
+# sample_hist <- lapply(demes$deme, function(deme) {
+#   ge %>%
+#     select(-traj) %>%
+#     filter(src == deme, event == "S") %>%
+#     unique() %>%
+#     ggplot() +
+#     geom_histogram(stat = "identity", aes(x = date, y = N, fill = src)) +
+#     scale_fill_manual(values = dcolors) +
+#     labs(subtitle = paste0("Samples in the analysis")) #+
+#     # theme(axis.title.x=element_blank(),
+#     #       axis.text.x=element_blank())
 #   })
-# 
-# gg3 <- lapply(1:3, function(i) {
-#   annotate_figure(ggarrange(migbirths_box[[i]], migbirths_bar[[i]], srcmig_bar[[i]], dest_bar[[i]], 
-#                             ncol = 1, heights = c(3,1,1,1.4), common.legend = FALSE), 
-#                   top = text_grob(demes$deme[i], face = "bold", size = 16))
-#   })
-# 
-# gg4 <- lapply(4:nrow(demes), function(i) {
-#   annotate_figure(ggarrange(migbirths_box[[i]], migbirths_bar[[i]], srcmig_bar[[i]], dest_bar[[i]], 
-#                             ncol = 1, heights = c(3,1,1,2), common.legend = FALSE), 
-#                   top = text_grob(demes$deme[i], face = "bold", size = 16))
-# })
-# 
-# 
-# multi <- ggarrange(gg1, ggarrange(plotlist = gg2, nrow = 1), ggarrange(plotlist = gg3, nrow = 1), 
-#                    ggarrange(plotlist = gg4, nrow = 1), nrow = 1, ncol = 1, common.legend = TRUE)
-# 
-# 
-# # One plot per file
-# multi <- ggarrange(gribbon, 
-#                    ggarrange(plotlist = trajs, nrow = 2, ncol = 3), 
-#                    nrow = 1, ncol = 1)
-# 
-# ggexport(multi, filename = args$output_figure, width=1000, height=500, res=72*2)
+
 cat("done!")
-
-# ------------------------------------------------------------------------------
-
-
-# Dont like them, give the wrong message. look like births are before migraitons
-# 2.3 Migration and births boxplots by date single deme
-# migbirths_box <- lapply(demes$deme, function(deme) {
-#   ge %>% 
-#     filter((src == deme | dest == deme) & event %in% c("B", "M")) %>%
-#     mutate(event = case_when(
-#       src == deme & event == "M" ~ "OM",
-#       dest == deme & event == "M" ~ "IM", 
-#       TRUE ~ "B")) %>%
-#     ggplot() +
-#     geom_boxplot(aes(x = date, y = N, 
-#                      group = interaction(date, event), color = event), 
-#                  outlier.shape = NA) +
-#     scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
-#     scale_x_date(date_breaks = "1 month", date_labels = "%b", 
-#                  limits = c(ymd("2019-11-01"), ymd("2020-03-08"))) +
-#     scale_color_manual(values = ecolors) +
-#     labs(subtitle = "Births and migrations events") +
-#     theme(axis.title.x=element_blank(),
-#           axis.text.x=element_blank())
-# })
-# 
-# 
-
-# 
-# # 2.4 Proportion barplot birth vs migration single deme
-# migbirths_bar <- lapply(demes$deme, function(deme) {
-#   ge  %>% 
-#     filter((src == deme | dest == deme), event %in% c("B", "M")) %>%
-#     mutate(event = case_when(
-#       src == deme & event == "M" ~ "OM",
-#       dest == deme & event == "M" ~ "IM",
-#       TRUE ~ "B"),
-#       deme_var = deme) %>%
-#     ggplot(aes(x = date, y = N, fill = event)) + 
-#     geom_bar(position = "fill", stat = "identity") +
-#     scale_y_continuous(labels = scales::percent_format(), breaks = c(0, 0.5, 1)) +
-#     scale_x_date(limits = c(ymd("2019-11-01"), ymd("2020-03-08"))) +
-#     scale_fill_jco() +
-#     facet_wrap(~deme_var, strip.position = "left") +
-#     theme(#legend.position = "none",
-#       axis.title = element_blank(),
-#       axis.text.y = element_blank(),
-#       axis.ticks.y = element_blank(),
-#       axis.title.x = element_blank(),
-#       axis.title.y = element_blank())
-# })
-# 
-# 
-# ggexport(ggarrange(plotlist = migbirths_bar, ncol = 2, nrow = 3, common.legend = TRUE),
-#          filename = paste0(args$output_figure, "05.png"),
-#          width = 2300, height = 3000, res = 300)
-# 
-# 
-
-# # TODO Thinks about how to compute the intervals for the ribbon
-# # 2.3b Migration and births ribbon lines
-# migbirths_ribbon <- lapply(demes$deme, function(deme) {
-#   ge %>% 
-#     filter(N != 0, (src == deme | dest == deme), event %in% c("B", "M")) %>%
-#     # mutate(event = case_when(
-#     #   src == deme & event == "M" ~ "OM",
-#     #   dest == deme & event == "M" ~ "IM",
-#     #   TRUE ~ "B")) %>%
-#     group_by(event, date, traj) %>%
-#     summarise(N = sum(N)) %>%
-#     ungroup() %>%
-#     group_by(event, date) %>%
-#     summarise(Imean = mean(N),
-#               Imedian = median(N), 
-#               Ilow    = quantile(N, 0.25), 
-#               Ihigh   = quantile(N, 0.75),
-#               .groups = "drop_last") %>%
-#     ungroup() %>% 
-#     ggplot() +
-#     geom_line(aes(x = date, y =Imedian,  color = event), 
-#               outlier.shape = NA) +
-#     geom_ribbon(aes(date, ymin = Ilow, ymax = Ihigh, fill = event), alpha = 0.5) +
-#     scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
-#     scale_x_date(date_breaks = "1 month", date_labels = "%b", 
-#                  limits = c(ymd("2019-11-01"), ymd("2020-03-08"))) +
-#     scale_color_manual(values = ecolors) +
-#     scale_fill_manual(values = ecolors) +
-#     labs(subtitle = "Births and migrations events") 
-# })
-
-# # Validation plots
-# # Check for all trajectories the first migration event into the deme is 
-# # earlier than the first birth (excludng Hubei, no migration)
-# firsts <- events %>%
-#   filter(event %in% c("B", "M")) %>%
-#   group_by(event, traj, dest) %>%
-#   arrange(time) %>%
-#   slice(1) %>%
-#   ungroup()
-# firsts2 <- firsts %>%
-#   filter(!(src == "Hubei" & event == "B")) %>%
-#   group_by(traj, dest) %>%
-#   arrange(event) %>%
-#   mutate(diff = diff(time))
-# 
-# all(firsts2$diff < 0)
-# 
-# # Check cases (states) = births + migrations - deaths (events)
-# ge_wide = ge %>%
-#   group_by(date, event, dest)%>%
-#   mutate(sumImean = sum(Imean)) %>%
-#   select(date, event, sumImean, dest) %>%
-#   unique() %>%
-#   pivot_wider(names_from = event, values_from = sumImean) %>%
-#   ungroup() %>%
-#   mutate(cases = B + M - D) %>%
-#   arrange(date) %>%
-#   replace_na(list(cases=0)) %>%
-#   group_by(dest) %>%
-#   mutate(sumcases = cumsum(cases))
-# 
-# ggplot(ge_wide %>% filter(dest == "Germany")) +
-#   geom_line(aes(x = date, y = sumcases)) +
-#   geom_line(data = gt %>% filter(type == "Germany"), aes(x=date, y = Imean, color = "cases")) 
