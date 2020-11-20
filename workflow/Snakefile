@@ -479,32 +479,6 @@ rule adjust_names:
             --output_metadata {output.metadata} 2>&1 | tee {log}
         """
 
-#TODO
-# rule analyze_subsample:
-#     message: 
-#         """
-#         Analyze final subsampled alignment.
-#         """
-#     input: 
-#         metadata = rules.load.output.metadata,
-#         alignment = rules.mask.output.alignment,
-#         metadata_subsample = rules.adjust_names.output.metadata
-#     output: 
-#         # report =
-#         figures = "results/{build_name}.seqhist.png",
-#         mrs = "results/{build_name}/mrs.txt"
-#     log:
-#         "logs/{build_name}_analyze_subsample.txt"
-#     shell:
-#         """
-#         Rscript scripts/analyze_subsample.R \
-#             --metadata {input.metadata} \
-#             --alignment {input.alignment} \
-#             --subsample {input.metadata_subsample}
-#             --output_figure {output.figures} \
-#             --mrs {output.mrs} 2>&1 | tee {log}
-#         """
-
 
 # Build a preliminary tree
 rule tree:
@@ -801,7 +775,7 @@ rule trajectory_mapping:
         """
         scp {input.xml} results/{wildcards.build_name}/{wildcards.analysis_name}.xml
         cd results/{wildcards.build_name}/
-        java -Xmx3G -jar {params.jar} -overwrite {wildcards.analysis_name}.xml 2>&1 | tee {params.log}  || :
+        java -Xmx3G -jar {params.jar} -seed SEED -overwrite {wildcards.analysis_name}.xml 2>&1 | tee {params.log}  || :
         cd ../../
         mv results/{wildcards.build_name}/{params.log} logs/
         """
