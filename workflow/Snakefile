@@ -46,7 +46,7 @@ rule all:
         #prelim_tree = expand("results/{build_name}/tree.nwk", build_name=BUILD_NAMES),
         summary_tree = expand("results/{build_name}/{analysis_name}.mcc.typed.node.tree", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
         fig_traj = expand("results/{build_name}/{analysis_name}.figtraj.png", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
-        summary_log =  expand("results/{build_name}/{analysis_name}_comb.logsummary.tsv", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
+        summary_log =  expand("results/{build_name}/{analysis_name}_comb.summary.tsv", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
         
 
 rule clean:
@@ -631,38 +631,38 @@ rule beast:
         """
 
 
-rule summarize_log:
+rule summarize_trace:
     message: 
         """
-        Summarizing log file {input.trace} with Log Analyser v1.8.2.
+        Summarizing trace file {input.trace} with Log Analyser v1.8.2.
         """
     input: 
         trace = rules.beast.output.trace
     output:
-        log_summary = "results/{build_name}/{analysis_name}.{seed}.logsummary.txt"
+        trace_summary = "results/{build_name}/{analysis_name}.{seed}.summary.txt"
     log:
-        "logs/summarize_logs_{build_name}_{analysis_name}.{seed}.txt"
+        "logs/summarize_trace_{build_name}_{analysis_name}.{seed}.txt"
     params:
         log_analyser = config["beast"]["log_analyser"],
         burnin = int(config["beast"]["burnin"] * config["beast"]["l_mcmc"])
     shell:
         """
-        {params.log_analyser} -burnin {params.burnin} {input.trace} {output.log_summary} 2> {log} || :
-        touch {output.log_summary}
+        {params.log_analyser} -burnin {params.burnin} {input.trace} {output.trace_summary} 2> {log} || :
+        touch {output.trace_summary}
         """
 
-def _get_logsummary(wildcards):
-    files = expand("results/{{build_name}}/{{analysis_name}}.{seed}.logsummary.txt",
+def _get_tracesummary(wildcards):
+    files = expand("results/{{build_name}}/{{analysis_name}}.{seed}.summary.txt",
         seed=config["beast"]["n_mcmc"])
     return files
 
 checkpoint chains_diagnostic:
     message: 
         """
-        Check that log file have all ESS values >= 200 to include it in the combined chain.
+        Check that trace file have all ESS values >= {params.min_ess} to include it in the combined chain.
         """
     input:
-        log_summary = _get_logsummary
+        trace_summary = _get_tracesummary
     output:
         diagnostic = "results/{build_name}/{analysis_name}_chains_diagnostic.txt",
     params:
@@ -672,19 +672,19 @@ checkpoint chains_diagnostic:
     shell:
         """
         Rscript scripts/chains_diagnostic.R \
-        --input {input.log_summary} \
+        --input {input.trace_summary} \
         --ess {params.min_ess} \
         --output {output.diagnostic} 2>&1 | tee -a {log}
         """
 
-def _get_logs_tocombine(wildcards):
+def _get_trace_tocombine(wildcards):
     diagnostic = pd.read_csv(checkpoints.chains_diagnostic.get(**wildcards).output.diagnostic, sep="\t")
     files = expand(
         expand("results/{build_name}/{analysis_name}.{{seed}}_f.log", zip,
         build_name=wildcards.build_name, analysis_name=wildcards.analysis_name),
         seed=diagnostic[diagnostic["included"] == 1]["seed"])
     if not files:
-        files = "message_logs_" + wildcards.build_name + "_" + wildcards.analysis_name + ".txt"
+        files = "message_trace_" + wildcards.build_name + "_" + wildcards.analysis_name + ".txt"
         with open(files, "w") as file:
             file.write("None of the trace files have the indicated minimum of ESS for all variables. Change min_ESS in config file if you want to combine anyway, or resume beast chains by running snakemake -R beast")
     return files
@@ -703,37 +703,36 @@ def _get_trees_tocombine(wildcards):
     return files
 
 
-rule combine_logs:
+rule combine_trace:
     message: 
         """
-        Combine log files with ESS >= {params.min_ess}: {input.log_files} with LogCombiner v1.8.2.
+        Combine trace files with ESS >= {params.min_ess}: {input.trace_files} with LogCombiner v1.8.2.
         """
     input:
-        log_files = _get_logs_tocombine
+        trace_files = _get_trace_tocombine
     output:
-        combined_log = "results/{build_name}/{analysis_name}_comb.log"
+        combined_trace = "results/{build_name}/{analysis_name}_comb.log"
     log:
-        "logs/combine_logs_{build_name}_{analysis_name}.txt"
+        "logs/combine_trace_{build_name}_{analysis_name}.txt"
     params:
         log_combiner = config["beast"]["log_combiner"],
         burnin = int(config["beast"]["burnin"] * config["beast"]["l_mcmc"]),
         min_ess = config["beast"]["min_ess"],
-        empty_message = "message_logs_{build_name}_{analysis_name}.txt"
-        #[ -z {input.log_files} ] && 
+        empty_message = "message_trace_{build_name}_{analysis_name}.txt"
     shell:
         """
         if [ -e {params.empty_message} ] 
         then 
             cat {params.empty_message} | tee {log} && rm {params.empty_message}
         else
-            {params.log_combiner} -burnin {params.burnin} {input.log_files} {output.combined_log}  2>&1 | tee -a {log}
+            {params.log_combiner} -burnin {params.burnin} {input.trace_files} {output.combined_trace}  2>&1 | tee -a {log}
         fi
         """
 
 rule combine_trees:
     message: 
         """
-        Combine tree files with log files with ESS >= {params.min_ess}: {input.tree_files} with LogCombiner v1.8.2
+        Combine tree files whose trace files with ESS >= {params.min_ess}: {input.tree_files} with LogCombiner v1.8.2
         """
     input:
         tree_files = _get_trees_tocombine
@@ -752,26 +751,41 @@ rule combine_trees:
         then 
             cat {params.empty_message} | tee {log} && rm {params.empty_message}
         else
-            {params.log_combiner} -burnin {params.burnin} {input.tree_files} {output.combined_trees}  2>&1 | tee -a {log}
+            {params.log_combiner} -burnin {params.burnin} -trees {input.tree_files} {output.combined_trees}  2>&1 | tee -a {log}
         fi
         """
 
-# rule clean_beast:
-#     input:
-#         xml = "results/{build_name}/{analysis_name}.xml",
-#         combined_log = rules.combine_logs.output.combined_log,
-#         combined_trees = rules.combine_trees.output.combined_trees
-#     shell:
-#         """
-#         rm results/{wildcards.build_name}/{input.xml} results/{wildcards.build_name}/beast_*
-#         """
+rule resample_trace:
+    input:
+        trace = rules.combine_trace.output.combined_trace
+    output:
+        thinned_trace = "results/{build_name}/{analysis_name}_comb.thinned.log"
+    params:
+        log_combiner = config["beast"]["log_combiner"],
+        resample = config["beast"]["resample"]
+    shell:
+        """
+        {params.log_combiner} -resample {params.resample} {input.trace} {output.thinned_trace}
+        """
+
+rule resample_trees:
+    input:
+        trees = rules.combine_trees.output.combined_trees
+    output:
+        thinned_trees = "results/{build_name}/{analysis_name}_comb.thinned.trees"
+    params:
+        log_combiner = config["beast"]["log_combiner"],
+        resample = config["beast"]["resample"]
+    shell:
+        """
+        {params.log_combiner} -trees -resample {params.resample} {input.trees} {output.thinned_trees}
+        """
 
 rule trajectory_mapping:
     input: 
-        #xml = _get_beast_trajectory_analysis,
         xml = "{analysis_name}.trajectoryMapper.xml",
-        combined_log = rules.combine_logs.output.combined_log,
-        combined_trees = rules.combine_trees.output.combined_trees
+        trace = rules.resample_trace.output.thinned_trace,
+        trees = rules.resample_trees.output.thinned_trees
     output:
         typed_trees = "results/{build_name}/{analysis_name}.typed.trees",
         node_typed_trees = "results/{build_name}/{analysis_name}.typed.node.trees",
@@ -780,7 +794,7 @@ rule trajectory_mapping:
         log = "trajectory_mapping_{build_name}_{analysis_name}.txt",
         jar = config["beast"]["jar"]
     resources:
-        runtime = config["beast"]["t_mcmc"],
+        runtime = config["beast"]["t_traj"],
         mem_mb = 4096,
         cpus = 2
     shell:
@@ -802,22 +816,22 @@ rule clean_beast:
         find results/{wildcards.build_name}/ -type f -empty -delete
         """
 
-rule summarize_comb_log:
+rule summarize_comb_trace:
     message: 
         """
-        Create summary table for combined log {input.combined_log} with LogAnalyser v1.8.2.
+        Create summary table for combined trace {input.trace} with LogAnalyser v1.8.2.
         """
     input:
-        combined_log = rules.combine_logs.output.combined_log
+        trace = rules.combine_trace.output.combined_trace
     output:
-        summary_log = "results/{build_name}/{analysis_name}_comb.logsummary.tsv"
+        summary_trace = "results/{build_name}/{analysis_name}_comb.summary.tsv"
     log:
-        "logs/summarize_comb_log_{build_name}_{analysis_name}.txt"
+        "logs/summarize_comb_trace_{build_name}_{analysis_name}.txt"
     params:
         log_analyser = config["beast"]["log_analyser"]
     shell:
         """
-        {params.log_analyser} {input.combined_log} {output.summary_log} 2> {log}
+        {params.log_analyser} {input.trace} {output.summary_trace} 2> {log}
         """
 
 
@@ -840,12 +854,11 @@ rule summarize_trees:
         {params.tree_annotator} -heights {params.heights} {input.combined_trees} {output.summary_tree} 2>&1 | tee {log} 
         """
 
-#rule analyze/plot_tree:
 
 rule analyze_trajectories:
     message: 
         """
-        Combine and analyze traj files with ESS >= 200: {input.trajectories}.
+        Analyze and plot trajectories from {input.trajectories}.
         """
     input:
         trajectories = rules.trajectory_mapping.output.trajectories,
