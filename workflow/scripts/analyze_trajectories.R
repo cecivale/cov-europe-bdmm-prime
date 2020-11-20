@@ -90,10 +90,6 @@ events <- df$events %>%
                                            labels = sort(demes$deme)))),
          date = date(date_decimal(decimal_date(ymd(MRS)) - age)))
 
-# events2 <- events %>%
-#   mutate(mult = ifelse(is.na(mult), 1, mult)) %>%
-#   tidyr::uncount(mult)
-
 # Date grids
 max_age <- max(states$age)
 min_date <- date_decimal(decimal_date(mrs) - max_age)
@@ -222,11 +218,6 @@ first_prob <- events %>%
         axis.title.y=element_blank(),
         panel.background = element_rect(fill = "white", colour = "white"))
 
-# ggexport(first_prob,
-#          filename = paste0(args$output_figure, "03.png"),
-#          width = 1300, height = 1000, res = 300)
-# 
-
 # 2.2 First introduction date and source probability single deme
 first_source <-  events %>%
   filter(event == "M") %>%
@@ -235,60 +226,60 @@ first_source <-  events %>%
   slice(1) %>%
     # Plot
   ggplot() +
+  # ?? Stack or no stack? Ask
   geom_density(aes(x = date, y = ..count../args$n, color = src, fill = src), alpha = 0.1) +
+  #geom_density(aes(x = date, y = ..count../args$n, color = src, fill = src), position = "stack", alpha = 0.1) +
   facet_wrap(~dest) +
   scale_x_date(date_breaks = "1 month", date_labels = "%b") +
-  #scale_y_continuous(breaks=c(0,5,10)) +
   scale_color_manual(name = "", values = dcolors) +
   scale_fill_manual(name = "", values = dcolors) +
   ylab("Probability") +
   theme(legend.position = c(0.85, 0.25),
         axis.title.x=element_blank())
 
-# ggexport(first_source,
-#          filename = paste0(args$output_figure, "04.png"),
-#          width = 1300, height = 1000, res = 300)
-
-
 ggexport(ggarrange(plotlist = list(first_prob, first_source), labels = c("A", "B"), nrow = 1, ncol = 2),
          filename = paste0(args$output_figure, "03.png"),
          width = 2600, height = 1000, res = 300)
 
-# 2.5 Absolute numbers migrations and births single deme
+# 2.5 Cumulative numbers migrations and births single deme
+
 migbirths_line <- ge  %>% 
-  filter(event %in% c("B", "M"), N != 0) %>%
+  filter(event %in% c("B", "M")) %>%
   mutate(event = case_when( 
-    event == "M" ~ "OM",
+    event == "M" ~ "OM", 
     TRUE ~ "B"),
     deme_var = src) %>%
   group_by(date, traj, event, deme_var) %>%
   summarise(N = sum(N), .groups = "drop") %>%
   bind_rows(ge  %>% 
-      filter(event %in% c("B", "M"), N != 0) %>%
-      mutate(event = case_when(
-        event == "M" ~ "IM",
-        TRUE ~ "B"),
-        deme_var = dest) %>%
-      group_by(date, traj, event, deme_var) %>%
-      summarise(N = sum(N), .groups = "drop")) %>%
+    filter(event %in% c("B", "M")) %>%
+    mutate(event = case_when(
+      event == "M" ~ "IM",
+      TRUE ~ "B"),
+      deme_var = dest) %>%
+    group_by(date, traj, event, deme_var) %>%
+    summarise(N = sum(N), .groups = "drop")) %>%
+  group_by(event, traj, deme_var) %>%
+  arrange(date) %>%
+  mutate(cumN = cumsum(N)) %>%
+  ungroup() %>%
   group_by(date, event, deme_var) %>%
-  summarise(Imedian = median(N),
-            Ihigh = quantile(N, 0.75),
-            Ilow = quantile(N, 0.25), .groups = "drop") %>%
+  summarise(Imedian = median(cumN),
+            Ihigh = quantile(cumN, 0.75),
+            Ilow = quantile(cumN, 0.25), .groups = "drop") %>%
   ggplot() +
-  geom_line(aes(x=date, y = Imedian, color = event)) + #, stat="smooth") +
-  #geom_smooth(aes(x=date, y = Imedian, color = event)) +
+  geom_line(aes(x=date, y = Imedian, color = event)) +
   geom_ribbon(aes(date, ymin = Ilow, ymax = Ihigh, fill = event), alpha = 0.5) +
   scale_x_date(limits = c(ymd("2019-11-01"), ymd("2020-03-08"))) +
   scale_color_manual(name="", labels = c("Birth", "Incoming migration", "Outcoming migration"),
                      values = ecolors) +
   scale_fill_manual(name="", labels = c("Birth", "Incoming migration", "Outcoming migration"),
-                     values = ecolors) +
+                    values = ecolors) +
   scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
   facet_wrap(~deme_var, strip.position = "top") +
-  theme(#legend.position = "none",
-    axis.title.x = element_blank(),
-    axis.title.y = element_blank())
+  theme( axis.title.x = element_blank(),
+         axis.title.y = element_blank())
+
 
 ggexport(migbirths_line,
          filename = paste0(args$output_figure, "04.png"),
