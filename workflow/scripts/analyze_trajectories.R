@@ -19,6 +19,7 @@ library(patchwork)
 library(hrbrthemes)
 library(circlize)
 library(chorddiag) 
+library(ggforce)
 
 # Source files -----------------------------------------------------------------
 source("./scripts/trajProcessing.R")
@@ -192,14 +193,9 @@ ggexport(ggarrange(plotlist = trajs, labels = chartr("123456789", "ABCDEFGHI", 1
 # 2. Events
 # 2.1 First introduction distribution boxplot by deme and time of first reported cases
 # TODO Add 12 Dec for Wuhan instead of first reported cases to ECDC?
-df_first_eu <-  events %>%
-  filter(event == "M") %>%
-  group_by(traj) %>%
-  arrange(time) %>%
-  slice(1)  %>%
-  mutate(dest = "Europe")
 
 first_prob <- events %>%
+  # 1. Prepare data
   filter(event == "M" | event == "O") %>%
   mutate(dest = ifelse(is.na(dest), "Hubei", dest)) %>%
   group_by(dest, traj) %>%
@@ -207,7 +203,13 @@ first_prob <- events %>%
   slice(1) %>%
   ungroup %>%
   left_join(case_data %>% group_by(deme) %>% filter(cases != 0) %>% filter(date == min(date))  %>% rename(dest = deme, min_date = date), by = "dest") %>%
-  bind_rows(df_first_eu) %>%
+  bind_rows(events %>%
+            filter(event == "M") %>%
+            group_by(traj) %>%
+            arrange(time) %>%
+            slice(1)  %>%
+            mutate(dest = "Europe")) %>%
+  # 2. Plot
   ggplot() +
   geom_density_ridges(aes(x = date, y = dest, fill = dest), bandwidth=5, alpha = 0.7, size = 0.2) +
   geom_vline(aes(xintercept = min_date, color = dest), linetype = 2) +
@@ -220,11 +222,12 @@ first_prob <- events %>%
 
 # 2.2 First introduction date and source probability single deme
 first_source <-  events %>%
+  # 1. Prepare data
   filter(event == "M") %>%
   group_by(traj, dest) %>%
   arrange(time) %>%
   slice(1) %>%
-    # Plot
+  # 2. Plot
   ggplot() +
   # ?? Stack or no stack? Ask
   geom_density(aes(x = date, y = ..count../args$n, color = src, fill = src), alpha = 0.1) +
@@ -241,9 +244,67 @@ ggexport(ggarrange(plotlist = list(first_prob, first_source), labels = c("A", "B
          filename = paste0(args$output_figure, "03.png"),
          width = 2600, height = 1000, res = 300)
 
-# 2.5 Cumulative numbers migrations and births single deme
+# Temporal order of events, support
 
+
+time_imig <-  events %>%
+  # 1. Prepare data
+  filter(event == "M") %>%
+  group_by(traj, dest) %>%
+  arrange(traj, time) %>%
+  distinct(traj, dest) %>%
+  ungroup %>%
+  mutate(order = rep(c("second", "third", "fourth", "fifth", "sixth"), 200)) %>%
+  pivot_wider(names_from = order, values_from = dest) %>%
+  count(second, third, fourth, fifth, sixth) %>%
+  mutate(first = "Hubei", 
+         n = n/200) %>%
+  select(first, everything())
+
+time_imig_set <- gather_set_data(time_imig, 1:6)
+time_imig_set$x <- factor(time_imig_set$x, levels = c("first", "second", "third", "fourth", "fifth", "sixth"))
+ggplot(time_imig_set, aes(x, id = id, split = y, value = n)) +
+  geom_parallel_sets(aes(fill = second), alpha = 0.3, axis.width = 0.22) +
+  geom_parallel_sets_axes(axis.width = 0.15, fill = "grey80", color = "grey80") +
+  geom_parallel_sets_labels(color = 'grey30', size = 9/.pt, angle = 90) +
+  scale_x_discrete(name = NULL, expand = c(0, 0.2)) +
+  scale_y_continuous(breaks = NULL, expand = c(0, 0))+
+  theme(axis.line = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_text(size = 12),
+        panel.background = element_rect(fill = "white", colour = "white")) +
+  scale_fill_manual(name = "", values = dcolors, guide = "none")
+
+
+time_omig <-  events %>%
+  # 1. Prepare data
+  filter(event == "M") %>%
+  group_by(traj, src) %>%
+  arrange(traj, time) %>%
+  distinct(traj, src) %>%
+  ungroup %>%
+  mutate(order = rep(c("first", "second", "third", "fourth", "fifth", "sixth"), 200)) %>%
+  pivot_wider(names_from = order, values_from = src) %>%
+  count(first, second, third, fourth, fifth, sixth)
+
+time_omig_set <- gather_set_data(time_omig, 1:6)
+time_omig_set$x <- factor(time_omig_set$x, levels = c("first", "second", "third", "fourth", "fifth", "sixth"))
+ggplot(time_omig_set, aes(x, id = id, split = y, value = n)) +
+  geom_parallel_sets(aes(fill = sixth), alpha = 0.3, axis.width = 0.22) +
+  geom_parallel_sets_axes(axis.width = 0.15, fill = "grey80", color = "grey80") +
+  geom_parallel_sets_labels(color = 'grey30', size = 9/.pt, angle = 90) +
+  scale_x_discrete(name = NULL, expand = c(0, 0.2)) +
+  scale_y_continuous(breaks = NULL, expand = c(0, 0))+
+  theme(axis.line = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_text(size = 12),
+        panel.background = element_rect(fill = "white", colour = "white")) +
+  scale_fill_manual(name = "", values = dcolors, guide = "none")
+
+
+# 2.5 Cumulative numbers migrations and births single deme
 migbirths_line <- ge  %>% 
+  # 1. Prepare data
   filter(event %in% c("B", "M")) %>%
   mutate(event = case_when( 
     event == "M" ~ "OM", 
@@ -252,13 +313,13 @@ migbirths_line <- ge  %>%
   group_by(date, traj, event, deme_var) %>%
   summarise(N = sum(N), .groups = "drop") %>%
   bind_rows(ge  %>% 
-    filter(event %in% c("B", "M")) %>%
-    mutate(event = case_when(
-      event == "M" ~ "IM",
-      TRUE ~ "B"),
-      deme_var = dest) %>%
-    group_by(date, traj, event, deme_var) %>%
-    summarise(N = sum(N), .groups = "drop")) %>%
+            filter(event %in% c("B", "M")) %>%
+            mutate(event = case_when(
+              event == "M" ~ "IM",
+              TRUE ~ "B"),
+              deme_var = dest) %>%
+            group_by(date, traj, event, deme_var) %>%
+            summarise(N = sum(N), .groups = "drop")) %>%
   group_by(event, traj, deme_var) %>%
   arrange(date) %>%
   mutate(cumN = cumsum(N)) %>%
@@ -267,6 +328,7 @@ migbirths_line <- ge  %>%
   summarise(Imedian = median(cumN),
             Ihigh = quantile(cumN, 0.75),
             Ilow = quantile(cumN, 0.25), .groups = "drop") %>%
+  # 2. Plot
   ggplot() +
   geom_line(aes(x=date, y = Imedian, color = event)) +
   geom_ribbon(aes(date, ymin = Ilow, ymax = Ihigh, fill = event), alpha = 0.5) +
@@ -280,18 +342,19 @@ migbirths_line <- ge  %>%
   theme( axis.title.x = element_blank(),
          axis.title.y = element_blank())
 
-
 ggexport(migbirths_line,
          filename = paste0(args$output_figure, "04.png"),
          width = 1300, height = 1000, res = 300)
-# TODO smooth these lines
+
 
 # 2.5 Proportion barplot source of migrations single deme
 srcmig_bar <- ge %>%
+  # 1. Prepare data
   filter(event == "M") %>%
   # Add empty row for Hubei
   bind_rows(ge[1, ] %>% mutate(src = "Hubei", dest = "Hubei", event = "M")) %>%
   mutate(type = "source") %>%
+  # 2. Plot
   ggplot(aes(x = date, y = N, fill = src)) + 
   geom_bar(position = "fill", stat = "identity") +
   scale_y_continuous(labels = scales::percent_format(), breaks = c(0, 0.5, 1)) +
@@ -307,8 +370,10 @@ srcmig_bar <- ge %>%
 
 # 2.6 Proportion barplot destination  of migrations single deme 
 destmig_bar <- ge %>%
+  # 1. Prepare data
   filter(event == "M") %>%
   mutate(type = "destination") %>%
+  # 2. Plot
   ggplot(aes(x = date, y = N, fill = dest)) + 
   geom_bar(position = "fill", stat = "identity") +
   scale_y_continuous(labels = scales::percent_format(), breaks = c(0, 0.5, 1)) +
