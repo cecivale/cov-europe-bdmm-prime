@@ -18,8 +18,12 @@ metadata: "data/201014_metadata.tsv"
 
 # Builds to run: subsampling + beas analysis
 builds:
-  eEurope:
-      subsampling_scheme: uniform_sarah
+  europe1:
+      subsampling_scheme: uniformSarah_5demes
+      beast_analysis: 
+        - 200914_europe1
+  europe2:
+      subsampling_scheme: uniformSarah_6demes
       beast_analysis: 
         - 201014_europe2
   # europe3a:
@@ -90,60 +94,123 @@ mask:
 
 
 
-# # Define subsampling scheme
-# Custom subsampling logic for regions like Europe where grouping by country
-# is the smallest resolution required.
+# Subsampling schemes
 subsampling:
-  uniform_sarah: # This subsampling was used in europe1 and 2 with augur subsample rule from nextstrain
+  uniformSarah_5demes: # This subsampling was used in europe1 with augur subsample rule from nextstrain and including Sarah's analysis sequences
     hubei:
-      group_by: "division"
-      seq_per_group: 30
-      query: --query "(division == 'Hubei') & (date<='2020-01-23')"
+      #group_by: "division"
+      #seq_per_group: 30
+      #query: --query "(division == 'Hubei') & (date<='2020-01-23')"
       division: "Hubei"
       country: "China"
       region: "Asia"
       min_date: "2019-12-24"
       max_date: "2020-01-23"
+      seq_per_deme: 31
+      prob: "uniform"
     italy:
-      group_by: "country"
-      seq_per_group: 60
-      query: --query "(country == 'Italy') & (date<='2020-03-08')"
+      #group_by: "country"
+      #seq_per_group: 60
+      #query: --query "(country == 'Italy') & (date<='2020-03-08')"
       country: "Italy"
       region: "Europe"
       min_date: "2020-01-29"
       max_date: "2020-03-08"
+      seq_per_deme: 71
+      prob: "uniform"
     germany:
-      group_by: "country"
-      seq_per_group: 50
-      query: --query "(country == 'Germany') & (date<='2020-03-08')"
+      #group_by: "country"
+      #seq_per_group: 50
+      #query: --query "(country == 'Germany') & (date<='2020-03-08')"
       country: "Germany"
       region: "Europe"
       min_date: "2020-01-28"
       max_date: "2020-03-08"
+      seq_per_deme: 45
+      prob: "uniform"
     france:
-      group_by: "country"
-      seq_per_group: 50
-      query: --query "(country == 'France') & (date<='2020-03-08')"
+      #group_by: "country"
+      #seq_per_group: 50
+      #query: --query "(country == 'France') & (date<='2020-03-08')"
       country: "France"
       region: "Europe"
       min_date: "2020-01-23"
       max_date: "2020-03-08"
+      seq_per_deme: 74
+      prob: "uniform"
+    othereuropean:
+      #group_by: "region"
+      #seq_per_group: 60
+      #query: --query "(region == 'Europe') & (country not in ['Italy', 'France', 'Germany']) & (date<='2020-03-08')"
+      region: "Europe"
+      exclude_country: ["France","Germany","Italy"]
+      min_date: "2020-01-29"
+      max_date: "2020-03-08"
+      seq_per_deme: 80
+      prob: "uniform"
+
+  uniformSarah_6demes: # This subsampling was used in europe2 with augur subsample rule from nextstrain and including Sarah's analysis sequences
+    hubei:
+      #group_by: "division"
+      #seq_per_group: 30
+      #query: --query "(division == 'Hubei') & (date<='2020-01-23')"
+      division: "Hubei"
+      country: "China"
+      region: "Asia"
+      min_date: "2019-12-24"
+      max_date: "2020-01-23"
+      seq_per_deme: 31
+      prob: "uniform"
+    italy:
+      #group_by: "country"
+      #seq_per_group: 60
+      #query: --query "(country == 'Italy') & (date<='2020-03-08')"
+      country: "Italy"
+      region: "Europe"
+      min_date: "2020-01-29"
+      max_date: "2020-03-08"
+      seq_per_deme: 68
+      prob: "uniform"
+    germany:
+      # group_by: "country"
+      # seq_per_group: 50
+      # query: --query "(country == 'Germany') & (date<='2020-03-08')"
+      country: "Germany"
+      region: "Europe"
+      min_date: "2020-01-28"
+      max_date: "2020-03-08"
+      seq_per_deme: 51
+      prob: "uniform"
+    france:
+      # group_by: "country"
+      # seq_per_group: 50
+      # query: --query "(country == 'France') & (date<='2020-03-08')"
+      country: "France"
+      region: "Europe"
+      min_date: "2020-01-23"
+      max_date: "2020-03-08"
+      seq_per_deme: 75
+      prob: "uniform"
     spain:
-      group_by: "country"
-      seq_per_group: 40
-      query: --query "(country == 'Spain') & (date<='2020-03-08')"
+      # group_by: "country"
+      # seq_per_group: 40
+      # query: --query "(country == 'Spain') & (date<='2020-03-08')"
       country: "Spain"
       region: "Europe"
       min_date: "2020-02-24"
       max_date: "2020-03-08"
+      seq_per_deme: 54
+      prob: "uniform"
     othereuropean:
-      group_by: "region"
-      seq_per_group: 20
-      query: --query "(region == 'Europe') & (country not in ['Italy', 'France', 'Germany', 'Spain']) & (date<='2020-03-08')"
+      # group_by: "region"
+      # seq_per_group: 20
+      # query: --query "(region == 'Europe') & (country not in ['Italy', 'France', 'Germany', 'Spain']) & (date<='2020-03-08')"
       region: "Europe"
       exclude_country: ["France","Germany","Italy","Spain"]
       min_date: "2020-01-29"
       max_date: "2020-03-08"
+      seq_per_deme: 43
+      prob: "uniform"
 
   ssprop_Hubei:
     France:

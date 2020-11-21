@@ -120,7 +120,8 @@ ge <- gridEventsByAge(events, ages_1day) %>%
 cat("\nPlotting...")
 set_plotopts()
 dcolors <- pal_npg("nrc")(10)[c(1:5,9)]
-names(dcolors) <- demes$deme
+dcolors <- dcolors[1:nrow(demes)]
+names(dcolors) <- sort(demes$deme)
 dark_dcolors <- rgb(t(col2rgb(dcolors)/2), maxColorValue=255)
 names(dark_dcolors) <- demes$deme
 ecolors <- c("#1e3d59", "#f5f0e1", "#ff6e40", "#ffc13b")
@@ -251,17 +252,18 @@ order_imig_df <-  events %>%
   arrange(traj, time) %>%
   distinct(traj, dest) %>%
   ungroup %>%
-  mutate(order = rep(c("second", "third", "fourth", "fifth", "sixth"), 200)) %>%
+  mutate(order = rep(2:nrow(demes), args$n)) %>%
   pivot_wider(names_from = order, values_from = dest) %>%
-  count(second, third, fourth, fifth, sixth) %>%
-  mutate(first = "Hubei") %>%
-  select(first, everything())
-order_imig_set <- gather_set_data(order_imig_df, 1:6)
-order_imig_set$x <- factor(order_imig_set$x, levels = c("first", "second", "third", "fourth", "fifth", "sixth"))
+  group_by_at(2:nrow(demes)) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  mutate("1" = "Hubei") %>%
+  select("1", everything())
+order_imig_set <- gather_set_data(order_imig_df, 1:nrow(demes))
+order_imig_set$x <- factor(order_imig_set$x, levels = 1:nrow(demes))
 
   # 2. Plot
 order_imig <- ggplot(order_imig_set, aes(x, id = id, split = y, value = n)) +
-  geom_parallel_sets(aes(fill = second), alpha = 0.5, axis.width = 0.22) +
+  geom_parallel_sets(aes_(fill = as.name(2)), alpha = 0.5, axis.width = 0.22) +
   geom_parallel_sets_axes(axis.width = 0.15, fill = "grey80", color = "grey80") +
   geom_parallel_sets_labels(color = 'grey30', size = 9/.pt, angle = 90) +
   scale_x_discrete(breaks = NULL, name = NULL, expand = c(0, 0.2)) +
@@ -284,15 +286,16 @@ order_omig_df <-  events %>%
   arrange(traj, time) %>%
   distinct(traj, src) %>%
   ungroup %>%
-  mutate(order = rep(c("first", "second", "third", "fourth", "fifth", "sixth"), 200)) %>%
+  mutate(order = rep(1:nrow(demes), args$n)) %>%
   pivot_wider(names_from = order, values_from = src) %>%
-  count(first, second, third, fourth, fifth, sixth)
-order_omig_set <- gather_set_data(order_omig_df, 1:6)
-order_omig_set$x <- factor(order_omig_set$x, levels = c("first", "second", "third", "fourth", "fifth", "sixth"))
+  group_by_at(2:(nrow(demes) + 1)) %>%
+  summarise(n = n(), .groups = "drop") 
+order_omig_set <- gather_set_data(order_omig_df, 1:nrow(demes))
+order_omig_set$x <- factor(order_omig_set$x, levels = 1:nrow(demes))
 
   # 2. Plot
 order_omig <- ggplot(order_omig_set, aes(x, id = id, split = y, value = n)) +
-  geom_parallel_sets(aes(fill = sixth), alpha = 0.5, axis.width = 0.22) +
+  geom_parallel_sets(aes_(fill = as.name(nrow(demes))), alpha = 0.5, axis.width = 0.22) +
   geom_parallel_sets_axes(axis.width = 0.15, fill = "grey80", color = "grey80") +
   geom_parallel_sets_labels(color = 'grey30', size = 9/.pt, angle = 90) +
   scale_x_discrete(breaks = NULL, name = NULL, expand = c(0, 0.2)) +
@@ -461,19 +464,25 @@ plot_chord <- function(grid_df, min_date, max_date) {
 
 # Period 1
 plot_chord(ge, ymd("2019-09-01"), ymd("2020-01-23")) 
-mtext(text = "A", at = -1, cex = 1.5, font = 2)
+text(label = "A", x = -1.1, y = 1, cex = 1.5, font = 2)
 c1 <- recordPlot()
 # Period 2
 plot_chord(ge, ymd("2020-01-23"), ymd("2020-02-28"))
-mtext(text = "B", at = -1, cex = 1.5, font = 2)
+#mtext(text = "B", at = -1, cex = 1.5, font = 2)
+text(label = "B", x = -1.1, y = 1, cex = 1.5, font = 2)
 c2 <- recordPlot()
 # Period 3
 plot_chord(ge, ymd("2020-02-28"), ymd("2020-03-08"))
-mtext(text = "C", at = -1, cex = 1.5, font = 2)
+text(label = "C", x = -1.1, y = 1, cex = 1.5, font = 2)
 c3 <- recordPlot()
 
-ggexport(ggarrange(plotlist = list(c1,c2,c3), nrow = 1, ncol = 1),
-         filename = paste0(args$output_figure, "08.png"),
+ggexport(c1, filename = paste0(args$output_figure, "08a.png"),
+         width = 1000, height = 1000, res = 200)
+
+ggexport(c2, filename = paste0(args$output_figure, "08b.png"),
+         width = 1000, height = 1000, res = 200)
+
+ggexport(c3, filename = paste0(args$output_figure, "08c.png"),
          width = 1000, height = 1000, res = 200)
 
 
