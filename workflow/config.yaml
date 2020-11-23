@@ -35,10 +35,18 @@ builds:
   #   beast_analysis: 
   #     - 201030_europe3
       # - 201113_europe3v2 # Uniformative priors for sampling proportions
-  europe3c:
+  # europe3c:
+  #   subsampling_scheme: ssprop_China
+  #   beast_analysis: 
+  #     - 201030_europe3
+  europe4c:
     subsampling_scheme: ssprop_China
     beast_analysis: 
-      - 201030_europe3
+      - 201102_europe4
+  europe5c:
+    subsampling_scheme: ssprop_China
+    beast_analysis: 
+      - 201106_europe5
     
 
 # Define files used for external configuration. Common examples consist of a
@@ -374,5 +382,5 @@ beast:
   mcc_heights: "mean"
   # Trajectories
   n_traj: 500
-  resample: 5000
+  resample: 10000
 

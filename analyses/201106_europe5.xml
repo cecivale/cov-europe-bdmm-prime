@@ -97,7 +97,7 @@
                         </becomeUninfectiousRate>
 
                         <samplingProportion id="samplingProportionSV" spec="bdmmprime.parameterization.SkylineVectorParameter" origin="@originBDMMPrime" skylineValues="@samplingProportion" timesAreAges="true" typeSet="@typeSetBDMMPrime">
-                            <parameter id="samplingProportionChangeTimes" spec="parameter.RealParameter" dimension="2" estimate="false" lower="0.0" name="changeTimes">0.12 0.205</parameter>
+                            <parameter id="samplingProportionChangeTimes" spec="parameter.RealParameter" dimension="2" estimate="false" lower="0.0" name="changeTimes">0.122 0.205</parameter>
                         </samplingProportion>
 
                         <rhoSampling id="rhoSamplingProbTP" spec="bdmmprime.parameterization.TimedParameter" origin="@originBDMMPrime" timesAreAges="true" typeSet="@typeSetBDMMPrime"/>
@@ -107,8 +107,10 @@
                         </removalProb>
 
                         <migrationRate id="migrationRateSM" spec="bdmmprime.parameterization.SkylineMatrixParameter" origin="@originBDMMPrime" timesAreAges="true" typeSet="@typeSetBDMMPrime">
-                           <skylineValues id="migrationRate" spec="bdmmprime.util.priors.MigRateGLM"> 
-                                <parameter id="GLMcovariateMatrix" spec="feast.fileio.RealParameterFromXSV" fileName="../../files/flight_matrix_constant_n.csv" sep="," name="covariateMatrix" dimension="30"/>
+                            <parameter id="migrationRateChangeTimes"
+                            spec="parameter.RealParameter" estimate="false" name="changeTimes"> 0.024 0.122</parameter>
+                            <skylineValues id="migrationRate" spec="bdmmprime.util.priors.MigRateGLM">
+                                <parameter id="GLMcovariateMatrix" spec="feast.fileio.RealParameterFromXSV" fileName="../../files/flight_matrix_3i.csv" sep="," estimate="false" name="covariateMatrix" dimension="90"/>
                                 <parameter idref="scaleParamGLM" name="scaleParam"/>
                             </skylineValues>
                         </migrationRate> 
@@ -163,55 +165,55 @@
                 </prior>
 
     			<!-- Prior for sampling proportion for France Epoch 1 (post-Jan 23) -->
-    			<distribution spec="SmartZeroExcludingPrior">
-    				<x spec="feast.function.Slice" arg="@samplingProportion" index="0" count="1"/>
-    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.084"/>
-    			</distribution>
-    			<!-- Prior for sampling proportion for Germany Epoch 1 (post-Jan 23) -->
-    			<distribution spec="SmartZeroExcludingPrior">
-    				<x spec="feast.function.Slice" arg="@samplingProportion" index="1" count="1"/>
-    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.060"/>
-    			</distribution>
-    			<!-- Prior for sampling proportion for Italy Epoch 1 (post-Jan 23) -->
-    			<distribution spec="SmartZeroExcludingPrior">
-    				<x spec="feast.function.Slice" arg="@samplingProportion" index="3" count="1"/>
-    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.011"/>
-    			</distribution>
+                <distribution spec="SmartZeroExcludingPrior">
+                    <x spec="feast.function.Slice" arg="@samplingProportion" index="0" count="1"/>
+                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.084"/>
+                </distribution>
+                <!-- Prior for sampling proportion for Germany Epoch 1 (post-Jan 23) -->
+                <distribution spec="SmartZeroExcludingPrior">
+                    <x spec="feast.function.Slice" arg="@samplingProportion" index="1" count="1"/>
+                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.060"/>
+                </distribution>
+                <!-- Prior for sampling proportion for Italy Epoch 1 (post-Jan 23) -->
+                <distribution spec="SmartZeroExcludingPrior">
+                    <x spec="feast.function.Slice" arg="@samplingProportion" index="3" count="1"/>
+                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.011"/>
+                </distribution>
                 <!-- Prior for sampling proportion for OtherEuropean Epoch 1 (post-Jan 23) -->
                 <distribution spec="SmartZeroExcludingPrior">
                     <x spec="feast.function.Slice" arg="@samplingProportion" index="4" count="1"/>
                     <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.026"/>
                 </distribution>
-    			<!-- Prior for sampling proportion for Spain Epoch 1 (post-Jan 23) -->
-    			<distribution spec="SmartZeroExcludingPrior">
-    				<x spec="feast.function.Slice" arg="@samplingProportion" index="5" count="1"/>
-    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.055"/>
-    			</distribution>
-    			<!-- Prior for sampling proportion for France Epoch 2 (post-first sample date) -->
-    			<distribution spec="SmartZeroExcludingPrior">
-    				<x spec="feast.function.Slice" arg="@samplingProportion" index="6" count="1"/>
-    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.084"/>
-    			</distribution>
-    			<!-- Prior for sampling proportion for Germany Epoch 2 (post-first sample date) -->
-    			<distribution spec="SmartZeroExcludingPrior">
-    				<x spec="feast.function.Slice" arg="@samplingProportion" index="7" count="1"/>
-    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.060"/>
-    			</distribution>
-    			<!-- Prior for sampling proportion for Hubei-China Epoch 2 (post-first sample date) -->
-    			<distribution spec="SmartZeroExcludingPrior">
-    				<x spec="feast.function.Slice" arg="@samplingProportion" index="8" count="1"/>
-    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.097"/>
-    			</distribution>
-    			<!-- Prior for sampling proportion for Italy Epoch 2 (post-first sample date) -->
-    			<distribution spec="SmartZeroExcludingPrior">
-    				<x spec="feast.function.Slice" arg="@samplingProportion" index="9" count="1"/>
-    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.011"/>
-    			</distribution>
-    			<!-- Prior for sampling proportion for OtherEuropean Epoch 2 (post-first sample date) -->
-    			<distribution spec="SmartZeroExcludingPrior">
-    				<x spec="feast.function.Slice" arg="@samplingProportion" index="10" count="1"/>
-    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.026"/>
-    			</distribution>
+                <!-- Prior for sampling proportion for Spain Epoch 1 (post-Jan 23) -->
+                <distribution spec="SmartZeroExcludingPrior">
+                    <x spec="feast.function.Slice" arg="@samplingProportion" index="5" count="1"/>
+                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.055"/>
+                </distribution>
+                <!-- Prior for sampling proportion for France Epoch 2 (post-first sample date) -->
+                <distribution spec="SmartZeroExcludingPrior">
+                    <x spec="feast.function.Slice" arg="@samplingProportion" index="6" count="1"/>
+                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.084"/>
+                </distribution>
+                <!-- Prior for sampling proportion for Germany Epoch 2 (post-first sample date) -->
+                <distribution spec="SmartZeroExcludingPrior">
+                    <x spec="feast.function.Slice" arg="@samplingProportion" index="7" count="1"/>
+                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.060"/>
+                </distribution>
+                <!-- Prior for sampling proportion for Hubei-China Epoch 2 (post-first sample date) -->
+                <distribution spec="SmartZeroExcludingPrior">
+                    <x spec="feast.function.Slice" arg="@samplingProportion" index="8" count="1"/>
+                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.097"/>
+                </distribution>
+                <!-- Prior for sampling proportion for Italy Epoch 2 (post-first sample date) -->
+                <distribution spec="SmartZeroExcludingPrior">
+                    <x spec="feast.function.Slice" arg="@samplingProportion" index="9" count="1"/>
+                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.011"/>
+                </distribution>
+                <!-- Prior for sampling proportion for OtherEuropean Epoch 2 (post-first sample date) -->
+                <distribution spec="SmartZeroExcludingPrior">
+                    <x spec="feast.function.Slice" arg="@samplingProportion" index="10" count="1"/>
+                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.026"/>
+                </distribution>
                 <!-- Prior for sampling proportion for Spain Epoch 2 (post-first sample date) -->
                 <distribution spec="SmartZeroExcludingPrior">
                     <x spec="feast.function.Slice" arg="@samplingProportion" index="11" count="1"/>
