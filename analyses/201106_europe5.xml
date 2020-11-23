@@ -35,7 +35,7 @@
 
 
 <!-- MCMC -->
-    <run id="mcmc" spec="MCMC" chainLength="10000000">
+    <run id="mcmc" spec="MCMC" chainLength="10000000" numInitializationAttempts="100">
 
     <!-- State -->
         <state id="state" spec="State" storeEvery="5000">

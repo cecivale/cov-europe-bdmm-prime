@@ -35,7 +35,7 @@
 
 
 <!-- MCMC -->
-    <run id="mcmc" spec="MCMC" chainLength="10000000">
+    <run id="mcmc" spec="MCMC" chainLength="10000000" numInitializationAttempts="100">
 
     <!-- State -->
         <state id="state" spec="State" storeEvery="5000">
@@ -108,7 +108,7 @@
 
                         <migrationRate id="migrationRateSM" spec="bdmmprime.parameterization.SkylineMatrixParameter" origin="@originBDMMPrime" timesAreAges="true" typeSet="@typeSetBDMMPrime">
                            <skylineValues id="migrationRate" spec="bdmmprime.util.priors.MigRateGLM"> 
-                                <parameter id="GLMcovariateMatrix" spec="feast.fileio.RealParameterFromXSV" fileName="../../files/flight_matrix_constant_n.csv" sep="," name="covariateMatrix" dimension="30"/>
+                                <parameter id="GLMcovariateMatrix" spec="feast.fileio.RealParameterFromXSV" fileName="../../files/flight_matrix_constant.csv" sep="," name="covariateMatrix" dimension="30"/>
                                 <parameter idref="scaleParamGLM" name="scaleParam"/>
                             </skylineValues>
                         </migrationRate> 
