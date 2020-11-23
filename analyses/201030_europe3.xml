@@ -159,7 +159,7 @@
     			<!-- Prior for sampling proportion for France Epoch 1 (post-Jan 23) -->
     			<distribution spec="SmartZeroExcludingPrior">
     				<x spec="feast.function.Slice" arg="@samplingProportion" index="0" count="1"/>
-    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.070"/>
+    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.084"/>
     			</distribution>
     			<!-- Prior for sampling proportion for Germany Epoch 1 (post-Jan 23) -->
     			<distribution spec="SmartZeroExcludingPrior">
@@ -174,17 +174,17 @@
                 <!-- Prior for sampling proportion for OtherEuropean Epoch 1 (post-Jan 23) -->
                 <distribution spec="SmartZeroExcludingPrior">
                     <x spec="feast.function.Slice" arg="@samplingProportion" index="4" count="1"/>
-                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.016"/>
+                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.026"/>
                 </distribution>
     			<!-- Prior for sampling proportion for Spain Epoch 1 (post-Jan 23) -->
     			<distribution spec="SmartZeroExcludingPrior">
     				<x spec="feast.function.Slice" arg="@samplingProportion" index="5" count="1"/>
-    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.046"/>
+    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.055"/>
     			</distribution>
     			<!-- Prior for sampling proportion for France Epoch 2 (post-first sample date) -->
     			<distribution spec="SmartZeroExcludingPrior">
     				<x spec="feast.function.Slice" arg="@samplingProportion" index="6" count="1"/>
-    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.070"/>
+    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.084"/>
     			</distribution>
     			<!-- Prior for sampling proportion for Germany Epoch 2 (post-first sample date) -->
     			<distribution spec="SmartZeroExcludingPrior">
@@ -204,12 +204,12 @@
     			<!-- Prior for sampling proportion for OtherEuropean Epoch 2 (post-first sample date) -->
     			<distribution spec="SmartZeroExcludingPrior">
     				<x spec="feast.function.Slice" arg="@samplingProportion" index="10" count="1"/>
-    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.016"/>
+    				<distr spec="beast.math.distributions.Uniform" lower="0" upper="0.026"/>
     			</distribution>
                 <!-- Prior for sampling proportion for Spain Epoch 2 (post-first sample date) -->
                 <distribution spec="SmartZeroExcludingPrior">
                     <x spec="feast.function.Slice" arg="@samplingProportion" index="11" count="1"/>
-                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.046"/>
+                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.055"/>
                 </distribution>
             </distribution>
 
