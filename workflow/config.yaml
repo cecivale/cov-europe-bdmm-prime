@@ -18,14 +18,14 @@ metadata: "data/201014_metadata.tsv"
 
 # Builds to run: subsampling + beas analysis
 builds:
-  europe1:
-      subsampling_scheme: uniformSarah_5demes
-      beast_analysis: 
-        - 200914_europe1
-  europe2:
-      subsampling_scheme: uniformSarah_6demes
-      beast_analysis: 
-        - 201014_europe2
+  # europe1:
+  #     subsampling_scheme: uniformSarah_5demes
+  #     beast_analysis: 
+  #       - 200914_europe1
+  # europe2:
+  #     subsampling_scheme: uniformSarah_6demes
+  #     beast_analysis: 
+  #       - 201014_europe2
   # europe3a:
   #   subsampling_scheme: ssprop_Hubei
   #   beast_analysis: 
@@ -297,7 +297,7 @@ subsampling:
       region: "Europe"
       min_date: "2020-01-23"
       max_date: "2020-03-08"
-      seq_per_deme: 50
+      seq_per_deme: 60
       prob: "cases"
     Germany:
       country: "Germany"
@@ -311,14 +311,14 @@ subsampling:
       region: "Asia"
       min_date: "2019-12-24"
       max_date: "2020-01-23"
-      seq_per_deme: 50
+      seq_per_deme: 60
       prob: "deaths"
     Italy:
       country: "Italy"
       region: "Europe"
       min_date: "2020-01-29"
       max_date: "2020-03-08"
-      seq_per_deme: 50
+      seq_per_deme: 60
       prob: "cases"
     OtherEuropean:
       region: "Europe"
@@ -332,7 +332,7 @@ subsampling:
       region: "Europe"
       min_date: "2020-02-24"
       max_date: "2020-03-08"
-      seq_per_deme: 50
+      seq_per_deme: 60
       prob: "cases"
 
 tree:

@@ -26,7 +26,7 @@ subsample <- function(alignment, metadata, include = NA, exclude = NA,
     filter(strain %in% names(alignment)) %>% # Keep only metadata about seqs in the alignment
     mutate(date = ymd(date)) 
   
-  if (!is.na(exclude)) {
+  if (!is.null(exclude)) {
     exclude <- readLines(include)
     metadata <- filter(metadata, !strain %in% exclude)
   }

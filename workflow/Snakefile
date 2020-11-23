@@ -587,7 +587,8 @@ rule beast:
         log = "beast_{build_name}_{analysis_name}.{seed}.txt",
         jar = config["beast"]["jar"],
         seed = config["beast"]["n_mcmc"],
-        name = "results/{build_name}/{analysis_name}.{seed}"
+        name = "results/{build_name}/{analysis_name}.{seed}",
+        action = "overwrite"
     resources:
         runtime = config["beast"]["t_mcmc"],
         mem_mb = 4096,
@@ -596,7 +597,7 @@ rule beast:
         """
         scp {input.xml} results/{wildcards.build_name}/
         cd results/{wildcards.build_name}/
-        java -Xmx3G -jar {params.jar} -seed {wildcards.seed} -statefile {wildcards.analysis_name}.{wildcards.seed}.state -resume {input.xml} 2>&1 | tee -a {params.log} || :
+        java -Xmx3G -jar {params.jar} -seed {wildcards.seed} -statefile {wildcards.analysis_name}.{wildcards.seed}.state -{params.action} {input.xml} 2>&1 | tee -a {params.log} || :
         cd ../../
         mv results/{wildcards.build_name}/{params.log} logs/
         touch {params.name}.log {params.name}.trees
@@ -660,7 +661,7 @@ def _get_trace_tocombine(wildcards):
     if not files:
         files = "message_trace_" + wildcards.build_name + "_" + wildcards.analysis_name + ".txt"
         with open(files, "w") as file:
-            file.write("None of the trace files have the indicated minimum of ESS for all variables. Change min_ESS in config file if you want to combine anyway, or resume beast chains by running snakemake -R beast")
+            file.write("None of the trace files have the indicated minimum of ESS for all variables. Change min_ESS in config file if you want to combine anyway, or resume beast chains by running snakemake -R beast --config action='resume'")
     return files
 
 
@@ -857,12 +858,12 @@ rule analyze_trajectories:
         """
 
 
-# rule get_sampling_proportions:
-#     params:
-#         demes = str(config["subsampling"]["ssprop_Hubei"])
-#     output:
-#         sampling_proportions = "results/sampling_proportions_ssprop_Hubei.tsv"
-#     shell:
-#         """
-#         Rscript scripts/sampling_proportion.R --input {params.demes} --output {output.sampling_proportions}
-#         """
+rule get_sampling_proportions:
+    params:
+        demes = str(config["subsampling"]["ssprop_China"])
+    output:
+        sampling_proportions = "results/sampling_proportions_ssprop_China.tsv"
+    shell:
+        """
+        Rscript scripts/sampling_proportion.R --input {params.demes} --output {output.sampling_proportions}
+        """
