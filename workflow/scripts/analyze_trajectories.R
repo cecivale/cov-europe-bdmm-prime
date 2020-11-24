@@ -369,7 +369,8 @@ srcmig_bar <- ge %>%
   scale_y_continuous(labels = scales::percent_format(), breaks = c(0, 0.5, 1)) +
   scale_x_date(limits = c(ymd("2019-11-01"), ymd("2020-03-08")))+
   scale_fill_manual(values = dcolors) +
-  theme(legend.position = "none",
+  theme(#legend.position = "none",
+        legend.title = element_blank(),
         axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         axis.text.y = element_blank(),
@@ -388,16 +389,17 @@ destmig_bar <- ge %>%
   scale_y_continuous(labels = scales::percent_format(), breaks = c(0, 0.5, 1)) +
   scale_x_date(limits = c(ymd("2019-11-01"), ymd("2020-03-08")))+
   scale_fill_manual(values = dcolors) +
-  theme(legend.position = "none",
+  theme(#legend.position = "none",
         axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         axis.text.y = element_blank(),
         axis.ticks.y = element_blank(),
+        legend.title = element_blank(),
         strip.background.y = element_blank(),
         strip.text.y = element_blank()) +
   facet_grid(src~type)
 
-ggexport(ggarrange(plotlist = list(srcmig_bar, destmig_bar), ncol = 2),
+ggexport(ggarrange(plotlist = list(srcmig_bar, destmig_bar), ncol = 2, common.legend = TRUE),
          filename = paste0(args$output_figure, "07.png"),
          width = 2300, height = 3000, res = 300)
 

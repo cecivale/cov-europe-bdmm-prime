@@ -862,7 +862,7 @@ rule analyze_trajectories:
             --metadata {input.metadata} \
             --demes {params.demes} \
             --n {params.n_traj} \
-            --output_fig {output.figs}/{wildcards.analysis_name}.figtraj 2>&1 | tee -a {log}
+            --output_fig {output.figs}/{wildcards.analysis_name}_figtraj 2>&1 | tee -a {log}
         """
 
 
