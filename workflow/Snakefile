@@ -781,7 +781,7 @@ rule trajectory_mapping:
         """
         scp {input.xml} results/{wildcards.build_name}/{wildcards.analysis_name}.xml
         cd results/{wildcards.build_name}/
-        java -Xmx3G -jar {params.jar} -seed {SEED} -overwrite {wildcards.analysis_name}.xml 2>&1 | tee {params.log}  || :
+        java -Xmx3G -jar {params.jar} -overwrite {wildcards.analysis_name}.xml 2>&1 | tee {params.log}  || :
         cd ../../
         mv results/{wildcards.build_name}/{params.log} logs/
         """
@@ -844,7 +844,7 @@ rule analyze_trajectories:
         trajectories = rules.trajectory_mapping.output.trajectories,
         metadata = rules.adjust_names.output.metadata
     output:
-        fig_traj = directory("results/{build_name}/figs_{analysis_name}")
+        figs = directory("results/{build_name}/figs_{analysis_name}")
     log:
         "logs/analyze_trajectories_{build_name}_{analysis_name}.txt"
     benchmark:
@@ -855,13 +855,14 @@ rule analyze_trajectories:
         n_traj =  config["beast"]["n_traj"]
     shell:
         """
+        mkdir {output.figs}
         Rscript scripts/analyze_trajectories.R \
             --input {input.trajectories} \
             --burnin {params.burnin} \
             --metadata {input.metadata} \
             --demes {params.demes} \
             --n {params.n_traj} \
-            --output_fig {output.fig_traj}/{wildcards.analysis_name}.figtraj 2>&1 | tee -a {log}
+            --output_fig {output.figs}/{wildcards.analysis_name}.figtraj 2>&1 | tee -a {log}
         """
 
 

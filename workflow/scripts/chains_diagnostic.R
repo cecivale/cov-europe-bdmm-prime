@@ -37,7 +37,7 @@ for (fname in INPUT){
     l <- last(strsplit(read_lines(fname, n_max = 1), " ")[[1]])
     if (all(tb$ESS >= ESS_cutoff, na.rm = TRUE)) {
       cat("\n\n\nAll ESS values > ", ESS_cutoff, " in log file ", fname, "\n\nLog file included in analysis.\n")
-      diagnostic <- rbind(diagnostic, data.frame(chain = gsub(".logsummary.txt", "", str_split(fname, pattern = "/", n = 2)[[1]][[2]]),
+      diagnostic <- rbind(diagnostic, data.frame(chain = gsub(".summary.txt", "", str_split(fname, pattern = "/", n = 2)[[1]][[2]]),
                                                  seed = str_split(fname, pattern ="\\.")[[1]][2],
                                                  length = l,
                                                  min_ESS = ESS_cutoff, 
@@ -45,7 +45,7 @@ for (fname in INPUT){
     } else {
       cat("\n\n\nItems:\n\n", tb %>% filter(ESS < ESS_cutoff) %>% pull(statistic),
           "\n\nhave ESS value < ", ESS_cutoff, " in log file ", fname, "\n\nLog file not included in analysis.\n")
-      diagnostic <- rbind(diagnostic, data.frame(chain = gsub(".logsummary.txt", "", str_split(fname, pattern = "/", n = 2)[[1]][[2]]), 
+      diagnostic <- rbind(diagnostic, data.frame(chain = gsub(".summary.txt", "", str_split(fname, pattern = "/", n = 2)[[1]][[2]]), 
                                                  seed = str_split(fname, pattern ="\\.")[[1]][2],
                                                  length = l,
                                                  min_ESS = ESS_cutoff, 

@@ -54,7 +54,8 @@ demes <- data.frame(deme = NA, region = NA, country = NA, division = NA,
   mutate(exclude_country = ifelse(is.na(exclude_country), NA, paste0(exclude_country, collapse = ","))) %>%
   distinct() %>%
   filter_all(any_vars(!is.na(.))) %>%
-  mutate(deme = ifelse(deme == "OtherEuropean", "Other European", deme))
+  mutate(deme = str_to_title(deme)) %>%
+  mutate(deme = ifelse(deme %in% c("Othereuropean", "OtherEuropean"), "Other European", deme))
   
 cat("\nDeme configuration:\n")
 knitr::kable(demes)
@@ -192,7 +193,7 @@ ggexport(ggarrange(plotlist = trajs, labels = chartr("123456789", "ABCDEFGHI", 1
 
 
 # 2. Events
-# 2.1 First introduction distribution boxplot by deme and time of first reported cases
+# 2.1 First introduction distribution densuty by deme and time of first reported cases to ECDC
 # TODO Add 12 Dec for Wuhan instead of first reported cases to ECDC?
 first_prob <- events %>%
   # 1. Prepare data
@@ -463,28 +464,21 @@ plot_chord <- function(grid_df, min_date, max_date) {
 }
 
 # Period 1
+png(paste0(args$output_figure, "08a.png"), width = 1000, height = 1000, res = 200)
 plot_chord(ge, ymd("2019-09-01"), ymd("2020-01-23")) 
-text(label = "A", x = -1.1, y = 1, cex = 1.5, font = 2)
-c1 <- recordPlot()
+text(label = "A", x = -1, y = 1, cex = 1.5, font = 2)
+dev.off()
 # Period 2
+png(paste0(args$output_figure, "08b.png"), width = 1000, height = 1000, res = 200)
 plot_chord(ge, ymd("2020-01-23"), ymd("2020-02-28"))
 #mtext(text = "B", at = -1, cex = 1.5, font = 2)
-text(label = "B", x = -1.1, y = 1, cex = 1.5, font = 2)
-c2 <- recordPlot()
+text(label = "B", x = -1, y = 1, cex = 1.5, font = 2)
+dev.off()
 # Period 3
+png(paste0(args$output_figure, "08c.png"), width = 1000, height = 1000, res = 200)
 plot_chord(ge, ymd("2020-02-28"), ymd("2020-03-08"))
-text(label = "C", x = -1.1, y = 1, cex = 1.5, font = 2)
-c3 <- recordPlot()
-
-ggexport(c1, filename = paste0(args$output_figure, "08a.png"),
-         width = 1000, height = 1000, res = 200)
-
-ggexport(c2, filename = paste0(args$output_figure, "08b.png"),
-         width = 1000, height = 1000, res = 200)
-
-ggexport(c3, filename = paste0(args$output_figure, "08c.png"),
-         width = 1000, height = 1000, res = 200)
-
+text(label = "C", x = -1, y = 1, cex = 1.5, font = 2)
+dev.off()
 
 # # 2.7 Sample times
 # sample_hist <- lapply(demes$deme, function(deme) {
