@@ -97,7 +97,7 @@
                         </becomeUninfectiousRate>
 
                         <samplingProportion id="samplingProportionSV" spec="bdmmprime.parameterization.SkylineVectorParameter" origin="@originBDMMPrime" skylineValues="@samplingProportion" timesAreAges="true" typeSet="@typeSetBDMMPrime">
-                            <parameter id="samplingProportionChangeTimes" spec="parameter.RealParameter" dimension="2" estimate="false" lower="0.0" name="changeTimes">0.122 0.205</parameter>
+                            <parameter id="samplingProportionChangeTimes" spec="parameter.RealParameter" dimension="2" estimate="false" lower="0.0" name="changeTimes">0.12 0.205</parameter>
                         </samplingProportion>
 
                         <rhoSampling id="rhoSamplingProbTP" spec="bdmmprime.parameterization.TimedParameter" origin="@originBDMMPrime" timesAreAges="true" typeSet="@typeSetBDMMPrime"/>
@@ -108,7 +108,7 @@
 
                         <migrationRate id="migrationRateSM" spec="bdmmprime.parameterization.SkylineMatrixParameter" origin="@originBDMMPrime" timesAreAges="true" typeSet="@typeSetBDMMPrime">
                             <parameter id="migrationRateChangeTimes"
-                            spec="parameter.RealParameter" estimate="false" name="changeTimes"> 0.024 0.122</parameter>
+                            spec="parameter.RealParameter" estimate="false" name="changeTimes"> 0.02 0.12</parameter>
                             <skylineValues id="migrationRate" spec="bdmmprime.util.priors.MigRateGLM">
                                 <parameter id="GLMcovariateMatrix" spec="feast.fileio.RealParameterFromXSV" fileName="../../files/flight_matrix_3i.csv" sep="," estimate="false" name="covariateMatrix" dimension="90"/>
                                 <parameter idref="scaleParamGLM" name="scaleParam"/>
