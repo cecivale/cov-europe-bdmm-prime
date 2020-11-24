@@ -45,7 +45,8 @@ rule all:
     input:
         #prelim_tree = expand("results/{build_name}/tree.nwk", build_name=BUILD_NAMES),
         summary_tree = expand("results/{build_name}/{analysis_name}.mcc.typed.node.tree", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
-        fig_traj = expand("results/{build_name}/{analysis_name}.figtraj.png", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
+        #fig_traj = expand("results/{build_name}/{analysis_name}.figtraj.png", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
+        fig_traj = directory(expand("results/{build_name}/figs_{analysis_name}", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME)),
         summary_log =  expand("results/{build_name}/{analysis_name}_comb.summary.tsv", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
         
 
@@ -589,6 +590,8 @@ rule beast:
         seed = config["beast"]["n_mcmc"],
         name = "results/{build_name}/{analysis_name}.{seed}",
         action = "overwrite"
+    benchmark:
+        "benchmarks/beast_{build_name}_{analysis_name}.{seed}.benchmark.txt"
     resources:
         runtime = config["beast"]["t_mcmc"],
         mem_mb = 4096,
@@ -768,6 +771,8 @@ rule trajectory_mapping:
     params:
         log = "trajectory_mapping_{build_name}_{analysis_name}.txt",
         jar = config["beast"]["jar"]
+    benchmark:
+        "benchmarks/trajectory_mapping_{build_name}_{analysis_name}.benchmark.txt"
     resources:
         runtime = config["beast"]["t_traj"],
         mem_mb = 4096,
@@ -839,11 +844,13 @@ rule analyze_trajectories:
         trajectories = rules.trajectory_mapping.output.trajectories,
         metadata = rules.adjust_names.output.metadata
     output:
-        fig_traj = "results/{build_name}/{analysis_name}.figtraj.png" 
+        fig_traj = directory("results/{build_name}/figs_{analysis_name}")
     log:
         "logs/analyze_trajectories_{build_name}_{analysis_name}.txt"
+    benchmark:
+        "benchmarks/analyze_trajectories_{build_name}_{analysis_name}.benchmark.txt"
     params:
-        burnin = config["beast"]["burnin"],
+        burnin = 0, #config["beast"]["burnin"],
         demes = _get_subsampling_settings,
         n_traj =  config["beast"]["n_traj"]
     shell:
@@ -854,7 +861,7 @@ rule analyze_trajectories:
             --metadata {input.metadata} \
             --demes {params.demes} \
             --n {params.n_traj} \
-            --output_fig {output.fig_traj} 2>&1 | tee -a {log}
+            --output_fig {output.fig_traj}/{wildcards.analysis_name}.figtraj 2>&1 | tee -a {log}
         """
 
 
