@@ -130,12 +130,14 @@ cat("\nAnalyzing")
 # 1.1 Median and IQR of Total cases on the full time period. Reporting rate median 
 #    and IQR (cases ecdc/inferred cases) wrt. ECDC reported cases
 
-r_reported <- gt_summary %>%
+reported <- gt_summary %>%
   filter(date == MRS) %>%
   left_join(case_data %>% rename(type = deme), by = c("type", "date")) %>%
   mutate(reportrate = cumcases/Imedian,
          lreportrate = cumcases/Ilow,
          hreportrate = cumcases/Ihigh) %>%
+
+r_reported <- reported %>%  
   mutate(Country = type,
          `Cases ECDC` = cumcases,
          `Median Cases (IQR)` = paste0(round(Imedian), " (", round(Ilow), "-", round(Ihigh), ")"),
@@ -145,64 +147,23 @@ r_reported <- gt_summary %>%
 write.csv(r_reported, file = paste0(args$output_table, "01.csv"))
 
 # 2. Events 
-# 2.1. Time interval of first outcoming migration from a country compared to first reported case
-# In which percentage of trajectories, transmission from that country would have been avoided if
-# ways of outcoming migrations werre closed the day of first reported case.
-
-# Measure the time between the first outcoming mirgration from the country  
-# (specially interesting for Hubei) and first reported case. 
-# This could be interesting to say if a extreme measure closing borders with 
-# the first case could be effective to impede transmission to other countries: 
-# percentage of trajectories whre transmission to Europe would have been avoided. 
-# For other countries we can look at how many migrations events could have been avoided 
-# (and how many not) if the country closed borders after first reported case.\\ 
-
-days_firstmig <- events %>%
-  filter(event == "M") %>%
-  group_by(src, traj) %>%
-  arrange(time) %>%
-  slice(1) %>%
-  ungroup %>%
-  left_join(case_data %>% group_by(deme) %>% filter(cumcases != 0) %>% arrange(date) %>% slice(1)  %>% rename(src = deme, min_date = date), by = "src") %>%
-  group_by(src, min_date) %>%
-  summarize(Dmedian = median(date), 
-            Dlow    = quantile(date, 0.25, type = 1), 
-            Dhigh   = quantile(date, 0.75, type = 1),
-            .groups = "drop") %>%
-  mutate(difmedian = min_date - Dmedian,
-         diflow = min_date - Dlow,
-         difhigh = min_date - Dhigh)
-
-p_firstmig <- events %>%
-  filter(event == "M") %>%
-  group_by(src, traj) %>%
-  arrange(time) %>%
-  slice(1) %>%
-  ungroup %>%
-  left_join(case_data %>% group_by(deme) %>% filter(cumcases != 0) %>% arrange(date) %>% slice(1)  %>% rename(src = deme, min_date = date), by = "src") %>%
-  filter(date >= min_date) %>%
-  count(src) %>%
-  mutate(p = n/args$n)
-
-# Measure the time between first birth/migration and first reported case and 
-# compare between countries. How well did the countries detecting the first cases, 
-# there were already within region transmision?\\
-
-# First introduction: Measure expected day of introduction.
-days_firstcase <- events %>%
+# 2.1. Time interval of first case (introduction) and first reported case to ECDC.
+firstcase <- events %>%
   filter(event == "M" | event == "O") %>%
   mutate(dest = ifelse(is.na(dest), "Hubei", dest)) %>%
   group_by(dest, traj) %>%
   arrange(time) %>%
   slice(1) %>%
   ungroup %>%
-  left_join(case_data %>% group_by(deme) %>% filter(cumcases != 0) %>% arrange(date) %>%slice(1)  %>% rename(dest = deme, min_date = date), by = "dest") %>%
+  left_join(case_data %>% group_by(deme) %>% filter(cumcases != 0) %>% arrange(date) %>% slice(1)  %>% rename(dest = deme, min_date = date), by = "dest") %>%
   bind_rows(events %>%
               filter(event == "M") %>%
               group_by(traj) %>%
               arrange(time) %>%
               slice(1)  %>%
-              mutate(dest = "Europe")) %>%
+              mutate(dest = "Europe"))
+
+dates_firstcase <-  firstcase %>%
   group_by(dest, min_date) %>%
   summarize(Dmedian = median(date), 
             Dlow    = quantile(date, 0.25, type = 1), 
@@ -210,9 +171,14 @@ days_firstcase <- events %>%
             .groups = "drop") %>%
   mutate(difmedian = min_date - Dmedian,
          diflow = min_date - Dlow,
-         difhigh = min_date - Dhigh)
+         difhigh = min_date - Dhigh) 
 
-days_firstbirth <- events %>%
+# 2.2. Time interval of first bith event (within region transmission) and first reported case
+# to ECDC.
+# How well did the countries detecting the first cases, there was already within region transmision?
+
+# First introduction: Measure expected day of introduction.
+firstbirth <- events %>%
   filter(event == "B" | event == "O") %>%
   group_by(dest, traj) %>%
   arrange(time) %>%
@@ -220,11 +186,13 @@ days_firstbirth <- events %>%
   ungroup %>%
   left_join(case_data %>% group_by(deme) %>% filter(cumcases != 0) %>% arrange(date) %>%slice(1)  %>% rename(dest = deme, min_date = date), by = "dest") %>%
   bind_rows(events %>%
-              filter(event == "M") %>%
+              filter(dest != "Hubei", event == "B") %>%
               group_by(traj) %>%
               arrange(time) %>%
               slice(1)  %>%
-              mutate(dest = "Europe")) %>%
+              mutate(dest = "Europe"))
+
+dates_firstbirth <- firstbirth %>%
   group_by(dest, min_date) %>%
   summarize(Dmedian = median(date), 
             Dlow    = quantile(date, 0.25, type = 1), 
@@ -236,14 +204,78 @@ days_firstbirth <- events %>%
 
 p_firstbirth <- events %>%
   filter(event == "B" | event == "O") %>%
+  bind_rows(events %>%
+              filter(dest != "Hubei", event == "B") %>%
+              group_by(traj) %>%
+              arrange(time) %>%
+              slice(1)  %>%
+              mutate(dest = "Europe")) %>%
   group_by(dest, traj) %>%
   arrange(time) %>%
   slice(1) %>%
   ungroup %>%
-  left_join(case_data %>% group_by(deme) %>% filter(cumcases != 0) %>% arrange(date) %>% slice(1)  %>% rename(dest = deme, min_date = date), by = "dest") %>%
+  left_join(case_data %>% group_by(deme) %>% filter(cumcases != 0) %>% 
+              arrange(date) %>% slice(1) %>% rename(dest = deme, min_date = date), by = "dest") %>%
+  replace_na(list(min_date = ymd("2020-01-25"))) %>%
   filter(date <= min_date) %>%
   count(dest) %>%
-  mutate(p = n/args$n)
+  mutate(p = n/args$n * 100)
+
+r_firstcases <- dates_firstcase%>%
+  left_join(dates_firstbirth, by = c("dest", "min_date")) %>%
+  left_join(p_firstbirth, by = "dest") %>%
+  replace_na(list(min_date = dates_firstcase$min_date[dates_firstcase$dest == "France"])) %>%
+  mutate(Country = dest,
+         `First Reported Case ECDC` = min_date,
+         `Median date (IQR) first introduction` = paste0(Dmedian.x, " (", Dlow.x, ", ", Dhigh.x, ")"),
+         `Median start date (IQR) within region transmission` = paste0(Dmedian.y, " (", Dlow.y, ", ", Dhigh.y, ")"),
+         `Percentage of trajectories within region transmission when first reported case` = paste0(p, "%")) %>%
+  select(c("Country", "First Reported Case ECDC", "Median date (IQR) first introduction", "Median start date (IQR) within region transmission",
+           "Percentage of trajectories within region transmission when first reported case"))
+
+
+# 2.1. Time interval of first outcoming migration from a country compared to first reported case
+# In which percentage of trajectories, transmission from that country would have been avoided if
+# any ways of outcoming migrations were closed the day of first reported case.
+
+firstmig <- events %>%
+  filter(event == "M") %>%
+  group_by(src, traj) %>%
+  arrange(time) %>%
+  slice(1) %>%
+  ungroup %>%
+  left_join(case_data %>% group_by(deme) %>% filter(cumcases != 0) %>% arrange(date) %>% slice(1)  %>% rename(src = deme, min_date = date), by = "src") 
+
+dates_firstmig <- firstmig%>%
+  group_by(src, min_date) %>%
+  summarize(Dmedian = median(date), 
+            Dlow    = quantile(date, 0.25, type = 1), 
+            Dhigh   = quantile(date, 0.75, type = 1),
+            .groups = "drop") %>%
+  mutate(difmedian = min_date - Dmedian,
+         diflow = min_date - Dlow,
+         difhigh = min_date - Dhigh) 
+
+p_firstmig <- events %>%
+  filter(event == "M") %>%
+  group_by(src, traj) %>%
+  arrange(time) %>%
+  slice(1) %>%
+  ungroup %>%
+  left_join(case_data %>% group_by(deme) %>% filter(cumcases != 0) %>% arrange(date) %>% slice(1)  %>% rename(src = deme, min_date = date), by = "src") %>%
+  filter(date >= min_date) %>%
+  count(src) %>%
+  mutate(p = n/args$n * 100)
+
+
+r_firstmig <- dates_firstmig %>%
+  left_join(p_firstmig, by = "src") %>%
+  mutate(Country = src,
+         `First Reported Case ECDC` = min_date,
+         `Median date (IQR) first outgoing migration` = paste0(Dmedian, " (", Dlow, ", ", Dhigh, ")"),
+         `Percentage of trajectories first migration after first reported case` = paste0(p, "%")) %>%
+  select(-one_of(c(colnames(dates_firstmig), colnames(p_firstmig))))
+
 
 # Measure the time between the first migration into a country and the first birth in the country. 
 # Or the first outcoming mirgration from the country and first birth. 
@@ -251,11 +283,33 @@ p_firstbirth <- events %>%
 # capacities to detect incoming migrations or a more general strategy to find cases in 
 # the population. Is it different for each country?
 
-difcasebirth <- c(days_firstbirth$Dmedian - days_firstcase$Dmedian)
-names(difcasebirth) <- days_firstbirth$dest
+firsts <- firstcase %>%
+  select(dest, date, min_date) %>%
+  rename(deme = dest, introduction = date) %>%
+  left_join(firstbirth %>% select(date, dest) %>% rename(deme = dest, birth = date), by = "deme") %>%
+  left_join(firstmig %>% select(date, src) %>% rename(deme = src, mig = date), by = "deme") %>%
+  filter(deme != "Europe") %>%
+  mutate(dif1 = birth - introduction,
+         dif2 = mig - introduction) %>%
+  group_by(deme) %>%
+  summarize(dif1median = median(dif1), 
+            dif1low    = quantile(dif1, 0.25, type = 1), 
+            dif1high   = quantile(dif1, 0.75, type = 1),
+            dif2median = median(dif2), 
+            dif2low    = quantile(dif2, 0.25, type = 1), 
+            dif2high   = quantile(dif2, 0.75, type = 1),
+            .groups = "drop") 
 
-difmigbirth <- c(days_firstmig$Dmedian - days_firstbirth$Dmedian[2:7])
-names(difmigbirth) <- days_firstmig$src
+r_firsts <- firsts %>%
+  mutate(Country = deme,
+         `Days between introduction and first within region transmision` = paste0(dif1median, " (", dif1low, ", ", dif1high, ")"),
+         `Days between introduction and first outgoing migration` = paste0(dif2median, " (", dif2low, ", ", dif2high, ")")) %>%
+  select(-one_of(colnames(firsts))) %>%
+  left_join(r_firstcases, by = "Country") %>%
+  left_join(r_firstmig, by = c("Country", "First Reported Case ECDC")) %>%
+  select(1,4,5,6,8,2,3,7,9)
+
+write.csv(r_firsts, file = paste0(args$output_table, "02.csv"))
 
 
 # Plotting ---------------------------------------------------------------------

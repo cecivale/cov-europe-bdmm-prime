@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2019.4.3)  24 NOV 2020 21:43
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2019.4.3)  25 NOV 2020 12:09
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -546,74 +546,79 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 LaTeX Warning: No \author given.
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 36--37
+Underfull \hbox (badness 10000) in paragraph at lines 32--33
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 38--39
+Underfull \hbox (badness 10000) in paragraph at lines 34--35
 
  []
 
 
-Overfull \hbox (8.65959pt too wide) in paragraph at lines 40--40
+Overfull \hbox (8.65959pt too wide) in paragraph at lines 36--36
 [][][][]\T1/cmr/m/n/12 Working 
  []
 
 
-Overfull \hbox (8.65959pt too wide) in paragraph at lines 40--40
+Overfull \hbox (8.65959pt too wide) in paragraph at lines 36--36
 [][][][]\T1/cmr/m/n/12 Working 
  []
 
 
-Overfull \hbox (8.65959pt too wide) in paragraph at lines 40--40
+Overfull \hbox (8.65959pt too wide) in paragraph at lines 36--36
 [][][][]\T1/cmr/m/n/12 Working 
  []
 
 
-Overfull \hbox (8.65959pt too wide) in paragraph at lines 40--40
+Overfull \hbox (8.65959pt too wide) in paragraph at lines 36--36
 [][][][]\T1/cmr/m/n/12 Working 
  []
 
 [1
 
 {/usr/local/texlive/2018/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-Underfull \hbox (badness 10000) in paragraph at lines 45--46
+Underfull \hbox (badness 10000) in paragraph at lines 41--42
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 47--50
+Underfull \hbox (badness 10000) in paragraph at lines 43--46
 
  []
 
 
-Overfull \hbox (4.90912pt too wide) in paragraph at lines 52--52
+Overfull \hbox (4.90912pt too wide) in paragraph at lines 50--50
 [][][][]\T1/cmr/m/n/12 Explain 
  []
 
 
-Overfull \hbox (4.90912pt too wide) in paragraph at lines 52--52
+Overfull \hbox (4.90912pt too wide) in paragraph at lines 50--50
 [][][][]\T1/cmr/m/n/12 Explain 
  []
 
 
-Overfull \hbox (4.90912pt too wide) in paragraph at lines 52--52
+Overfull \hbox (4.90912pt too wide) in paragraph at lines 50--50
 [][][][]\T1/cmr/m/n/12 Explain 
  []
 
 
-Overfull \hbox (4.90912pt too wide) in paragraph at lines 52--52
+Overfull \hbox (4.90912pt too wide) in paragraph at lines 50--50
 [][][][]\T1/cmr/m/n/12 Explain 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 54--55
+Underfull \hbox (badness 10000) in paragraph at lines 52--53
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 62--64
+Underfull \hbox (badness 10000) in paragraph at lines 60--62
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 63--64
 
  []
 
@@ -628,7 +633,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 67--68
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 69--70
+Underfull \hbox (badness 10000) in paragraph at lines 71--72
 
  []
 
@@ -643,27 +648,22 @@ Underfull \hbox (badness 10000) in paragraph at lines 75--76
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 77--78
-
- []
-
-
-Overfull \hbox (1.97241pt too wide) in paragraph at lines 80--80
+Overfull \hbox (1.97241pt too wide) in paragraph at lines 78--78
 [][][][]\T1/cmr/m/n/12 Legend 
  []
 
 
-Overfull \hbox (1.97241pt too wide) in paragraph at lines 80--80
+Overfull \hbox (1.97241pt too wide) in paragraph at lines 78--78
 [][][][]\T1/cmr/m/n/12 Legend 
  []
 
 
-Overfull \hbox (1.97241pt too wide) in paragraph at lines 80--80
+Overfull \hbox (1.97241pt too wide) in paragraph at lines 78--78
 [][][][]\T1/cmr/m/n/12 Legend 
  []
 
 
-Overfull \hbox (1.97241pt too wide) in paragraph at lines 80--80
+Overfull \hbox (1.97241pt too wide) in paragraph at lines 78--78
 [][][][]\T1/cmr/m/n/12 Legend 
  []
 
@@ -671,13 +671,13 @@ Overfull \hbox (1.97241pt too wide) in paragraph at lines 80--80
 File: ../../results/201014_europe2_figtraj01.png Graphic file (type png)
 <use ../../results/201014_europe2_figtraj01.png>
 Package pdftex.def Info: ../../results/201014_europe2_figtraj01.png  used on in
-put line 93.
+put line 95.
 (pdftex.def)             Requested size: 375.80544pt x 250.53867pt.
 <../../results/201014_europe2_figtraj02.png, id=22, 2308.625pt x 3011.25pt>
 File: ../../results/201014_europe2_figtraj02.png Graphic file (type png)
 <use ../../results/201014_europe2_figtraj02.png>
 Package pdftex.def Info: ../../results/201014_europe2_figtraj02.png  used on in
-put line 100.
+put line 102.
 (pdftex.def)             Requested size: 422.77664pt x 551.42094pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
@@ -686,52 +686,52 @@ LaTeX Warning: `!h' float specifier changed to `!ht'.
 File: ../../results/201014_europe2_figtraj03.png Graphic file (type png)
 <use ../../results/201014_europe2_figtraj03.png>
 Package pdftex.def Info: ../../results/201014_europe2_figtraj03.png  used on in
-put line 108.
+put line 110.
 (pdftex.def)             Requested size: 469.75502pt x 180.6672pt.
 <../../results/201014_europe2_figtraj04.png, id=24, 1505.625pt x 1003.75pt>
 File: ../../results/201014_europe2_figtraj04.png Graphic file (type png)
 <use ../../results/201014_europe2_figtraj04.png>
 Package pdftex.def Info: ../../results/201014_europe2_figtraj04.png  used on in
-put line 115.
+put line 117.
 (pdftex.def)             Requested size: 469.75502pt x 313.16568pt.
 <../../results/201014_europe2_figtraj05.png, id=25, 1505.625pt x 1003.75pt>
 File: ../../results/201014_europe2_figtraj05.png Graphic file (type png)
 <use ../../results/201014_europe2_figtraj05.png>
 Package pdftex.def Info: ../../results/201014_europe2_figtraj05.png  used on in
-put line 122.
+put line 124.
 (pdftex.def)             Requested size: 469.75502pt x 313.16568pt.
 <../../results/201014_europe2_figtraj06.png, id=26, 1304.875pt x 1003.75pt>
 File: ../../results/201014_europe2_figtraj06.png Graphic file (type png)
 <use ../../results/201014_europe2_figtraj06.png>
 Package pdftex.def Info: ../../results/201014_europe2_figtraj06.png  used on in
-put line 129.
+put line 131.
 (pdftex.def)             Requested size: 469.75502pt x 361.34973pt.
 <../../results/201014_europe2_figtraj07.png, id=27, 2308.625pt x 3011.25pt>
 File: ../../results/201014_europe2_figtraj07.png Graphic file (type png)
 <use ../../results/201014_europe2_figtraj07.png>
 Package pdftex.def Info: ../../results/201014_europe2_figtraj07.png  used on in
-put line 136.
+put line 138.
 (pdftex.def)             Requested size: 469.75502pt x 612.71547pt.
 
-LaTeX Warning: Float too large for page by 16.78545pt on input line 139.
+LaTeX Warning: Float too large for page by 16.78545pt on input line 141.
 
 <../../results/201014_europe2_figtraj08a.png, id=28, 1003.75pt x 1003.75pt>
 File: ../../results/201014_europe2_figtraj08a.png Graphic file (type png)
 <use ../../results/201014_europe2_figtraj08a.png>
 Package pdftex.def Info: ../../results/201014_europe2_figtraj08a.png  used on i
-nput line 146.
+nput line 148.
 (pdftex.def)             Requested size: 187.89914pt x 187.89635pt.
 <../../results/201014_europe2_figtraj08b.png, id=29, 1003.75pt x 1003.75pt>
 File: ../../results/201014_europe2_figtraj08b.png Graphic file (type png)
 <use ../../results/201014_europe2_figtraj08b.png>
 Package pdftex.def Info: ../../results/201014_europe2_figtraj08b.png  used on i
-nput line 150.
+nput line 152.
 (pdftex.def)             Requested size: 187.89914pt x 187.89635pt.
 <../../results/201014_europe2_figtraj08c.png, id=30, 1003.75pt x 1003.75pt>
 File: ../../results/201014_europe2_figtraj08c.png Graphic file (type png)
 <use ../../results/201014_europe2_figtraj08c.png>
 Package pdftex.def Info: ../../results/201014_europe2_figtraj08c.png  used on i
-nput line 154.
+nput line 156.
 (pdftex.def)             Requested size: 187.89914pt x 187.89635pt.
 [3] [4 <../../results/201014_europe2_figtraj01.png>] [5 <../../results/201014_e
 urope2_figtraj02.png>] [6 <../../results/201014_europe2_figtraj03.png>]
@@ -743,7 +743,7 @@ urope2_figtraj08c.png>] (./main.aux) )
 Here is how much of TeX's memory you used:
  13715 strings out of 492649
  275657 string characters out of 6129623
- 323006 words of memory out of 5000000
+ 323000 words of memory out of 5000000
  17330 multiletter control sequences out of 15000+600000
  12566 words of font info for 28 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -758,7 +758,7 @@ lic/cm-super/sfrm1200.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/publi
 c/cm-super/sfrm1440.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/
 cm-super/sfrm2074.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/cm
 -super/sfss0600.pfb>
-Output written on main.pdf (11 pages, 4028650 bytes).
+Output written on main.pdf (11 pages, 4028994 bytes).
 PDF statistics:
  97 PDF objects out of 1000 (max. 8388607)
  55 compressed objects within 1 object stream
