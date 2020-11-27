@@ -738,6 +738,8 @@ rule resample_trace:
         trace = rules.combine_trace.output.combined_trace
     output:
         thinned_trace = "results/{build_name}/{analysis_name}_comb.thinned.log"
+    log:
+        "logs/resample_trace_{build_name}_{analysis_name}.txt"
     params:
         log_combiner = config["beast"]["log_combiner"],
         resample = config["beast"]["resample"]
@@ -751,6 +753,8 @@ rule resample_trees:
         trees = rules.combine_trees.output.combined_trees
     output:
         thinned_trees = "results/{build_name}/{analysis_name}_comb.thinned.trees"
+    log:
+        "logs/resample_trees_{build_name}_{analysis_name}.txt"
     params:
         log_combiner = config["beast"]["log_combiner"],
         resample = config["beast"]["resample"]
