@@ -114,20 +114,22 @@ flightsJan <- get_flightData(intraUE_data, extraUE_data, year = 2020, month = 1)
 flightsFeb <- get_flightData(intraUE_data, extraUE_data, year = 2020, month = 2)
 flightsMar <- get_flightData(intraUE_data, extraUE_data, year = 2020, month = 3)
 
+# Log transform and standardization the strictly positive predictors (add pseudocount if needed) (Lemey et al 2014)
 # Constant migration matrix
 flightMatrix_constant <- (flightsDic$matrix + flightsJan$matrix + flightsFeb$matrix + flightsMar$matrix)/120 
-vflightMatrix_constant <- na.exclude(c(t(flightMatrix_constant)))
-nvflightMatrix_constant <- vflightMatrix_constant/mean(vflightMatrix_constant)
-write(nvflightMatrix_constant, "files/flight_matrix_constant.csv", sep = ",")
-  
+v_flightMatrix_constant <- na.exclude(c(t(flightMatrix_constant)))
+lv_flightMatrix_constant  <- log(v_flightMatrix_constant)
+slv_flightMatrix_constant <- scale(lv_flightMatrix_constant)
+write(slv_flightMatrix_constant, "files/flight_matrix_constant.csv", sep = ",")
 
 # 3 epochs migration matrix
 flightMatrix_i0 <- (flightsDic$matrix + flightsJan$matrix)/2
 flightMatrix_i1 <- flightsFeb$matrix
 flightMatrix_i2 <-  flightsMar$matrix
-vflightMatrix_3i <- na.exclude(c(t(flightMatrix_i2),t(flightMatrix_i1),t(flightMatrix_i0)))
-nvflightMatrix_3i <- vflightMatrix_3i/mean(vflightMatrix_3i)
-write(nvflightMatrix_3i, "files/flight_matrix_3i.csv", sep = ",")
+v_flightMatrix_3i <- na.exclude(c(t(flightMatrix_i2),t(flightMatrix_i1),t(flightMatrix_i0)))
+slv_flightMatrix_3i <- scale(log(v_flightMatrix_3i + 1))
+write(slv_flightMatrix_3i, "files/flight_matrix_3i.csv", sep = ",")
+
 
 # # Summarise into two periods (Sept - Jan and Feb - March) and calculate # passengers/day
 # first <- Reduce("+", mms[1:5])/(5*30)
