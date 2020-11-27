@@ -264,7 +264,7 @@
 
         <operator id="samplingProportionScaler" spec="SmartScaleOperator" parameter="@samplingProportion" scaleFactor="0.75" weight="3.0"/>
 
-        <operator id="scaleParamGLMScaler" spec="ScaleOperator" parameter="@scaleParamGLM" scaleFactor="0.75" weight="3.0"/>
+        <operator id="scaleParamGLMScaler" spec="bdmmprime.util.operators.RandomWalkOperator" parameter="@scaleParamGLM"/>
 
         <logger id="tracelog" spec="Logger" fileName="$(filebase).$(seed).log" logEvery="1000" model="@posterior" sanitiseHeaders="true" sort="smart">
             <log idref="posterior"/>
@@ -282,7 +282,6 @@
             <log idref="samplingProportionSV"/>
             <log idref="removalProbSV"/>
             <log idref="rhoSamplingProbTP"/>
-            <log idref="GLMcovariateMatrix"/>
             <log idref="scaleParamGLM"/>
         </logger>
 
