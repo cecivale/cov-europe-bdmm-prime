@@ -266,8 +266,7 @@
 
         <operator id="samplingProportionScaler" spec="SmartScaleOperator" parameter="@samplingProportion" scaleFactor="0.75" weight="3.0"/>
 
-        <!-- Change this -->
-        <operator id="scaleParamGLMScaler" spec="bdmmprime.util.operators.RandomWalkOperator" parameter="@scaleParamGLM" scaleFactor="0.75" weight="3.0"/>
+        <operator id="scaleParamGLMScaler" spec="bdmmprime.util.operators.RandomWalkOperator" parameter="@scaleParamGLM" weight="3.0"/>
 
         <logger id="tracelog" spec="Logger" fileName="$(filebase).$(seed).log" logEvery="1000" model="@posterior" sanitiseHeaders="true" sort="smart">
             <log idref="posterior"/>
