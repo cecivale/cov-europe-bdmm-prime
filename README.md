@@ -1,6 +1,6 @@
 # A comprehensive study of the phylodynamics of SARS-CoV-2 in Europe
 #### Cecilia Valenzuela Agüí
-##### Supervised by Prof. Dr. Tanja Stadler, Dr. Timothy Vaughan Computational Biology Group
+##### Supervised by Dr. Timothy Vaughan, Prof. Dr. Tanja Stadler, Sarah Nadeau. Computational Biology Group 
 ##### CBB Master’s Thesis Project Outline September 1, 2020 - March 16, 2021
 
 
