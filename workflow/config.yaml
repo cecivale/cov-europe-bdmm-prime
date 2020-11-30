@@ -379,8 +379,8 @@ beast:
   log_combiner: logcombiner
   # Tree annotator bin
   tree_annotator: treeannotator
-  mcc_heights: "mean"
+  mcc_heights: "median"
   # Trajectories
-  n_traj: 500
+  n_traj: 200
   resample: 10000
 

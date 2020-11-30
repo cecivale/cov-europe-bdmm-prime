@@ -18,8 +18,8 @@ set_plotopts <- function() {
                strip.background = element_rect(fill = "grey80", colour = "grey80"),
                strip.text = element_text(color = "grey30"),
                #legend.title = element_text(size = 9, face = "bold"),
-               #axis.text.x = element_text(angle = 270),
-               #axis.text.y = element_text(),
+               axis.text.x = element_text(size = 8),
+               axis.text.y = element_text(size = 8),
                axis.title.y = element_text(size = 9, face = "bold", margin = margin(r = 10)),
                axis.title.x = element_text(size = 9, face = "bold", margin = margin(t = 10)))
 }

@@ -342,7 +342,8 @@ gribbon <- ggplot(gt_summary) +
   scale_fill_manual(name = "", values = dcolors) +
   scale_color_manual(name = "", values = dcolors) +
   theme(legend.position = c(0.2, 0.7),
-        legend.box="horizontal")
+        legend.box="horizontal",
+        axis.title.x=element_blank())
 
 ggexport(gribbon,
          filename = paste0(args$output_figure, "01.png"),
@@ -398,12 +399,14 @@ reported5days <- gt_summary %>%
   ggplot() +
   geom_histogram(aes(x = date, y = reportrate, fill = type), stat="identity") +
   facet_wrap(~type, scales = "free") +
+  ylab("Reporting rate") +
   scale_fill_manual(values = dcolors) +
   scale_x_date(limits = c(ymd("2020-01-01"), ymd("2020-03-08")), date_breaks = "1 month", date_labels = "%b %d") +
-  theme(legend.position = "none")
+  theme(legend.position = "none", 
+        axis.title.x=element_blank())
 
 ggexport(reported5days, filename = paste0(args$output_figure, "03.png"),
-         width = 2000, height = 1000, res = 300)
+         width = 1500, height = 1000, res = 300)
 
 # 2. Events
 # 2.1 First introduction distribution densuty by deme and time of first reported cases to ECDC
@@ -575,7 +578,7 @@ migbirths_line <- ge  %>%
 
 ggexport(migbirths_line,
          filename = paste0(args$output_figure, "07.png"),
-         width = 1300, height = 1000, res = 300)
+         width = 1500, height = 1000, res = 300)
 
 
 # 2.6 Proportion barplot source of migrations single deme

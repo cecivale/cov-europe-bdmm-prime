@@ -43,7 +43,7 @@ filtered_product = filter_combinator(product, combinations)
 
 rule all:
     input:
-        #prelim_tree = expand("results/{build_name}/tree.nwk", build_name=BUILD_NAMES),
+        prelim_tree = expand("results/{build_name}/tree.nwk", build_name=BUILD_NAMES),
         summary_tree = expand("results/{build_name}/{analysis_name}.mcc.typed.node.tree", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
         figs_traj = directory(expand("results/{build_name}/figs_{analysis_name}", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME)),
         tables_traj = directory(expand("results/{build_name}/tables_{analysis_name}", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME)),
@@ -873,12 +873,12 @@ rule analyze_trajectories:
         """
 
 
-rule get_sampling_proportions:
-    params:
-        demes = str(config["subsampling"]["ssprop_China"])
-    output:
-        sampling_proportions = "results/sampling_proportions_ssprop_China.tsv"
-    shell:
-        """
-        Rscript scripts/sampling_proportion.R --input {params.demes} --output {output.sampling_proportions}
-        """
+# rule get_sampling_proportions:
+#     params:
+#         demes = str(config["subsampling"]["ssprop_China"])
+#     output:
+#         sampling_proportions = "results/sampling_proportions_ssprop_China.tsv"
+#     shell:
+#         """
+#         Rscript scripts/sampling_proportion.R --input {params.demes} --output {output.sampling_proportions}
+#         """
