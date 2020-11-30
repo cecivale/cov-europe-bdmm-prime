@@ -20,6 +20,7 @@ library(hrbrthemes)
 library(circlize)
 library(chorddiag) 
 library(ggforce)
+library(ComplexHeatmap)
 
 # Source files -----------------------------------------------------------------
 source("./scripts/trajProcessing.R")
@@ -57,7 +58,9 @@ demes <- data.frame(deme = NA, region = NA, country = NA, division = NA,
   filter_all(any_vars(!is.na(.))) %>%
   mutate(deme = str_to_title(deme)) %>%
   mutate(deme = ifelse(deme %in% c("Othereuropean", "OtherEuropean"), "Other European", deme))
-  
+
+china_deme <- demes$deme[demes$region == "Asia"]
+
 cat("\nDeme configuration:\n")
 knitr::kable(demes)
 metadata <- read_tsv(args$metadata)
@@ -113,8 +116,8 @@ gt_summary <- gt %>%
   group_by(date, type) %>%
   summarize(Imean = mean(N),
             Imedian = median(N), 
-            Ilow    = quantile(N, 0.25), 
-            Ihigh   = quantile(N, 0.75),
+            Ilow    = quantile(N, 0.025), 
+            Ihigh   = quantile(N, 0.975),
             .groups = "drop_last") %>%
   ungroup() 
 
@@ -127,21 +130,21 @@ ge <- gridEventsByAge(events, ages_1day) %>%
 cat("\nAnalyzing")
 
 # 1. Trajectories - Total case counts
-# 1.1 Median and IQR of Total cases on the full time period. Reporting rate median 
-#    and IQR (cases ecdc/inferred cases) wrt. ECDC reported cases
+# 1.1 Median and 95% CCI of Total cases on the full time period. Reporting rate median 
+#    and 95% CCI (cases ecdc/inferred cases) wrt. ECDC reported cases
 
 reported <- gt_summary %>%
   filter(date == MRS) %>%
   left_join(case_data %>% rename(type = deme), by = c("type", "date")) %>%
   mutate(reportrate = cumcases/Imedian,
          lreportrate = cumcases/Ilow,
-         hreportrate = cumcases/Ihigh) %>%
+         hreportrate = cumcases/Ihigh) 
 
 r_reported <- reported %>%  
   mutate(Country = type,
          `Cases ECDC` = cumcases,
-         `Median Cases (IQR)` = paste0(round(Imedian), " (", round(Ilow), "-", round(Ihigh), ")"),
-         `Median Reporting Rate (IQR)` = paste0(round(reportrate, 2), " (", round(hreportrate, 2), "-", round(lreportrate, 2), ")")) %>%
+         `Median Cases (95% CCI)` = paste0(round(Imedian), " (", round(Ilow), "-", round(Ihigh), ")"),
+         `Median Reporting Rate (95% CCI)` = paste0(round(reportrate, 2), " (", round(hreportrate, 2), "-", round(lreportrate, 2), ")")) %>%
   select(-one_of(colnames(reported)))
 
 write.csv(r_reported, file = paste0(args$output_table, "01.csv"))
@@ -150,7 +153,7 @@ write.csv(r_reported, file = paste0(args$output_table, "01.csv"))
 # 2.1. Time interval of first case (introduction) and first reported case to ECDC.
 firstcase <- events %>%
   filter(event == "M" | event == "O") %>%
-  mutate(dest = ifelse(is.na(dest), "Hubei", dest)) %>%
+  mutate(dest = ifelse(is.na(dest), china_deme, dest)) %>%
   group_by(dest, traj) %>%
   arrange(time) %>%
   slice(1) %>%
@@ -166,8 +169,8 @@ firstcase <- events %>%
 dates_firstcase <-  firstcase %>%
   group_by(dest, min_date) %>%
   summarize(Dmedian = median(date), 
-            Dlow    = quantile(date, 0.25, type = 1), 
-            Dhigh   = quantile(date, 0.75, type = 1),
+            Dlow    = quantile(date, 0.025, type = 1), 
+            Dhigh   = quantile(date, 0.975, type = 1),
             .groups = "drop") %>%
   mutate(difmedian = min_date - Dmedian,
          diflow = min_date - Dlow,
@@ -186,7 +189,7 @@ firstbirth <- events %>%
   ungroup %>%
   left_join(case_data %>% group_by(deme) %>% filter(cumcases != 0) %>% arrange(date) %>%slice(1)  %>% rename(dest = deme, min_date = date), by = "dest") %>%
   bind_rows(events %>%
-              filter(dest != "Hubei", event == "B") %>%
+              filter(dest != china_deme, event == "B") %>%
               group_by(traj) %>%
               arrange(time) %>%
               slice(1)  %>%
@@ -195,8 +198,8 @@ firstbirth <- events %>%
 dates_firstbirth <- firstbirth %>%
   group_by(dest, min_date) %>%
   summarize(Dmedian = median(date), 
-            Dlow    = quantile(date, 0.25, type = 1), 
-            Dhigh   = quantile(date, 0.75, type = 1),
+            Dlow    = quantile(date, 0.025, type = 1), 
+            Dhigh   = quantile(date, 0.975, type = 1),
             .groups = "drop") %>%
   mutate(difmedian = min_date - Dmedian,
          diflow = min_date - Dlow,
@@ -205,7 +208,7 @@ dates_firstbirth <- firstbirth %>%
 p_firstbirth <- events %>%
   filter(event == "B" | event == "O") %>%
   bind_rows(events %>%
-              filter(dest != "Hubei", event == "B") %>%
+              filter(dest != china_deme, event == "B") %>%
               group_by(traj) %>%
               arrange(time) %>%
               slice(1)  %>%
@@ -227,10 +230,10 @@ r_firstcases <- dates_firstcase%>%
   replace_na(list(min_date = dates_firstcase$min_date[dates_firstcase$dest == "France"])) %>%
   mutate(Country = dest,
          `First Reported Case ECDC` = min_date,
-         `Median date (IQR) first introduction` = paste0(Dmedian.x, " (", Dlow.x, ", ", Dhigh.x, ")"),
-         `Median start date (IQR) within region transmission` = paste0(Dmedian.y, " (", Dlow.y, ", ", Dhigh.y, ")"),
+         `Median date (95% CCI) first introduction` = paste0(Dmedian.x, " (", Dlow.x, ", ", Dhigh.x, ")"),
+         `Median start date (95% CCI) within region transmission` = paste0(Dmedian.y, " (", Dlow.y, ", ", Dhigh.y, ")"),
          `Percentage of trajectories within region transmission when first reported case` = paste0(p, "%")) %>%
-  select(c("Country", "First Reported Case ECDC", "Median date (IQR) first introduction", "Median start date (IQR) within region transmission",
+  select(c("Country", "First Reported Case ECDC", "Median date (95% CCI) first introduction", "Median start date (95% CCI) within region transmission",
            "Percentage of trajectories within region transmission when first reported case"))
 
 
@@ -249,8 +252,8 @@ firstmig <- events %>%
 dates_firstmig <- firstmig%>%
   group_by(src, min_date) %>%
   summarize(Dmedian = median(date), 
-            Dlow    = quantile(date, 0.25, type = 1), 
-            Dhigh   = quantile(date, 0.75, type = 1),
+            Dlow    = quantile(date, 0.025, type = 1), 
+            Dhigh   = quantile(date, 0.975, type = 1),
             .groups = "drop") %>%
   mutate(difmedian = min_date - Dmedian,
          diflow = min_date - Dlow,
@@ -272,7 +275,7 @@ r_firstmig <- dates_firstmig %>%
   left_join(p_firstmig, by = "src") %>%
   mutate(Country = src,
          `First Reported Case ECDC` = min_date,
-         `Median date (IQR) first outgoing migration` = paste0(Dmedian, " (", Dlow, ", ", Dhigh, ")"),
+         `Median date (95% CCI) first outgoing migration` = paste0(Dmedian, " (", Dlow, ", ", Dhigh, ")"),
          `Percentage of trajectories first migration after first reported case` = paste0(p, "%")) %>%
   select(-one_of(c(colnames(dates_firstmig), colnames(p_firstmig))))
 
@@ -293,12 +296,13 @@ firsts <- firstcase %>%
          dif2 = mig - introduction) %>%
   group_by(deme) %>%
   summarize(dif1median = median(dif1), 
-            dif1low    = quantile(dif1, 0.25, type = 1), 
-            dif1high   = quantile(dif1, 0.75, type = 1),
+            dif1low    = quantile(dif1, 0.025, type = 1), 
+            dif1high   = quantile(dif1, 0.975, type = 1),
             dif2median = median(dif2), 
-            dif2low    = quantile(dif2, 0.25, type = 1), 
-            dif2high   = quantile(dif2, 0.75, type = 1),
+            dif2low    = quantile(dif2, 0.025, type = 1), 
+            dif2high   = quantile(dif2, 0.975, type = 1),
             .groups = "drop") 
+
 
 r_firsts <- firsts %>%
   mutate(Country = deme,
@@ -325,21 +329,20 @@ names(ecolors) <- c("B", "M", "IM", "OM")
 
 # Figures
 # 1. Trajectories
-# 1.1 Median and IQR by deme in log scale
+# 1.1 Median and 95% CCI by deme in log scale
 gribbon <- ggplot(gt_summary) +
   geom_ribbon(aes(date, ymin = Ilow, ymax = Ihigh, fill = type), alpha = 0.5) +
   geom_line(aes(date, Imedian, colour = type)) +
   ylab("Population size") +
   xlab("Date") +
   #labs(title = "SARS-CoV-2 early epidemics in Europe and Hubei",
-       #subtitle = "Case trajectories Median and IQR by deme") +
+       #subtitle = "Case trajectories Median and 95% CCI by deme") +
   scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
-  scale_x_date(limits = c(ymd("2019-10-01"), ymd("2020-03-08")), date_breaks = "1 month", date_labels = "%b") +
+  scale_x_date(limits = c(ymd("2019-10-01"), ymd("2020-03-08")), date_breaks = "1 month", date_labels = "%b %d") +
   scale_fill_manual(name = "", values = dcolors) +
   scale_color_manual(name = "", values = dcolors) +
   theme(legend.position = c(0.2, 0.7),
         legend.box="horizontal")
-
 
 ggexport(gribbon,
          filename = paste0(args$output_figure, "01.png"),
@@ -367,16 +370,16 @@ trajs <- lapply(demes$deme, function(deme) {
                   size = traj == "ecdc")) +
     scale_color_manual(name = "", 
                        labels = c(paste0(deme, " inferred\n population trajectories"), 
-                                  paste0(ifelse(deme == "Hubei", "China", as.character(deme)), " ECDC total case count")), 
+                                  paste0(ifelse(deme == china_deme, "China", as.character(deme)), " ECDC total case count")), 
                        values = c(dcolors[[deme]], dark_dcolors[[deme]])) +
     scale_alpha_manual(name = "", values = c(0.2, 1), guide = FALSE) +
     scale_linetype_manual(name = "", values = c(1, 2),
                           labels = c(paste0(deme, " inferred\n population trajectories"), 
-                                     paste0(ifelse(deme == "Hubei", "China", as.character(deme)), " ECDC total case count"))) +
+                                     paste0(ifelse(deme == china_deme, "China", as.character(deme)), " ECDC total case count"))) +
     scale_size_manual(name = "", values = c(0.5, 1),
                       labels = c(paste0(deme, " inferred\n population trajectories"), 
-                                 paste0(ifelse(deme == "Hubei", "China", as.character(deme)), " ECDC total case count"))) +
-    scale_x_date(limits = c(ymd("2019-11-01"), ymd("2020-03-08")), date_breaks = "1 month", date_labels = "%b") +
+                                 paste0(ifelse(deme == china_deme, "China", as.character(deme)), " ECDC total case count"))) +
+    scale_x_date(limits = c(ymd("2019-11-01"), ymd("2020-03-08")), date_breaks = "1 month", date_labels = "%b %d") +
     scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
     ylab("Population size") + 
     theme(legend.position = c(0.4, 0.9),
@@ -391,28 +394,35 @@ ggexport(ggarrange(plotlist = trajs, labels = chartr("123456789", "ABCDEFGHI", 1
 reported5days <- gt_summary %>%
   left_join(case_data %>% rename(type = deme), by = c("type", "date"))  %>%
   replace_na(list(cumcases = 0)) %>% 
-  mutate(reportrate = cumcases/Imedian) 
-
-reported5days %>%
+  mutate(reportrate = cumcases/Imedian) %>%
   ggplot() +
   geom_histogram(aes(x = date, y = reportrate, fill = type), stat="identity") +
   facet_wrap(~type, scales = "free") +
   scale_fill_manual(values = dcolors) +
-  scale_x_date(limits = c(ymd("2020-01-01"), ymd("2020-03-08")), date_breaks = "1 month", date_labels = "%b") +
+  scale_x_date(limits = c(ymd("2020-01-01"), ymd("2020-03-08")), date_breaks = "1 month", date_labels = "%b %d") +
   theme(legend.position = "none")
+
+ggexport(reported5days, filename = paste0(args$output_figure, "03.png"),
+         width = 2000, height = 1000, res = 300)
 
 # 2. Events
 # 2.1 First introduction distribution densuty by deme and time of first reported cases to ECDC
-# TODO Add 12 Dec for Wuhan instead of first reported cases to ECDC?
+first_reported <- case_data %>% 
+  group_by(deme) %>% 
+  filter(cumcases != 0) %>% 
+  filter(date == min(date))  %>% 
+  rename(dest = deme, min_date = date) 
+first_reported$min_date[first_reported$dest == china_deme] <- ymd("2019-12-12")
+
 first_prob <- events %>%
   # 1. Prepare data
   filter(event == "M" | event == "O") %>%
-  mutate(dest = ifelse(is.na(dest), "Hubei", dest)) %>%
+  mutate(dest = ifelse(is.na(dest), china_deme, dest)) %>%
   group_by(dest, traj) %>%
   arrange(time) %>%
   slice(1) %>%
   ungroup %>%
-  left_join(case_data %>% group_by(deme) %>% filter(cases != 0) %>% filter(date == min(date))  %>% rename(dest = deme, min_date = date), by = "dest") %>%
+  left_join(first_reported, by = "dest") %>%
   bind_rows(events %>%
             filter(event == "M") %>%
             group_by(traj) %>%
@@ -425,12 +435,33 @@ first_prob <- events %>%
   geom_vline(aes(xintercept = min_date, color = dest), linetype = 2) +
   scale_fill_manual(values = c(dcolors, "Europe" = "grey")) +
   scale_color_manual(values = c(dcolors, "Europe" = "grey")) +
+  scale_x_date(limits = c(ymd("2019-09-01"), ymd("2020-03-08")), date_breaks = "1 month", date_labels = "%b %d") +
   theme(legend.position = "none",
         axis.title.x=element_blank(),
         axis.title.y=element_blank(),
         panel.background = element_rect(fill = "white", colour = "white"))
 
-# 2.2 First introduction date and source probability single deme
+# 2.2 First introduction intto Europe, distribution density destination
+first_dest <-  events %>%
+  # 1. Prepare data
+  filter(event == "M") %>%
+  group_by(traj) %>%
+  arrange(time) %>%
+  slice(1) %>%
+  # 2. Plot
+  ggplot() +
+  # ?? Stack or no stack? Ask
+  #geom_density(aes(x = date, y = ..count../args$n, color = dest, fill = dest), alpha = 0.1) +
+  geom_density(aes(x = date, y = ..count../args$n, color = dest, fill = dest), position = "stack", alpha = 0.1) +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b %d") +
+  scale_color_manual(name = "", values = dcolors) +
+  scale_fill_manual(name = "", values = dcolors) +
+  ylab("Probability") +
+  theme(#legend.position = c(0.20, 0.85),
+        legend.position = "none",
+        axis.title.x=element_blank())
+
+# 2.3 First introduction date and source probability single deme
 first_source <-  events %>%
   # 1. Prepare data
   filter(event == "M") %>%
@@ -440,19 +471,24 @@ first_source <-  events %>%
   # 2. Plot
   ggplot() +
   # ?? Stack or no stack? Ask
-  geom_density(aes(x = date, y = ..count../args$n, color = src, fill = src), alpha = 0.1) +
-  #geom_density(aes(x = date, y = ..count../args$n, color = src, fill = src), position = "stack", alpha = 0.1) +
+  #geom_density(aes(x = date, y = ..count../args$n, color = src, fill = src), alpha = 0.1) +
+  geom_density(aes(x = date, y = ..count../args$n, color = src, fill = src), position = "stack", alpha = 0.1) +
   facet_wrap(~dest) +
-  scale_x_date(date_breaks = "1 month", date_labels = "%b") +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b %d") +
   scale_color_manual(name = "", values = dcolors) +
   scale_fill_manual(name = "", values = dcolors) +
   ylab("Probability") +
-  theme(legend.position = c(0.85, 0.25),
-        axis.title.x=element_blank())
+  theme(#legend.position = c(0.85, 0.25),
+        legend.position = "none",
+        axis.title.x=element_blank(),
+        axis.text.x = element_text(size = 6))
 
-ggexport(ggarrange(plotlist = list(first_prob, first_source), labels = c("A", "B"), nrow = 1, ncol = 2),
-         filename = paste0(args$output_figure, "03.png"),
-         width = 2600, height = 1000, res = 300)
+ggexport(ggarrange(plotlist = list(first_prob, ggarrange(plotlist = list(first_dest, first_source), 
+                                                         labels = c("B", "C"), nrow = 1, ncol = 2, widths = c(1, 1.2))), 
+                                   labels = c("A", ""), nrow = 2, ncol = 1, heights = c(1.5,1)),
+         filename = paste0(args$output_figure, "04.png"),
+         width = 2000, height = 2000, res = 300)
+
 
 # 2.3. Order set of first case
 order_imig_df <-  events %>%
@@ -464,28 +500,16 @@ order_imig_df <-  events %>%
   ungroup %>%
   mutate(order = rep(2:nrow(demes), args$n)) %>%
   pivot_wider(names_from = order, values_from = dest) %>%
-  group_by_at(2:nrow(demes)) %>%
-  summarise(n = n(), .groups = "drop") %>%
-  mutate("1" = "Hubei") %>%
-  select("1", everything())
-order_imig_set <- gather_set_data(order_imig_df, 1:nrow(demes))
-order_imig_set$x <- factor(order_imig_set$x, levels = 1:nrow(demes))
+  mutate("1" = china_deme) %>%
+  select("1", everything(), -traj) %>%
+  arrange_all() 
 
-  # 2. Plot
-order_imig <- ggplot(order_imig_set, aes(x, id = id, split = y, value = n)) +
-  geom_parallel_sets(aes_(fill = as.name(2)), alpha = 0.5, axis.width = 0.22) +
-  geom_parallel_sets_axes(axis.width = 0.15, fill = "grey80", color = "grey80") +
-  geom_parallel_sets_labels(color = 'grey30', size = 9/.pt, angle = 90) +
-  scale_x_discrete(breaks = NULL, name = NULL, expand = c(0, 0.2)) +
-  scale_y_continuous(breaks = NULL, expand = c(0, 0))+
-  theme(axis.line = element_blank(),
-        axis.ticks = element_blank(),
-        axis.text = element_text(size = 12),
-        panel.background = element_rect(fill = "white", colour = "white")) +
-  scale_fill_manual(name = "", values = dcolors, guide = "none")
+order_imig <- Heatmap(order_imig_df,rect_gp = gpar(col = "white", lwd = 1), 
+                      name = "Country", col = dcolors)
 
-ggexport(order_imig,
-         filename = paste0(args$output_figure, "04.png"),
+# 2. Plot
+ggexport(order_imig, 
+         filename = paste0(args$output_figure, "05.png"),
          width = 1500, height = 1000, res = 200)
 
 # 2.4 Order set of first outgoing migration
@@ -498,26 +522,15 @@ order_omig_df <-  events %>%
   ungroup %>%
   mutate(order = rep(1:nrow(demes), args$n)) %>%
   pivot_wider(names_from = order, values_from = src) %>%
-  group_by_at(2:(nrow(demes) + 1)) %>%
-  summarise(n = n(), .groups = "drop") 
-order_omig_set <- gather_set_data(order_omig_df, 1:nrow(demes))
-order_omig_set$x <- factor(order_omig_set$x, levels = 1:nrow(demes))
+  select(-traj) %>%
+  arrange_all() 
 
   # 2. Plot
-order_omig <- ggplot(order_omig_set, aes(x, id = id, split = y, value = n)) +
-  geom_parallel_sets(aes_(fill = as.name(nrow(demes))), alpha = 0.5, axis.width = 0.22) +
-  geom_parallel_sets_axes(axis.width = 0.15, fill = "grey80", color = "grey80") +
-  geom_parallel_sets_labels(color = 'grey30', size = 9/.pt, angle = 90) +
-  scale_x_discrete(breaks = NULL, name = NULL, expand = c(0, 0.2)) +
-  scale_y_continuous(breaks = NULL, expand = c(0, 0))+
-  theme(axis.line = element_blank(),
-        axis.ticks = element_blank(),
-        axis.text = element_text(size = 12),
-        panel.background = element_rect(fill = "white", colour = "white")) +
-  scale_fill_manual(name = "", values = dcolors, guide = "none")
+order_omig <- Heatmap(order_omig_df,rect_gp = gpar(col = "white", lwd = 1), 
+                      name = "Country", col = dcolors)
 
 ggexport(order_omig,
-         filename = paste0(args$output_figure, "05.png"),
+         filename = paste0(args$output_figure, "06.png"),
          width = 1500, height = 1000, res = 200)
 
 # 2.5 Cumulative numbers migrations and births single deme
@@ -544,8 +557,8 @@ migbirths_line <- ge  %>%
   ungroup() %>%
   group_by(date, event, deme_var) %>%
   summarise(Imedian = median(cumN),
-            Ihigh = quantile(cumN, 0.75),
-            Ilow = quantile(cumN, 0.25), .groups = "drop") %>%
+            Ihigh = quantile(cumN, 0.975),
+            Ilow = quantile(cumN, 0.025), .groups = "drop") %>%
   # 2. Plot
   ggplot() +
   geom_line(aes(x=date, y = Imedian, color = event)) +
@@ -561,7 +574,7 @@ migbirths_line <- ge  %>%
          axis.title.y = element_blank())
 
 ggexport(migbirths_line,
-         filename = paste0(args$output_figure, "06.png"),
+         filename = paste0(args$output_figure, "07.png"),
          width = 1300, height = 1000, res = 300)
 
 
@@ -570,7 +583,7 @@ srcmig_bar <- ge %>%
   # 1. Prepare data
   filter(event == "M") %>%
   # Add empty row for Hubei
-  bind_rows(ge[1, ] %>% mutate(src = "Hubei", dest = "Hubei", event = "M")) %>%
+  bind_rows(ge[1, ] %>% mutate(src = china_deme, dest = china_deme, event = "M")) %>%
   mutate(type = "source") %>%
   # 2. Plot
   ggplot(aes(x = date, y = N, fill = src)) + 
@@ -609,7 +622,7 @@ destmig_bar <- ge %>%
   facet_grid(src~type)
 
 ggexport(ggarrange(plotlist = list(srcmig_bar, destmig_bar), ncol = 2, common.legend = TRUE),
-         filename = paste0(args$output_figure, "07.png"),
+         filename = paste0(args$output_figure, "08.png"),
          width = 2300, height = 3000, res = 300)
 
 
@@ -662,9 +675,13 @@ plot_chord <- function(grid_df, min_date, max_date) {
       # Add graduation on axis
       circos.axis(
         h = "top", 
-        major.at = seq(from = 0, to = xlim[2], by = ifelse(xlim[2]>50, 
-                                                           ifelse(xlim[2]>200, 
-                                                                  ifelse(xlim[2]>800, 500, 100), 25), 1)), 
+        major.at = seq(from = 0, to = xlim[2], by = case_when(
+          xlim[2] > 2500 ~ 2000,
+          xlim[2] > 1500 ~ 1000,
+          xlim[2] > 800 ~ 500,
+          xlim[2] > 200 ~ 100,
+          xlim[2] > 50 ~ 25,
+          TRUE ~ 1)), 
         minor.ticks = 1, 
         major.tick.length = 0.5,
         labels.niceFacing = FALSE,
@@ -675,18 +692,18 @@ plot_chord <- function(grid_df, min_date, max_date) {
 }
 
 # Period 1
-png(paste0(args$output_figure, "08a.png"), width = 1000, height = 1000, res = 200)
+png(paste0(args$output_figure, "09a.png"), width = 1000, height = 1000, res = 200)
 plot_chord(ge, ymd("2019-09-01"), ymd("2020-01-23")) 
 text(label = "A", x = -1, y = 1, cex = 1.5, font = 2)
 dev.off()
 # Period 2
-png(paste0(args$output_figure, "08b.png"), width = 1000, height = 1000, res = 200)
+png(paste0(args$output_figure, "09b.png"), width = 1000, height = 1000, res = 200)
 plot_chord(ge, ymd("2020-01-23"), ymd("2020-02-28"))
 #mtext(text = "B", at = -1, cex = 1.5, font = 2)
 text(label = "B", x = -1, y = 1, cex = 1.5, font = 2)
 dev.off()
 # Period 3
-png(paste0(args$output_figure, "08c.png"), width = 1000, height = 1000, res = 200)
+png(paste0(args$output_figure, "09c.png"), width = 1000, height = 1000, res = 200)
 plot_chord(ge, ymd("2020-02-28"), ymd("2020-03-08"))
 text(label = "C", x = -1, y = 1, cex = 1.5, font = 2)
 dev.off()
@@ -704,5 +721,63 @@ dev.off()
 #     # theme(axis.title.x=element_blank(),
 #     #       axis.text.x=element_blank())
 #   })
+#
+# Parallel sets plots, too misleading
+# order_imig_df <-  events %>%
+#   # 1. Prepare data
+#   filter(event == "M") %>%
+#   group_by(traj, dest) %>%
+#   arrange(traj, time) %>%
+#   distinct(traj, dest) %>%
+#   ungroup %>%
+#   mutate(order = rep(2:nrow(demes), args$n)) %>%
+#   pivot_wider(names_from = order, values_from = dest) %>%
+#   group_by_at(2:nrow(demes)) %>%
+#   summarise(n = n(), .groups = "drop") %>%
+#   mutate("1" = "Hubei") %>%
+#   select("1", everything())
+# order_imig_set <- gather_set_data(order_imig_df, 1:nrow(demes))
+# order_imig_set$x <- factor(order_imig_set$x, levels = 1:nrow(demes))
+# order_imig <- ggplot(order_imig_set, aes(x, id = id, split = y, value = n)) +
+#   geom_parallel_sets(aes_(fill = as.name(2)), alpha = 0.5, axis.width = 0.22) +
+#   geom_parallel_sets_axes(axis.width = 0.15, fill = "grey80", color = "grey80") +
+#   geom_parallel_sets_labels(color = 'grey30', size = 9/.pt, angle = 90) +
+#   scale_x_discrete(breaks = NULL, name = NULL, expand = c(0, 0.2)) +
+#   scale_y_continuous(breaks = NULL, expand = c(0, 0))+
+#   theme(axis.line = element_blank(),
+#         axis.ticks = element_blank(),
+#         axis.text = element_text(size = 12),
+#         panel.background = element_rect(fill = "white", colour = "white")) +
+#   scale_fill_manual(name = "", values = dcolors, guide = "none")
+# 
+# order_omig_df <-  events %>%
+#   # 1. Prepare data
+#   filter(event == "M") %>%
+#   group_by(traj, src) %>%
+#   arrange(traj, time) %>%
+#   distinct(traj, src) %>%
+#   ungroup %>%
+#   mutate(order = rep(1:nrow(demes), args$n)) %>%
+#   pivot_wider(names_from = order, values_from = src) %>%
+#   group_by_at(2:(nrow(demes) + 1)) %>%
+#   summarise(n = n(), .groups = "drop") 
+# order_omig_set <- gather_set_data(order_omig_df, 1:nrow(demes))
+# order_omig_set$x <- factor(order_omig_set$x, levels = 1:nrow(demes))
+# order_omig <- ggplot(order_omig_set, aes(x, id = id, split = y, value = n)) +
+#   geom_parallel_sets(aes_(fill = as.name(nrow(demes))), alpha = 0.5, axis.width = 0.22) +
+#   geom_parallel_sets_axes(axis.width = 0.15, fill = "grey80", color = "grey80") +
+#   geom_parallel_sets_labels(color = 'grey30', size = 9/.pt, angle = 90) +
+#   scale_x_discrete(breaks = NULL, name = NULL, expand = c(0, 0.2)) +
+#   scale_y_continuous(breaks = NULL, expand = c(0, 0))+
+#   theme(axis.line = element_blank(),
+#         axis.ticks = element_blank(),
+#         axis.text = element_text(size = 12),
+#         panel.background = element_rect(fill = "white", colour = "white")) +
+#   scale_fill_manual(name = "", values = dcolors, guide = "none")
+
 
 cat("done!")
+
+
+
+

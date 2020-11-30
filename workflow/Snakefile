@@ -45,8 +45,8 @@ rule all:
     input:
         #prelim_tree = expand("results/{build_name}/tree.nwk", build_name=BUILD_NAMES),
         summary_tree = expand("results/{build_name}/{analysis_name}.mcc.typed.node.tree", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
-        #fig_traj = expand("results/{build_name}/{analysis_name}.figtraj.png", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
-        fig_traj = directory(expand("results/{build_name}/figs_{analysis_name}", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME)),
+        figs_traj = directory(expand("results/{build_name}/figs_{analysis_name}", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME)),
+        tables_traj = directory(expand("results/{build_name}/tables_{analysis_name}", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME)),
         summary_log =  expand("results/{build_name}/{analysis_name}_comb.summary.tsv", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
         
 
@@ -788,6 +788,7 @@ rule trajectory_mapping:
         java -Xmx3G -jar {params.jar} -overwrite {wildcards.analysis_name}.xml 2>&1 | tee {params.log}  || :
         cd ../../
         mv results/{wildcards.build_name}/{params.log} logs/
+        touch {output.typed_trees} {output.node_typed_trees} {output.trajectories}
         """
 
 rule clean_beast:
@@ -848,7 +849,8 @@ rule analyze_trajectories:
         trajectories = rules.trajectory_mapping.output.trajectories,
         metadata = rules.adjust_names.output.metadata
     output:
-        figs = directory("results/{build_name}/figs_{analysis_name}")
+        figs = directory("results/{build_name}/figs_{analysis_name}"),
+        tables = directory("results/{build_name}/tables_{analysis_name}")
     log:
         "logs/analyze_trajectories_{build_name}_{analysis_name}.txt"
     benchmark:
@@ -859,14 +861,15 @@ rule analyze_trajectories:
         n_traj =  config["beast"]["n_traj"]
     shell:
         """
-        mkdir {output.figs}
+        mkdir {output.figs} {output.tables}
         Rscript scripts/analyze_trajectories.R \
             --input {input.trajectories} \
             --burnin {params.burnin} \
             --metadata {input.metadata} \
             --demes {params.demes} \
             --n {params.n_traj} \
-            --output_fig {output.figs}/{wildcards.analysis_name}_figtraj 2>&1 | tee -a {log}
+            --output_fig {output.figs}/{wildcards.analysis_name}_figtraj \
+            --output_table {output.tables}/{wildcards.analysis_name}_table 2>&1 | tee -a {log}
         """
 
 
