@@ -37,7 +37,7 @@
 
       <samplingProportion spec="SkylineVectorParameter" typeSet="@typeSet" timesAreAges="true" origin="@origin">
         <skylineValues idref="samplingProportion"/>
-        <parameter id="samplingProportionChangeTimes" spec="RealParameter" name="changeTimes">0.122 0.205</parameter>
+        <parameter id="samplingProportionChangeTimes" spec="RealParameter" name="changeTimes">0.12 0.205</parameter>
       </samplingProportion>
 
       <rhoSampling spec="TimedParameter" id="rhoSamplingProb" typeSet="@typeSet"/>
@@ -46,9 +46,9 @@
         <skylineValues idref="removalProb"/>
       </removalProb>
 
-      <migrationRate spec="SkylineMatrixParameter" timesAreAges="true" typeSet="@typeSet">
+      <migrationRate spec="SkylineMatrixParameter" timesAreAges="true" typeSet="@typeSet" origin="@origin">
         <skylineValues idref="migrationRate"/>
-        <parameter id="migrationRateChangeTimes" spec="RealParameter" name="changeTimes">0.024 0.122</parameter>
+        <parameter id="migrationRateChangeTimes" spec="RealParameter" name="changeTimes">0.02 0.12</parameter>
       </migrationRate>
 
       <typeSet id="typeSet" spec="bdmmprime.parameterization.TypeSet">
@@ -81,7 +81,7 @@
       <logFileEntry spec="LogFileRealParameter" fieldName="R0SVGermany" fieldParameterIndex="1">
         <fieldParameter idref="R0"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="R0SVHubei" fieldParameterIndex="2">
+      <logFileEntry spec="LogFileRealParameter" fieldName="R0SVHubei-China" fieldParameterIndex="2">
         <fieldParameter idref="R0"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="R0SVItaly" fieldParameterIndex="3">
@@ -106,7 +106,7 @@
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_France_to_Germany" fieldParameterIndex="0">
         <fieldParameter id="migrationRate" spec="RealParameter" value="0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_France_to_Hubei" fieldParameterIndex="1">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_France_to_Hubei-China" fieldParameterIndex="1">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_France_to_Italy" fieldParameterIndex="2">
@@ -121,7 +121,7 @@
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_Germany_to_France" fieldParameterIndex="5">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_Germany_to_Hubei" fieldParameterIndex="6">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_Germany_to_Hubei-China" fieldParameterIndex="6">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_Germany_to_Italy" fieldParameterIndex="7">
@@ -133,19 +133,19 @@
        <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_Germany_to_Spain" fieldParameterIndex="9">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_Hubei_to_France" fieldParameterIndex="10">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_Hubei-China_to_France" fieldParameterIndex="10">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_Hubei_to_Germany" fieldParameterIndex="11">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_Hubei-China_to_Germany" fieldParameterIndex="11">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_Hubei_to_Italy" fieldParameterIndex="12">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_Hubei-China_to_Italy" fieldParameterIndex="12">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_Hubei_to_OtherEuropean" fieldParameterIndex="13">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_Hubei-China_to_OtherEuropean" fieldParameterIndex="13">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_Hubei_to_Spain" fieldParameterIndex="14">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_Hubei-China_to_Spain" fieldParameterIndex="14">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_Italy_to_France" fieldParameterIndex="15">
@@ -154,7 +154,7 @@
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_Italy_to_Germany" fieldParameterIndex="16">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_Italy_to_Hubei" fieldParameterIndex="17">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_Italy_to_Hubei-China" fieldParameterIndex="17">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_Italy_to_OtherEuropean" fieldParameterIndex="18">
@@ -169,7 +169,7 @@
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_OtherEuropean_to_Germany" fieldParameterIndex="21">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_OtherEuropean_to_Hubei" fieldParameterIndex="22">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_OtherEuropean_to_Hubei-China" fieldParameterIndex="22">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_OtherEuropean_to_Italy" fieldParameterIndex="23">
@@ -184,7 +184,7 @@
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_Spain_to_Germany" fieldParameterIndex="26">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_Spain_to_Hubei" fieldParameterIndex="27">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_Spain_to_Hubei-China" fieldParameterIndex="27">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_Spain_to_Italy" fieldParameterIndex="28">
@@ -195,9 +195,9 @@
       </logFileEntry>
       
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_France_to_Germany" fieldParameterIndex="30">
-        <fieldParameter id="migrationRate" spec="RealParameter"/>
+        <fieldParameter idref="migrationRate" spec="RealParameter"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_France_to_Hubei" fieldParameterIndex="31">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_France_to_Hubei-China" fieldParameterIndex="31">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_France_to_Italy" fieldParameterIndex="32">
@@ -212,7 +212,7 @@
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_Germany_to_France" fieldParameterIndex="35">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_Germany_to_Hubei" fieldParameterIndex="36">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_Germany_to_Hubei-China" fieldParameterIndex="36">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_Germany_to_Italy" fieldParameterIndex="37">
@@ -224,19 +224,19 @@
        <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_Germany_to_Spain" fieldParameterIndex="39">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_Hubei_to_France" fieldParameterIndex="40">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_Hubei-China_to_France" fieldParameterIndex="40">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_Hubei_to_Germany" fieldParameterIndex="41">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_Hubei-China_to_Germany" fieldParameterIndex="41">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_Hubei_to_Italy" fieldParameterIndex="42">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_Hubei-China_to_Italy" fieldParameterIndex="42">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_Hubei_to_OtherEuropean" fieldParameterIndex="43">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_Hubei-China_to_OtherEuropean" fieldParameterIndex="43">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_Hubei_to_Spain" fieldParameterIndex="44">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_Hubei-China_to_Spain" fieldParameterIndex="44">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_Italy_to_France" fieldParameterIndex="45">
@@ -245,7 +245,7 @@
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_Italy_to_Germany" fieldParameterIndex="46">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_Italy_to_Hubei" fieldParameterIndex="47">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_Italy_to_Hubei-China" fieldParameterIndex="47">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_Italy_to_OtherEuropean" fieldParameterIndex="48">
@@ -260,7 +260,7 @@
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_OtherEuropean_to_Germany" fieldParameterIndex="51">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_OtherEuropean_to_Hubei" fieldParameterIndex="52">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_OtherEuropean_to_Hubei-China" fieldParameterIndex="52">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_OtherEuropean_to_Italy" fieldParameterIndex="53">
@@ -275,7 +275,7 @@
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_Spain_to_Germany" fieldParameterIndex="56">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_Spain_to_Hubei" fieldParameterIndex="57">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_Spain_to_Hubei-China" fieldParameterIndex="57">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi1_Spain_to_Italy" fieldParameterIndex="58">
@@ -286,9 +286,9 @@
       </logFileEntry>
 
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_France_to_Germany" fieldParameterIndex="60">
-        <fieldParameter id="migrationRate" spec="RealParameter"/>
+        <fieldParameter idref="migrationRate" spec="RealParameter"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_France_to_Hubei" fieldParameterIndex="61">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_France_to_Hubei-China" fieldParameterIndex="61">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_France_to_Italy" fieldParameterIndex="62">
@@ -303,7 +303,7 @@
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_Germany_to_France" fieldParameterIndex="65">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_Germany_to_Hubei" fieldParameterIndex="66">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_Germany_to_Hubei-China" fieldParameterIndex="66">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_Germany_to_Italy" fieldParameterIndex="67">
@@ -315,19 +315,19 @@
        <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_Germany_to_Spain" fieldParameterIndex="69">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_Hubei_to_France" fieldParameterIndex="70">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_Hubei-China_to_France" fieldParameterIndex="70">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_Hubei_to_Germany" fieldParameterIndex="71">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_Hubei-China_to_Germany" fieldParameterIndex="71">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_Hubei_to_Italy" fieldParameterIndex="72">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_Hubei-China_to_Italy" fieldParameterIndex="72">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_Hubei_to_OtherEuropean" fieldParameterIndex="73">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_Hubei-China_to_OtherEuropean" fieldParameterIndex="73">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_Hubei_to_Spain" fieldParameterIndex="74">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_Hubei-China_to_Spain" fieldParameterIndex="74">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_Italy_to_France" fieldParameterIndex="75">
@@ -336,7 +336,7 @@
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_Italy_to_Germany" fieldParameterIndex="76">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_Italy_to_Hubei" fieldParameterIndex="77">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_Italy_to_Hubei-China" fieldParameterIndex="77">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_Italy_to_OtherEuropean" fieldParameterIndex="78">
@@ -351,7 +351,7 @@
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_OtherEuropean_to_Germany" fieldParameterIndex="81">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_OtherEuropean_to_Hubei" fieldParameterIndex="82">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_OtherEuropean_to_Hubei-China" fieldParameterIndex="82">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_OtherEuropean_to_Italy" fieldParameterIndex="83">
@@ -366,7 +366,7 @@
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_Spain_to_Germany" fieldParameterIndex="86">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_Spain_to_Hubei" fieldParameterIndex="87">
+      <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_Spain_to_Hubei-China" fieldParameterIndex="87">
         <fieldParameter idref="migrationRate"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi0_Spain_to_Italy" fieldParameterIndex="88">
@@ -383,7 +383,7 @@
       <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVi2_Germany" fieldParameterIndex="1">
         <fieldParameter idref="samplingProportion"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVi2_Hubei" fieldParameterIndex="2">
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVi2_Hubei-China" fieldParameterIndex="2">
         <fieldParameter idref="samplingProportion"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVi2_Italy" fieldParameterIndex="3">
@@ -401,7 +401,7 @@
       <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVi1_Germany" fieldParameterIndex="7">
         <fieldParameter idref="samplingProportion"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVi1_Hubei" fieldParameterIndex="8">
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVi1_Hubei-China" fieldParameterIndex="8">
         <fieldParameter idref="samplingProportion"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVi1_Italy" fieldParameterIndex="9">
@@ -419,7 +419,7 @@
       <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVi0_Germany" fieldParameterIndex="13">
         <fieldParameter idref="samplingProportion"/>
       </logFileEntry>
-      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVi0_Hubei" fieldParameterIndex="14">
+      <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVi0_Hubei-China" fieldParameterIndex="14">
         <fieldParameter idref="samplingProportion"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="samplingProportionSVi0_Italy" fieldParameterIndex="15">
