@@ -18,9 +18,6 @@ SEED = 1234
  
 # Define patterns we expect for wildcards.
 wildcard_constraints:
-    # Allow build names to contain alpha characters, underscores, and hyphens
-    # but not special strings used for Nextstrain builds.
-    #build_name = r'(?:[_a-zA-Z-](?!(tip-frequencies|gisaid|zh)))+',
     build_name = r"[a-zA-Z0-9_.-]+",
     analysis_name = r"[a-zA-Z0-9_.-]+",
     date = r"[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]",
@@ -43,10 +40,10 @@ filtered_product = filter_combinator(product, combinations)
 
 rule all:
     input:
-        prelim_tree = expand("results/{build_name}/tree.nwk", build_name=BUILD_NAMES),
+        ml_tree = expand("results/{build_name}/tree.nwk", build_name=BUILD_NAMES),
         summary_tree = expand("results/{build_name}/{analysis_name}.mcc.typed.node.tree", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
-        figs_traj = directory(expand("results/{build_name}/figs_{analysis_name}", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME)),
-        tables_traj = directory(expand("results/{build_name}/tables_{analysis_name}", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME)),
+        figs_traj = expand("results/{build_name}/figs_{analysis_name}", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
+        tables_traj = expand("results/{build_name}/tables_{analysis_name}", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
         summary_log =  expand("results/{build_name}/{analysis_name}_comb.summary.tsv", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
         
 
@@ -849,8 +846,8 @@ rule analyze_trajectories:
         trajectories = rules.trajectory_mapping.output.trajectories,
         metadata = rules.adjust_names.output.metadata
     output:
-        figs = directory("results/{build_name}/figs_{analysis_name}"),
-        tables = directory("results/{build_name}/tables_{analysis_name}")
+        figs = "results/{build_name}/figs_{analysis_name}",
+        tables = "results/{build_name}/tables_{analysis_name}"
     log:
         "logs/analyze_trajectories_{build_name}_{analysis_name}.txt"
     benchmark:

@@ -147,7 +147,7 @@ r_reported <- reported %>%
          `Median Reporting Rate (95% CCI)` = paste0(round(reportrate, 2), " (", round(hreportrate, 2), "-", round(lreportrate, 2), ")")) %>%
   select(-one_of(colnames(reported)))
 
-write.csv(r_reported, file = paste0(args$output_table, "01.csv"))
+write_tsv(r_reported, file = paste0(args$output_table, "01.tsv"))
 
 # 2. Events 
 # 2.1. Time interval of first case (introduction) and first reported case to ECDC.
@@ -313,7 +313,7 @@ r_firsts <- firsts %>%
   left_join(r_firstmig, by = c("Country", "First Reported Case ECDC")) %>%
   select(1,4,5,6,8,2,3,7,9)
 
-write.csv(r_firsts, file = paste0(args$output_table, "02.csv"))
+write_tsv(r_firsts, file = paste0(args$output_table, "02.tsv"))
 
 
 # Plotting ---------------------------------------------------------------------
