@@ -1,7 +1,11 @@
-\documentclass[12pt,]{article}
+\documentclass[12pt]{article}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage{fullpage}
+\renewcommand*\familydefault{\sfdefault}
+
+\usepackage{anysize}
+\marginsize{2.5cm}{2.5cm}{1cm}{1.5cm}
+\setlength{\marginparwidth}{2cm}
 
 % \usepackage{authblk}
 \usepackage{graphicx}
@@ -9,10 +13,17 @@
 \usepackage{subfig}
 \graphicspath{{../../results/}}
 
-\usepackage[left]{lineno}
-\linenumbers
+\usepackage{xcolor}
 
-\usepackage{todonotes}
+\usepackage[font=small,labelfont=bf]{caption}
+
+\def\labelitemi{--}
+
+% Line numbers
+\usepackage[left]{lineno}
+%\linenumbers
+
+\usepackage[color=red!60]{todonotes}
 
 \usepackage{pgfplotstable}
 \pgfplotsset{compat=1.16}
@@ -32,14 +43,18 @@
 \begin{document}
 \maketitle
 
-\abstract{This project focus on the spatial dynamics of the early spread of SARS-CoV-2 in Europe. We apply a novel approach based on the Multi-type Birth Death phylodynamic model to infer structured population dynamics jointly with between-subpopulation transmission rates from viral genome sequences. The inferred epidemic trajectories for the combined outbreak responsible for the observed sequence data will allow us to better understand the entry into and early spread of SARS-CoV-2 in Europe.
+\begin{abstract}
+\todo[inline]{TODO abstract}
+This project focus on the spatial dynamics of the early spread of SARS-CoV-2 in Europe. We apply a novel approach based on the Multi-type Birth Death phylodynamic model to infer structured population dynamics jointly with between-subpopulation transmission rates from viral genome sequences. The inferred epidemic trajectories for the combined outbreak responsible for the observed sequence data will allow us to better understand the entry into and early spread of SARS-CoV-2 in Europe.
 
-The early dynamics of the epidemic in Europe surprised the whole world/ From isolated cases detexcted in some, ina  few weeks we faced an unprecedent epidemic with case numbers and death counts stressing well stalished health infraestructures. Understanding what happened during those first month could prepare us to be less surpred in similar future events. Complex dynamics, typical epi date, case identification and travel history, very likely not all cases reported. Genetic sequences are a valuable source of information than together with popualtion dynamic model could inform us about the firrst steps of the coronavirus in Europe. We have integrated sequence data, flisht data and bayesian inference priors? to infer population trajectories - case counts and migration dynamics between the most relevant countrries at the start of the European pandemic.
-}
+% The early dynamics of the epidemic in Europe surprised the whole world/ From isolated cases detexcted in some, ina  few weeks we faced an unprecedent epidemic with case numbers and death counts stressing well stalished health infraestructures. Understanding what happened during those first month could prepare us to be less surpred in similar future events. Complex dynamics, typical epi date, case identification and travel history, very likely not all cases reported. Genetic sequences are a valuable source of information than together with popualtion dynamic model could inform us about the firrst steps of the coronavirus in Europe. We have integrated sequence data, flisht data and bayesian inference priors? to infer population trajectories - case counts and migration dynamics between the most relevant countrries at the start of the European pandemic.
+\end{abstract}
 
 
 \section*{Introduction}
+\todo[inline]{TODO introduction}
 
+\begin{itemize}
 \item Importance of understanding the spread of the virus to prevent future outbreaks 
 
 \item About phylodynamics/phylogeographics? Use of genetic sequences as a source of information combined with other sources of information as travel data
@@ -49,144 +64,117 @@ The early dynamics of the epidemic in Europe surprised the whole world/ From iso
 \item About what we know of the case counts in Europe? Can sequences help?
 
 \item Introduce/formulate the questions: case counts, first introductions, ?migration vs within region transmission?, migration patterns, ?border closures.
-
+\end{itemize}
 
 \section*{Results}
+% \todo{Modify tables in R to have one value per cell, nr rate and times}
 
-\subsubsection*{Total case counts}
+\todo[inline]{The figures are from analysis Europe3: subsampled datasets according to cases/day and constant migration rate (no GLM), same xml specifications than Sarah's analysis.}
 
-Figures \ref{fig:gribbon}, \ref{fig:trajs} and \ref{fig:reported}.\\
+\subsubsection*{Burden of SARS-CoV-2 infections in Europe}
 
-
-Inferred population trajectories that account for all cases in the country. It is not an independent estimate since we are using informative priors for the sampling rates (upperbound computed as sequences/reported cases) and the subsampling scheme also includes the number of cases in the country (but that is a weaker link I think.\\
-
-
-Comparison with ECDC case counts: delay in notifications and underreporting, for some of the  countries at the end of the periord the reported cases are very closed to the trajectories, e.g. Italy, Germany. Hubei-China huge difference in tendency and absolute numbers.\\ \todo{Working on these with new analyses}
-
-Measure the (mean?) difference between inferred and reported case counts and compare among countries. By day or in general? Absolute or relative to the number of cases that day?
+The inferred epidemic trajectories contain the information about the total number of cases until 8th of March. For the European countries, we obtain an inferred number of total cases above the number of confirmed cases to ECDC, consistent with known limited test availability of the first wave and  previous studies results \cite{Li2020} \cite{Wu2020}. These cases counts correspond to \todo{Include values} x-y times higher than the number of reported cases. Italy is the country with the highest infered number of cases x, followed by Spain, France and Germany. The infered number of cases for China is below the reported number of cases. \todo{limitations of the model, sequence information, partial outbreak dynamics}\\
 
 
-\subsubsection*{First introductions}
-Figures \ref{fig:first}, \ref{fig:first_src} and \ref{fig:first_dest}.\\
-
-
-We want to answer the question of when and where the first case in Europe occured. No clear, Germany? Figure \ref{fig:first} A. We can measure the time between first case and first reported case and compare between countries. \\
-\todo{ticks for every month}
-And for each country where this first case came from, more support for Hubei introduction in all countries Figure \ref{fig:first} B.\\
-
-Measure expected day of introduction.
-
-
-
-In Figure \ref{fig:first_src}, we are looking at the ordered set of introduction intoo european countries. For each trajectory, we have the fist introduction into each country happening in a determined order, i.e. the first european country with a covid case, the second country with a covid case... So we are vissualizing the number of trajectories that share the same order of first cases. More trajectories where the first case was to Germany, no clear order after the first country. Spain and Other European last one.\\
-\todo{Explain this better}
-
-
-
-
-In Figure \ref{fig:first_dest} we are looking at the ordered set of countries spreading covid. In the first position we have Hubei for all trajectories since it is the origin of the epidemic. In second position we will have the first European country from where a covid case was imported to other country. No clear dynamics except that moore support for Spain being the last country having a first exported covid case. Germany first one.\\  
-
-
-\subsubsection*{Migration vs within-region transmission}
-
-Figure \ref{fig:events}\\.
-
-
-This question is addresed on the original paper from Sarah.  Maybe could be interesting to look at this perspective since it is important for border closure measures.
-
-\todo{Think about results}
- Not sure if we can have any meaningful results insights on the topic. Migrations started very early in our analysis to all european countries. Withing regions transmision account for most of the cases in the countries from late january onwards (when first cases were being reported in Europe).\\
-
- Measure the time between the first outcoming mirgration from the country  (specially interesting for Hubei) and first reported case. This could be interesting to say if a extreme measure closing borders with the first case could be effective to impede transmission to other countries: percentage of trajectories whre transmission to Europe would have been avoided. For other countries we can look at how many migrations events could have been avoided (and how many not) if the country closed borders after first reported case.\\ 
-
- Measure the time between first birth/migration and first reported case and compare between countries. How well did the countries detecting the first cases, there were already within region transmision?\\
-
- Measure the time between the first migration into a country and the first birth in the country. Or the first outcoming mirgration from the country and first birth. This could be interesting to say if we should focus or not the screening and testing capacities to detect incoming migrations or a more general strategy to find cases in the population. Is it different for each country?\\
-
-
-\subsubsection*{Migrations patterns}
-Figures \ref{fig:migs_srcdest} and \ref{fig:migs}.\\
-
-
-Similar information in both plots, but in the chord plots instead of a dayly evolution the time period is split on three (as in the GLM analysis). Chord plots are nicer and easier to understand I think, but barplots shows the great detail of the results of the model. Another advantage of the chrod plot is that the ir shows mean absolute values and not only relative values.\\
-
-Hubei-China is the majority source of migrations for all countries till February and then some patterns emerge (we expect more interesting results with the added info in GLM analysis).\\
-
-
-\todo{Legend in plot 7 and change white text}
-
-\subsubsection*{GLM predictors}
-Which channels were the main sources of transmission across national borders.
-
-\subsubsection*{Epidemiological parameters}
-
-Not sure about this section. But maybe it make sense for completeness to include, briefly, the values of estimate R0, migration and sampling rates.
-
-
-% Figures 
-
-\begin{figure}[]
+\begin{figure}[ht]
     \centering
     \includegraphics[width=0.8\textwidth]{201030_europe3_figtraj01.png}
-    \caption{Inferred population size summary statistics for each deme over time. The line represents the median population trajectory and the interval is the 95\% center credible interval from a subsampled set of inferred population trajectories.}{}
+    \caption{Inferred population size summary statistics for each deme over time. The line represents the median population trajectory and the interval is the 95\%  credible interval in log scale from a random subsampled set of inferred epidemic trajectories.}
     \label{fig:gribbon}
 \end{figure}
 
 
-\begin{figure}[]
+\begin{figure}[p]
     \centering
     \includegraphics[width=0.9\textwidth]{201030_europe3_figtraj02.png}
-    \caption{Inferred population size trajectories over time. A subsampled set of 200 inferred trajectories is plotted. In each subplot, the trajectories (solid lines) are compared with the ECDC total case count data (dashed line).}
+    \caption{Inferred epidemic trajectories over time. A random subsampled set of 500 trajectories is plotted. In each subplot, the trajectories (solid lines) are compared with the ECDC cumulative case count data (dashed line) in log scale.}
     \label{fig:trajs}
 \end{figure}
 
 
-\begin{figure}[]
+In Figure \ref{fig:gribbon} and/or \ref{fig:trajs} we compare the total number of inferred cases by day to the total cumulative number of cases that have been reported to ECDC that same day. Our inferred case counts follow a exponential growth earlier in time than the reported curve and with higher number of cases, being the difference bigger for later times in the epidemic.\\
+
+
+\begin{figure}[ht]
     \centering
     \includegraphics[width=0.9\textwidth]{201030_europe3_figtraj03.png}
-    \caption{}
+    \caption{5-days reporting rate, calculated as the cumulative number of ECDC reported cases by the median number of cumulative inferred cases in intervals of 5 days until 8th of March. }
     \label{fig:reported}
 \end{figure}
 
+We can think of a reporting rate as the number of reported cases relative to the total number of cases inferred by the model. This reporting rate decreases with time for all European countries, except for Italy that increases again around March, Figure \ref{fig:reported}. 
 
-\begin{figure}[]
+
+\subsubsection*{First introductions into European countries}
+
+\begin{figure}[p]
     \centering
     \includegraphics[width=\textwidth]{201030_europe3_figtraj04.png}
-    \caption{First introductions event time and source in each deme. \textbf{A} Probability density of the time of the first introduction for each deme from the subsampled set of trajectories. Each dotted line represents the first date when cases where reported to ECDC by deme color. In the case of Hubei, the distribution of the time of the origin is plotted, since it was defined as the origin of the epidemic in the analysis with probability 1. For the other five demes, the distribution of the time of the first migration into the corresponding deme is plotted. \textbf{B} Probability density of the source of the first introduction event in each deme for the set of subsampled trajectories.}
+    \caption{First introductions of SARS-CoV-2. From the set of random subsampled trajectories, the first introduction time for each epidemic trajectory is recorded and the probability distribution over all these times is plotted. \textbf{A} Probability density of the time of first introduction for each deme. Each dotted line represents the first date when cases where reported to ECDC by deme color. In the case of China, the distribution of the origin time is plotted, since in the analysis we defined Chine as the origin of the epidemic with probability 1. For the other five demes, the distribution of the time of first migration into the deme is shown. \textbf{B} Stacked probability density of the destination of first introduction into Europe coloured by the destination deme. This first case corresponds to the first migration event from China to any of the European countries. \textbf{C} Stacked probability density of the source of the first introduction for each deme coloured by the source deme of the introduction.}
     \label{fig:first}
+    \todo[inline]{ticks for every month}
 \end{figure}
 
+We would like to answer the question of when and where the first case in Europe occured. We can look to the model inferred epidemic trajectories and analyze the time distribution of the first case in Europe and in each deme. China is defined as the origin of the epidemic in the analysis and this is reflected in Figure \ref{fig:first} A. The occurrence of the origin of the epidemic, i.e. first case in China, is almost one month before the epidemic starts in any European country, ranging \todo{Include values}  x-y. The inferred date of the first case in Europe is inferred to be between a 95\% interval x-y. Among the European countries, France and Germany have the earlier time of introduction, followed by Italy, Other European deme and Spain. We can compare this inferred dates of introduction with the day each country reported its first case to ECDC. In all cases, the reported day was later than the median of the inferred distribution, but it is inside the 95\% interval.\\
 
-\begin{figure}[]
-    \centering
-    \includegraphics[width=\textwidth]{201030_europe3_figtraj06.png}
-    \caption{Ordered set of countries by its first migration, i.e. spreading event out of the country. The color corresponds to the last country with a migration to other countries. The size of the box with the country name / ribbon / flux is the number / proportion of trajectories that have that particular order of first migrations.}
-    \label{fig:first_src}
-\end{figure}
+The first case in Europe for each trajectoy corresponds to a migration from China to any European country. We can analyze the destination of this first migration into Europe as is shown in Figure \ref{fig:first} B. According to our model, the probability that this first European case was in Spain is very low. The destination of the first case amonth the rest of European demes is equally probable and there is no clear difference in the time distribution for each destination country, with a maximum probability around x.\\
+\todo{explain this better, compute the probability of the first case in Europe destination}
 
+The first case in each European country could have been imported from China or from other European country with an ongoing epidemic that started earlier. However, in our analysis we obtain a much higher support for China being the most probable source of the first case for all European demes, Figure \ref{fig:first} C.\\
 
-\begin{figure}[]
+Even if the first case in each European country came from China, the timing of the introductions in the European countries relative to each other probablu expanded across several days, defining and order of countries with the time of their first case. 
+
+We can analyze if this order of countries, defined by the time in which the first case occured, is shared among the majority of the inferred population trajectories, Figure \ref{fig:first_imig}. We obtain that the first European country with a SARS-CoV-2 case was more likely France or Germany, followed by Italy and Other European deme. While Spain was more likely the last European country with a case among the ones included in the analysis.\\
+
+\begin{figure}[ht]
     \centering
     \includegraphics[width=\textwidth]{201030_europe3_figtraj05.png}
-    \caption{Ordered set of countries by its first introduction, i.e. first case in the country. The color corresponds to the first country with a case, and the size of the box with the country name / ribbon / flux is the number / proportion of trajectories that have that particular order of first introductions.} 
-    \label{fig:first_dest}
+    \caption{Order of countries by the time of its first introduction, i.e. first case in the country. Each row is the order for one of the subsampled epidemic trajectories and each column represents the position relative to the other countries first introduction, e.g. in first position for all epidemic trajectories is China since it is the origin of the epidemic.} 
+    \label{fig:first_imig}
 \end{figure}
 
+Along the same lines, we could ask if this order of countries is mantained when instead of looking at the first case in the country we look into at first case exported (migration) from that country to other European country. In Figure \ref{fig:first_omig} we observe a similar pattern to the first cases order, with Germany, France and Italy being the countries in the first positions in more than half of the inferred trajectories and never in the last position, and Spain as the country in last position in almost every epidemic trajectory.\\
 
-\begin{figure}[]
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=\textwidth]{201030_europe3_figtraj08.png}
-    \caption{}
-    \label{fig:migs_srcdest}
+    \includegraphics[width=\textwidth]{201030_europe3_figtraj06.png}
+    \caption{Order of countries by the time of its first migration out of the country, i.e. first exported case to other country. Each row is the order for one of the subsampled epidemic trajectories and each column represents the position relative to the other countries first migration, e.g. in first position for all epidemic trajectories is China since it was the first country with exported cases of SARS-CoV-2 to other regions.}
+    \label{fig:first_omig}
+    \todo[inline]{I don't like much these "order" plots but maybe they could be useful to detect interesting patterns?}
 \end{figure}
 
+\subsubsection*{Migration vs within-region transmission}
 
-\begin{figure}[]
+\begin{figure}[ht]
     \centering
     \includegraphics[width=\textwidth]{201030_europe3_figtraj07.png}
-    \caption{Mean inferred cumulative number of events (births and migrations) over time. A subsampled set of 200 inferred trajectories is plotted.}
+    \caption{Median and 95\% credible interval for the cumulative number of events (within-region transmissions and migrations to the country (incoming) and from the country (outgoing) over time.}
     \label{fig:events}
+    \todo[inline]{change legend outgoing migration}
 \end{figure}
+
+
+\todo[inline]{TODO}
+
+From the epidemic trajectories, we can extract the information about how many cases are within-region transmission and how many are migrations from other countries. The cumulative number of transmission events and migrations, represented in Figure \ref{fig:events} increases exponentially over time. An incomming migration into every European deme happens always before within-region transmission, seeding the epidemic. Within-region transmision accounts for most of the cases in the countries from late january onwards (when first cases were being reported in Europe).
+
+\todo{get the proportion of within-region transmission and incoming migrations?}
+
+The time between the first case in the country, i.e. first incoming migration event and the first case from within-region transmission is of x  (y-z) with similar values for all demes?. The time from the first incoming migration to the first outgoing migration is longer with a median of x (y-z). (This could be interesting to say if we should focus or not the screening and testing capacities to detect incoming migrations or if when we have evidence of cases in the population we shoud follow a more general strategy to find cases in the population according to the model. Is it different for each country?)\\
+
+(How well did the countries detecting the first cases, there were already within region transmision?) We compare the date of the first reported rate of each country with the date in which within-region transmission for that country started according to the model. We see some differences among countries, France and Germany had in all inferred epidemic trajectories ongoing within-region transmission when first cases werre reported, while x\% of epidemic trajectories did not have had a within region transmission case when the first case in Spain was reported.\\
+
+We can also compare the date of the first reported case with the date of the first outgoing migration from the country. (This could be interesting to say if a extreme measure closing borders with the first case could be effective to impede transmission to other countries: percentage of trajectories whre transmission to Europe would have been avoided. For other countries we can look at how many migrations events could have been avoided (and how many not) if the country closed borders after first reported case according to the model. Not realistic measure, extreme case.)\\ 
+
+
+
+\subsubsection*{Migrations patterns}
+Figures \ref{fig:migs_srcdest} and \ref{fig:migs}.\\
+\todo[inline]{TODO}
+
+Similar information in both plots, but in the chord plots instead of a daily evolution the time period is split on three (as in the GLM analysis). Chord plots are nicer and easier to understand I think, but barplots shows the great detail of the results of the model. Another advantage of the chrod plot is that the it shows mean absolute values and not only relative values.\\
+
+Hubei-China is the majority source of migrations for all countries till February and then some patterns emerge (we expect more interesting results with the added info in GLM analysis).\\
 
 
 \begin{figure}[!tbp]
@@ -208,23 +196,47 @@ Not sure about this section. But maybe it make sense for completeness to include
   \label{fig:migs}
 \end{figure}
 
+\begin{figure}[]
+    \centering
+    \includegraphics[width=\textwidth]{201030_europe3_figtraj08.png}
+    \caption{}
+    \label{fig:migs_srcdest}
+\end{figure}
+
+
+\subsubsection*{GLM predictors}
+\todo[inline]{TODO}
+
+Which channels were the main sources of transmission across national borders.
+
+\subsubsection*{Epidemiological parameters}
+\todo[inline]{TODO}
+
+Not sure if it is necessary. But maybe include, briefly, the values of estimate R0, migration and sampling rates?
+
 
 \section*{Discussion}
+\todo[inline]{TODO discussion}
 
+\begin{itemize}
 \item Case counts discussion and reporting rates, second wave in Europe. Other estimations in other studies.
+
+% Inferred population trajectories that account for all cases in the country. It is not an independent estimate since we are using informative priors for the sampling rates (upperbound computed as sequences/reported cases) and the subsampling scheme also includes the number of cases in the country (but that is a weaker link I think.\\
+
 
 \item First introduction other studies. 
 
 \item Migration patterns other studies.
 
 \item Discuss assumptions of the model, caveats and possible improvements.
-
+\end{itemize}
 
 \section*{Conclusion}
-
+\todo[inline]{TODO conclusion}
 
 \section*{Material and Methods}
-
+\todo[inline]{TODO methods}
+\begin{itemize}
 \item Dataset and subsampling. Alignment. 
 
 \item Model BDMM-Prime, stochastic mapping. Priors. Bayesian phylogeographic inference. Phylodynamics.
@@ -235,6 +247,13 @@ Not sure about this section. But maybe it make sense for completeness to include
 
 \item Trajectories analysis. Subsampling and summarizing (median, 95\% interval)
 
+
 \item Snakemake workflow.
+\end{itemize}
+
+\bibliographystyle{unsrt}
+\bibliography{references-mt}
+
+\listoftodos
 
 \end{document}

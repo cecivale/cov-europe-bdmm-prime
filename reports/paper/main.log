@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2019.4.3)  1 DEC 2020 12:42
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2019.4.3)  3 DEC 2020 09:30
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -35,11 +35,17 @@ Package: inputenc 2018/04/06 v1.3b Input encoding file
 \inpenc@prehook=\toks14
 \inpenc@posthook=\toks15
 )
-(/usr/local/texlive/2018/texmf-dist/tex/latex/preprint/fullpage.sty
-Package: fullpage 1999/02/23 1.1 (PWD)
-\FP@margin=\skip43
-)
-(/usr/local/texlive/2018/texmf-dist/tex/latex/graphics/graphicx.sty
+(/usr/local/texlive/2018/texmf-dist/tex/latex/anysize/anysize.sty
+Package: anysize 1994/08/13 setting margin sizes
+
+document style option `anysize' loaded
+Michael Salzenberg, Thomas Esser, Dirk Hillbrecht
+Version 1.0, Aug 13, 1994
+\@Leftmargin=\dimen103
+\@Rightmargin=\dimen104
+\@Topmargin=\dimen105
+\@Bottommargin=\dimen106
+) (/usr/local/texlive/2018/texmf-dist/tex/latex/graphics/graphicx.sty
 Package: graphicx 2017/06/01 v1.1a Enhanced LaTeX Graphics (DPC,SPQR)
 
 (/usr/local/texlive/2018/texmf-dist/tex/latex/graphics/keyval.sty
@@ -60,8 +66,8 @@ Package graphics Info: Driver file: pdftex.def on input line 99.
 (/usr/local/texlive/2018/texmf-dist/tex/latex/graphics-def/pdftex.def
 File: pdftex.def 2018/01/08 v1.0l Graphics/color driver for pdftex
 ))
-\Gin@req@height=\dimen103
-\Gin@req@width=\dimen104
+\Gin@req@height=\dimen107
+\Gin@req@width=\dimen108
 )
 (/usr/local/texlive/2018/texmf-dist/tex/latex/import/import.sty
 Package: import 2009/03/23  v 5.1
@@ -75,45 +81,62 @@ Package: caption 2016/02/21 v3.3-144 Customizing captions (AR)
 (/usr/local/texlive/2018/texmf-dist/tex/latex/caption/caption3.sty
 Package: caption3 2016/05/22 v1.7-166 caption3 kernel (AR)
 Package caption3 Info: TeX engine: e-TeX on input line 67.
-\captionmargin=\dimen105
-\captionmargin@=\dimen106
-\captionwidth=\dimen107
-\caption@tempdima=\dimen108
-\caption@indent=\dimen109
-\caption@parindent=\dimen110
-\caption@hangindent=\dimen111
+\captionmargin=\dimen109
+\captionmargin@=\dimen110
+\captionwidth=\dimen111
+\caption@tempdima=\dimen112
+\caption@indent=\dimen113
+\caption@parindent=\dimen114
+\caption@hangindent=\dimen115
 )
 \c@ContinuedFloat=\count88
 )
 \c@KVtest=\count89
-\sf@farskip=\skip44
-\sf@captopadj=\dimen112
-\sf@capskip=\skip45
-\sf@nearskip=\skip46
+\sf@farskip=\skip43
+\sf@captopadj=\dimen116
+\sf@capskip=\skip44
+\sf@nearskip=\skip45
 \c@subfigure=\count90
 \c@subfigure@save=\count91
 \c@lofdepth=\count92
 \c@subtable=\count93
 \c@subtable@save=\count94
 \c@lotdepth=\count95
-\sf@top=\skip47
-\sf@bottom=\skip48
+\sf@top=\skip46
+\sf@bottom=\skip47
+)
+(/usr/local/texlive/2018/texmf-dist/tex/latex/xcolor/xcolor.sty
+Package: xcolor 2016/05/11 v2.12 LaTeX color extensions (UK)
+
+(/usr/local/texlive/2018/texmf-dist/tex/latex/graphics-cfg/color.cfg
+File: color.cfg 2016/01/02 v1.6 sample color configuration
+)
+Package xcolor Info: Driver file: pdftex.def on input line 225.
+Package xcolor Info: Model `cmy' substituted by `cmy0' on input line 1348.
+Package xcolor Info: Model `hsb' substituted by `rgb' on input line 1352.
+Package xcolor Info: Model `RGB' extended on input line 1364.
+Package xcolor Info: Model `HTML' substituted by `rgb' on input line 1366.
+Package xcolor Info: Model `Hsb' substituted by `hsb' on input line 1367.
+Package xcolor Info: Model `tHsb' substituted by `hsb' on input line 1368.
+Package xcolor Info: Model `HSB' substituted by `hsb' on input line 1369.
+Package xcolor Info: Model `Gray' substituted by `gray' on input line 1370.
+Package xcolor Info: Model `wave' substituted by `hsb' on input line 1371.
 )
 (/usr/local/texlive/2018/texmf-dist/tex/latex/lineno/lineno.sty
 Package: lineno 2005/11/02 line numbers on paragraphs v4.41
 \linenopenalty=\count96
 \output=\toks17
 \linenoprevgraf=\count97
-\linenumbersep=\dimen113
-\linenumberwidth=\dimen114
+\linenumbersep=\dimen117
+\linenumberwidth=\dimen118
 \c@linenumber=\count98
 \c@pagewiselinenumber=\count99
 \c@LN@truepage=\count100
 \c@internallinenumber=\count101
 \c@internallinenumbers=\count102
-\quotelinenumbersep=\dimen115
-\bframerule=\dimen116
-\bframesep=\dimen117
+\quotelinenumbersep=\dimen119
+\bframerule=\dimen120
+\bframesep=\dimen121
 \bframebox=\box26
 LaTeX Info: Redefining \\ on input line 3056.
 )
@@ -135,31 +158,14 @@ Package: xkeyval 2014/12/03 v2.7a package option processing (HA)
 \XKV@depth=\count103
 File: xkeyval.tex 2014/12/03 v2.7a key=value parser (HA)
 ))
-(/usr/local/texlive/2018/texmf-dist/tex/latex/xcolor/xcolor.sty
-Package: xcolor 2016/05/11 v2.12 LaTeX color extensions (UK)
-
-(/usr/local/texlive/2018/texmf-dist/tex/latex/graphics-cfg/color.cfg
-File: color.cfg 2016/01/02 v1.6 sample color configuration
-)
-Package xcolor Info: Driver file: pdftex.def on input line 225.
-Package xcolor Info: Model `cmy' substituted by `cmy0' on input line 1348.
-Package xcolor Info: Model `hsb' substituted by `rgb' on input line 1352.
-Package xcolor Info: Model `RGB' extended on input line 1364.
-Package xcolor Info: Model `HTML' substituted by `rgb' on input line 1366.
-Package xcolor Info: Model `Hsb' substituted by `hsb' on input line 1367.
-Package xcolor Info: Model `tHsb' substituted by `hsb' on input line 1368.
-Package xcolor Info: Model `HSB' substituted by `hsb' on input line 1369.
-Package xcolor Info: Model `Gray' substituted by `gray' on input line 1370.
-Package xcolor Info: Model `wave' substituted by `hsb' on input line 1371.
-)
 (/usr/local/texlive/2018/texmf-dist/tex/latex/pgf/frontendlayer/tikz.sty
 (/usr/local/texlive/2018/texmf-dist/tex/latex/pgf/basiclayer/pgf.sty
 (/usr/local/texlive/2018/texmf-dist/tex/latex/pgf/utilities/pgfrcs.sty
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/utilities/pgfutil-common.te
 x
 \pgfutil@everybye=\toks20
-\pgfutil@tempdima=\dimen118
-\pgfutil@tempdimb=\dimen119
+\pgfutil@tempdima=\dimen122
+\pgfutil@tempdimb=\dimen123
 
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/utilities/pgfutil-common-li
 sts.tex))
@@ -184,14 +190,14 @@ Package: pgfsys 2014/07/09 v3.0.1a (rcs-revision 1.48)
 ode.tex
 \pgfkeys@tmptoks=\toks23
 ))
-\pgf@x=\dimen120
-\pgf@y=\dimen121
-\pgf@xa=\dimen122
-\pgf@ya=\dimen123
-\pgf@xb=\dimen124
-\pgf@yb=\dimen125
-\pgf@xc=\dimen126
-\pgf@yc=\dimen127
+\pgf@x=\dimen124
+\pgf@y=\dimen125
+\pgf@xa=\dimen126
+\pgf@ya=\dimen127
+\pgf@xb=\dimen128
+\pgf@yb=\dimen129
+\pgf@xc=\dimen130
+\pgf@yc=\dimen131
 \w@pgf@writea=\write3
 \r@pgf@reada=\read1
 \c@pgf@counta=\count104
@@ -231,7 +237,7 @@ Package: pgfcore 2010/04/11 v3.0.1a (rcs-revision 1.7)
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/math/pgfmathcalc.code.tex
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/math/pgfmathutil.code.tex)
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/math/pgfmathparser.code.tex
-\pgfmath@dimen=\dimen128
+\pgfmath@dimen=\dimen132
 \pgfmath@count=\count110
 \pgfmath@box=\box28
 \pgfmath@toks=\toks27
@@ -262,32 +268,32 @@ erarithmetics.code.tex)))
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepoints.co
 de.tex
 File: pgfcorepoints.code.tex 2013/10/07  (rcs-revision 1.27)
-\pgf@picminx=\dimen129
-\pgf@picmaxx=\dimen130
-\pgf@picminy=\dimen131
-\pgf@picmaxy=\dimen132
-\pgf@pathminx=\dimen133
-\pgf@pathmaxx=\dimen134
-\pgf@pathminy=\dimen135
-\pgf@pathmaxy=\dimen136
-\pgf@xx=\dimen137
-\pgf@xy=\dimen138
-\pgf@yx=\dimen139
-\pgf@yy=\dimen140
-\pgf@zx=\dimen141
-\pgf@zy=\dimen142
+\pgf@picminx=\dimen133
+\pgf@picmaxx=\dimen134
+\pgf@picminy=\dimen135
+\pgf@picmaxy=\dimen136
+\pgf@pathminx=\dimen137
+\pgf@pathmaxx=\dimen138
+\pgf@pathminy=\dimen139
+\pgf@pathmaxy=\dimen140
+\pgf@xx=\dimen141
+\pgf@xy=\dimen142
+\pgf@yx=\dimen143
+\pgf@yy=\dimen144
+\pgf@zx=\dimen145
+\pgf@zy=\dimen146
 )
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepathconst
 ruct.code.tex
 File: pgfcorepathconstruct.code.tex 2013/10/07  (rcs-revision 1.29)
-\pgf@path@lastx=\dimen143
-\pgf@path@lasty=\dimen144
+\pgf@path@lastx=\dimen147
+\pgf@path@lasty=\dimen148
 )
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepathusage
 .code.tex
 File: pgfcorepathusage.code.tex 2014/11/02  (rcs-revision 1.24)
-\pgf@shorten@end@additional=\dimen145
-\pgf@shorten@start@additional=\dimen146
+\pgf@shorten@end@additional=\dimen149
+\pgf@shorten@start@additional=\dimen150
 )
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/basiclayer/pgfcorescopes.co
 de.tex
@@ -300,14 +306,14 @@ File: pgfcorescopes.code.tex 2015/05/08  (rcs-revision 1.46)
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/basiclayer/pgfcoregraphicst
 ate.code.tex
 File: pgfcoregraphicstate.code.tex 2014/11/02  (rcs-revision 1.12)
-\pgflinewidth=\dimen147
+\pgflinewidth=\dimen151
 )
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/basiclayer/pgfcoretransform
 ations.code.tex
 File: pgfcoretransformations.code.tex 2015/08/07  (rcs-revision 1.20)
-\pgf@pt@x=\dimen148
-\pgf@pt@y=\dimen149
-\pgf@pt@temp=\dimen150
+\pgf@pt@x=\dimen152
+\pgf@pt@y=\dimen153
+\pgf@pt@temp=\dimen154
 )
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/basiclayer/pgfcorequick.cod
 e.tex
@@ -324,12 +330,12 @@ File: pgfcorepathprocessing.code.tex 2013/09/09  (rcs-revision 1.9)
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/basiclayer/pgfcorearrows.co
 de.tex
 File: pgfcorearrows.code.tex 2015/05/14  (rcs-revision 1.43)
-\pgfarrowsep=\dimen151
+\pgfarrowsep=\dimen155
 )
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreshade.cod
 e.tex
 File: pgfcoreshade.code.tex 2013/07/15  (rcs-revision 1.15)
-\pgf@max=\dimen152
+\pgf@max=\dimen156
 \pgf@sys@shading@range@num=\count113
 )
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreimage.cod
@@ -365,8 +371,8 @@ File: pgfmoduleplot.code.tex 2015/08/03  (rcs-revision 1.13)
 (/usr/local/texlive/2018/texmf-dist/tex/latex/pgf/compatibility/pgfcomp-version
 -0-65.sty
 Package: pgfcomp-version-0-65 2007/07/03 v3.0.1a (rcs-revision 1.7)
-\pgf@nodesepstart=\dimen153
-\pgf@nodesepend=\dimen154
+\pgf@nodesepstart=\dimen157
+\pgf@nodesepend=\dimen158
 )
 (/usr/local/texlive/2018/texmf-dist/tex/latex/pgf/compatibility/pgfcomp-version
 -1-18.sty
@@ -381,8 +387,8 @@ Package: pgfcomp-version-1-18 2007/07/23 v3.0.1a (rcs-revision 1.1)
 Package: pgffor 2013/12/13 v3.0.1a (rcs-revision 1.25)
 
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/math/pgfmath.code.tex)
-\pgffor@iter=\dimen155
-\pgffor@skip=\dimen156
+\pgffor@iter=\dimen159
+\pgffor@skip=\dimen160
 \pgffor@stack=\toks30
 \pgffor@toks=\toks31
 ))
@@ -394,14 +400,14 @@ Package: tikz 2015/08/07 v3.0.1a (rcs-revision 1.151)
 dlers.code.tex
 File: pgflibraryplothandlers.code.tex 2013/08/31 v3.0.1a (rcs-revision 1.20)
 \pgf@plot@mark@count=\count114
-\pgfplotmarksize=\dimen157
+\pgfplotmarksize=\dimen161
 )
-\tikz@lastx=\dimen158
-\tikz@lasty=\dimen159
-\tikz@lastxsaved=\dimen160
-\tikz@lastysaved=\dimen161
-\tikzleveldistance=\dimen162
-\tikzsiblingdistance=\dimen163
+\tikz@lastx=\dimen162
+\tikz@lasty=\dimen163
+\tikz@lastxsaved=\dimen164
+\tikz@lastysaved=\dimen165
+\tikzleveldistance=\dimen166
+\tikzsiblingdistance=\dimen167
 \tikz@figbox=\box34
 \tikz@figbox@bg=\box35
 \tikz@tempbox=\box36
@@ -432,14 +438,14 @@ File: tikzlibrarypositioning.code.tex 2008/10/06 v3.0.1a (rcs-revision 1.7)
 Package: calc 2017/05/25 v4.3 Infix arithmetic (KKT,FJ)
 \calc@Acount=\count123
 \calc@Bcount=\count124
-\calc@Adimen=\dimen164
-\calc@Bdimen=\dimen165
-\calc@Askip=\skip49
-\calc@Bskip=\skip50
+\calc@Adimen=\dimen168
+\calc@Bdimen=\dimen169
+\calc@Askip=\skip48
+\calc@Bskip=\skip49
 LaTeX Info: Redefining \setlength on input line 80.
 LaTeX Info: Redefining \addtolength on input line 81.
 \calc@Ccount=\count125
-\calc@Cskip=\skip51
+\calc@Cskip=\skip50
 )
 \c@@todonotes@numberoftodonotes=\count126
 )
@@ -455,7 +461,7 @@ Package: pgfplots 2018/03/28 v1.16 Data Visualization (1.16)
 \t@pgfplots@toka=\toks32
 \t@pgfplots@tokb=\toks33
 \t@pgfplots@tokc=\toks34
-\pgfplots@tmpa=\dimen166
+\pgfplots@tmpa=\dimen170
 \c@pgfplots@coordindex=\count127
 \c@pgfplots@scanlineindex=\count128
 
@@ -536,14 +542,14 @@ x)
 s/tikzlibrarydecorations.code.tex
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/modules/pgfmoduledecoration
 s.code.tex
-\pgfdecoratedcompleteddistance=\dimen167
-\pgfdecoratedremainingdistance=\dimen168
-\pgfdecoratedinputsegmentcompleteddistance=\dimen169
-\pgfdecoratedinputsegmentremainingdistance=\dimen170
-\pgf@decorate@distancetomove=\dimen171
+\pgfdecoratedcompleteddistance=\dimen171
+\pgfdecoratedremainingdistance=\dimen172
+\pgfdecoratedinputsegmentcompleteddistance=\dimen173
+\pgfdecoratedinputsegmentremainingdistance=\dimen174
+\pgf@decorate@distancetomove=\dimen175
 \pgf@decorate@repeatstate=\count133
-\pgfdecorationsegmentamplitude=\dimen172
-\pgfdecorationsegmentlength=\dimen173
+\pgfdecorationsegmentamplitude=\dimen176
+\pgfdecorationsegmentlength=\dimen177
 )
 \tikz@lib@dec@box=\box38
 )
@@ -556,12 +562,12 @@ s/tikzlibrarydecorations.pathreplacing.code.tex
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/libraries/decorations/pgfli
 brarydecorations.pathreplacing.code.tex))
 \pgfplots@numplots=\count134
-\pgfplots@xmin@reg=\dimen174
-\pgfplots@xmax@reg=\dimen175
-\pgfplots@ymin@reg=\dimen176
-\pgfplots@ymax@reg=\dimen177
-\pgfplots@zmin@reg=\dimen178
-\pgfplots@zmax@reg=\dimen179
+\pgfplots@xmin@reg=\dimen178
+\pgfplots@xmax@reg=\dimen179
+\pgfplots@ymin@reg=\dimen180
+\pgfplots@ymax@reg=\dimen181
+\pgfplots@zmin@reg=\dimen182
+\pgfplots@zmax@reg=\dimen183
 )
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/frontendlayer/tikz/librarie
 s/tikzlibraryplotmarks.code.tex
@@ -577,12 +583,12 @@ File: pgflibraryplotmarks.code.tex 2015/08/03 v3.0.1a (rcs-revision 1.14)
 .coltype.code.tex))
 (/usr/local/texlive/2018/texmf-dist/tex/latex/tools/array.sty
 Package: array 2018/04/07 v2.4g Tabular extension package (FMi)
-\col@sep=\dimen180
+\col@sep=\dimen184
 \ar@mcellbox=\box39
-\extrarowheight=\dimen181
+\extrarowheight=\dimen185
 \NC@list=\toks36
-\extratabsurround=\skip52
-\backup@length=\skip53
+\extratabsurround=\skip51
+\backup@length=\skip52
 \ar@cellbox=\box40
 ))
 PGFPlots: reading {../../results/201030_europe3_table01.tsv}
@@ -590,29 +596,33 @@ PGFPlots: reading {../../results/201030_europe3_table02.tsv}
  (./main.aux)
 \openout1 = `main.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 32.
-LaTeX Font Info:    ... okay on input line 32.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 32.
-LaTeX Font Info:    ... okay on input line 32.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 32.
-LaTeX Font Info:    ... okay on input line 32.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 32.
-LaTeX Font Info:    ... okay on input line 32.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 32.
-LaTeX Font Info:    ... okay on input line 32.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 32.
-LaTeX Font Info:    ... okay on input line 32.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 43.
+LaTeX Font Info:    ... okay on input line 43.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 43.
+LaTeX Font Info:    ... okay on input line 43.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 43.
+LaTeX Font Info:    ... okay on input line 43.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 43.
+LaTeX Font Info:    ... okay on input line 43.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 43.
+LaTeX Font Info:    ... okay on input line 43.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 43.
+LaTeX Font Info:    ... okay on input line 43.
+LaTeX Font Info:    Try loading font information for T1+cmss on input line 43.
 
+(/usr/local/texlive/2018/texmf-dist/tex/latex/base/t1cmss.fd
+File: t1cmss.fd 2014/09/29 v2.5h Standard LaTeX font definitions
+)
 (/usr/local/texlive/2018/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count135
-\scratchdimen=\dimen182
+\scratchdimen=\dimen186
 \scratchbox=\box41
 \nofMPsegments=\count136
 \nofMParguments=\count137
 \everyMPshowfont=\toks37
 \MPscratchCnt=\count138
-\MPscratchDim=\dimen183
+\MPscratchDim=\dimen187
 \MPnumerator=\count139
 \makeMPintoPDFobject=\count140
 \everyMPtoPDFconversion=\toks38
@@ -680,273 +690,206 @@ ABD: EveryShipout initializing macros
 Package pgfplots notification 'compat/show suggested version=true': document ha
 s been generated with the most recent feature set (\pgfplotsset{compat=1.16}).
 
-LaTeX Font Info:    Try loading font information for T1+cmss on input line 33.
-(/usr/local/texlive/2018/texmf-dist/tex/latex/base/t1cmss.fd
-File: t1cmss.fd 2014/09/29 v2.5h Standard LaTeX font definitions
-)
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <14.4> on input line 33.
+(Font)              <14.4> on input line 44.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 33.
-
+(Font)              <7> on input line 44.
 
 LaTeX Warning: No \author given.
+
+
+Overfull \hbox (3.47855pt too wide) in paragraph at lines 76--76
+[][][][]\T1/cmss/m/n/12 limitations 
+ []
+
+
+Overfull \hbox (3.47855pt too wide) in paragraph at lines 76--76
+[][][][]\T1/cmss/m/n/12 limitations 
+ []
+
+
+Overfull \hbox (3.47855pt too wide) in paragraph at lines 76--76
+[][][][]\T1/cmss/m/n/12 limitations 
+ []
+
+
+Overfull \hbox (3.47855pt too wide) in paragraph at lines 76--76
+[][][][]\T1/cmss/m/n/12 limitations 
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 76--77
+
+ []
 
 [1
 
 {/usr/local/texlive/2018/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-Underfull \hbox (badness 10000) in paragraph at lines 58--59
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 61--62
-
- []
-
-
-Overfull \hbox (8.65959pt too wide) in paragraph at lines 64--64
-[][][][]\T1/cmr/m/n/12 Working 
- []
-
-
-Overfull \hbox (8.65959pt too wide) in paragraph at lines 64--64
-[][][][]\T1/cmr/m/n/12 Working 
- []
-
-
-Overfull \hbox (8.65959pt too wide) in paragraph at lines 64--64
-[][][][]\T1/cmr/m/n/12 Working 
- []
-
-
-Overfull \hbox (8.65959pt too wide) in paragraph at lines 64--64
-[][][][]\T1/cmr/m/n/12 Working 
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 70--71
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 73--76
-
- []
-
-
-Overfull \hbox (4.90912pt too wide) in paragraph at lines 82--82
-[][][][]\T1/cmr/m/n/12 Explain 
- []
-
-
-Overfull \hbox (4.90912pt too wide) in paragraph at lines 82--82
-[][][][]\T1/cmr/m/n/12 Explain 
- []
-
-
-Overfull \hbox (4.90912pt too wide) in paragraph at lines 82--82
-[][][][]\T1/cmr/m/n/12 Explain 
- []
-
-
-Overfull \hbox (4.90912pt too wide) in paragraph at lines 82--82
-[][][][]\T1/cmr/m/n/12 Explain 
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 87--88
-
- []
-
-[2]
-Underfull \hbox (badness 10000) in paragraph at lines 97--99
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 100--101
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 102--103
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 104--105
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 108--109
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 111--112
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 113--114
-
- []
-
-
-Overfull \hbox (1.97241pt too wide) in paragraph at lines 116--116
-[][][][]\T1/cmr/m/n/12 Legend 
- []
-
-
-Overfull \hbox (1.97241pt too wide) in paragraph at lines 116--116
-[][][][]\T1/cmr/m/n/12 Legend 
- []
-
-
-Overfull \hbox (1.97241pt too wide) in paragraph at lines 116--116
-[][][][]\T1/cmr/m/n/12 Legend 
- []
-
-
-Overfull \hbox (1.97241pt too wide) in paragraph at lines 116--116
-[][][][]\T1/cmr/m/n/12 Legend 
- []
-
-[3]
-
-LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 128.
-
-<../../results/201030_europe3_figtraj01.png, id=23, 361.35pt x 240.9pt>
+<../../results/201030_europe3_figtraj01.png, id=15, 361.35pt x 240.9pt>
 File: ../../results/201030_europe3_figtraj01.png Graphic file (type png)
 <use ../../results/201030_europe3_figtraj01.png>
 Package pdftex.def Info: ../../results/201030_europe3_figtraj01.png  used on in
-put line 130.
-(pdftex.def)             Requested size: 375.80544pt x 250.53743pt.
-
-LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 136.
-
-<../../results/201030_europe3_figtraj02.png, id=24, 554.07pt x 722.7pt>
+put line 81.
+(pdftex.def)             Requested size: 364.19667pt x 242.79979pt.
+<../../results/201030_europe3_figtraj02.png, id=16, 554.07pt x 722.7pt>
 File: ../../results/201030_europe3_figtraj02.png Graphic file (type png)
 <use ../../results/201030_europe3_figtraj02.png>
 Package pdftex.def Info: ../../results/201030_europe3_figtraj02.png  used on in
-put line 138.
-(pdftex.def)             Requested size: 422.77664pt x 551.45218pt.
+put line 89.
+(pdftex.def)             Requested size: 409.71692pt x 534.41469pt.
 
-LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 144.
+Underfull \hbox (badness 10000) in paragraph at lines 95--96
 
-<../../results/201030_europe3_figtraj03.png, id=25, 361.35pt x 240.9pt>
+ []
+
+<../../results/201030_europe3_figtraj03.png, id=17, 568.1225pt x 434.62375pt>
 File: ../../results/201030_europe3_figtraj03.png Graphic file (type png)
 <use ../../results/201030_europe3_figtraj03.png>
 Package pdftex.def Info: ../../results/201030_europe3_figtraj03.png  used on in
-put line 146.
-(pdftex.def)             Requested size: 422.77664pt x 281.85185pt.
-
-LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 152.
-
-<../../results/201030_europe3_figtraj04.png, id=26, 481.8pt x 481.8pt>
+put line 100.
+(pdftex.def)             Requested size: 409.71692pt x 313.45277pt.
+<../../results/201030_europe3_figtraj04.png, id=19, 481.8pt x 481.8pt>
 File: ../../results/201030_europe3_figtraj04.png Graphic file (type png)
 <use ../../results/201030_europe3_figtraj04.png>
 Package pdftex.def Info: ../../results/201030_europe3_figtraj04.png  used on in
-put line 154.
-(pdftex.def)             Requested size: 469.75502pt x 469.77148pt.
+put line 112.
+(pdftex.def)             Requested size: 455.24411pt x 455.2593pt.
 
-LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 160.
+Underfull \hbox (badness 10000) in paragraph at lines 118--119
 
-<../../results/201030_europe3_figtraj06.png, id=27, 542.025pt x 361.35pt>
-File: ../../results/201030_europe3_figtraj06.png Graphic file (type png)
-<use ../../results/201030_europe3_figtraj06.png>
-Package pdftex.def Info: ../../results/201030_europe3_figtraj06.png  used on in
-put line 162.
-(pdftex.def)             Requested size: 469.75502pt x 313.181pt.
+ []
 
-LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 168.
+[2 <../../results/201030_europe3_figtraj01.png (PNG copy)>] [3 <../../results/2
+01030_europe3_figtraj02.png (PNG copy)>]
+Underfull \hbox (badness 10000) in paragraph at lines 123--124
 
-<../../results/201030_europe3_figtraj05.png, id=28, 542.025pt x 361.35pt>
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 127--128
+
+ []
+
+[4 <../../results/201030_europe3_figtraj03.png>] [5 <../../results/201030_europ
+e3_figtraj04.png (PNG copy)>]
+<../../results/201030_europe3_figtraj05.png, id=34, 542.025pt x 361.35pt>
 File: ../../results/201030_europe3_figtraj05.png Graphic file (type png)
 <use ../../results/201030_europe3_figtraj05.png>
 Package pdftex.def Info: ../../results/201030_europe3_figtraj05.png  used on in
-put line 170.
-(pdftex.def)             Requested size: 469.75502pt x 313.181pt.
+put line 131.
+(pdftex.def)             Requested size: 455.24411pt x 303.50436pt.
 
-LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 176.
+Underfull \hbox (badness 10000) in paragraph at lines 136--137
 
-<../../results/201030_europe3_figtraj08.png, id=29, 554.07pt x 722.7pt>
-File: ../../results/201030_europe3_figtraj08.png Graphic file (type png)
-<use ../../results/201030_europe3_figtraj08.png>
-Package pdftex.def Info: ../../results/201030_europe3_figtraj08.png  used on in
-put line 178.
-(pdftex.def)             Requested size: 469.75502pt x 612.72096pt.
+ []
 
-LaTeX Warning: Float too large for page by 16.79094pt on input line 181.
-
-
-LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 184.
-
-<../../results/201030_europe3_figtraj07.png, id=30, 361.35pt x 240.9pt>
+<../../results/201030_europe3_figtraj06.png, id=35, 542.025pt x 361.35pt>
+File: ../../results/201030_europe3_figtraj06.png Graphic file (type png)
+<use ../../results/201030_europe3_figtraj06.png>
+Package pdftex.def Info: ../../results/201030_europe3_figtraj06.png  used on in
+put line 140.
+(pdftex.def)             Requested size: 455.24411pt x 303.50436pt.
+<../../results/201030_europe3_figtraj07.png, id=36, 361.35pt x 240.9pt>
 File: ../../results/201030_europe3_figtraj07.png Graphic file (type png)
 <use ../../results/201030_europe3_figtraj07.png>
 Package pdftex.def Info: ../../results/201030_europe3_figtraj07.png  used on in
-put line 186.
-(pdftex.def)             Requested size: 469.75502pt x 313.17361pt.
-<../../results/201030_europe3_figtraj09a.png, id=31, 361.35pt x 361.35pt>
+put line 150.
+(pdftex.def)             Requested size: 455.24411pt x 303.49883pt.
+[6 <../../results/201030_europe3_figtraj05.png (PNG copy)>]
+
+LaTeX Warning: Marginpar on page 7 moved.
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 163--164
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 165--166
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 167--168
+
+ []
+
+[7 <../../results/201030_europe3_figtraj06.png (PNG copy)>]
+Underfull \hbox (badness 10000) in paragraph at lines 175--176
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 177--178
+
+ []
+
+<../../results/201030_europe3_figtraj09a.png, id=44, 361.35pt x 361.35pt>
 File: ../../results/201030_europe3_figtraj09a.png Graphic file (type png)
 <use ../../results/201030_europe3_figtraj09a.png>
 Package pdftex.def Info: ../../results/201030_europe3_figtraj09a.png  used on i
-nput line 196.
-(pdftex.def)             Requested size: 187.89914pt x 187.89757pt.
-<../../results/201030_europe3_figtraj09b.png, id=32, 361.35pt x 361.35pt>
+nput line 184.
+(pdftex.def)             Requested size: 182.09486pt x 182.0971pt.
+<../../results/201030_europe3_figtraj09b.png, id=45, 361.35pt x 361.35pt>
 File: ../../results/201030_europe3_figtraj09b.png Graphic file (type png)
 <use ../../results/201030_europe3_figtraj09b.png>
 Package pdftex.def Info: ../../results/201030_europe3_figtraj09b.png  used on i
-nput line 200.
-(pdftex.def)             Requested size: 187.89914pt x 187.89757pt.
-<../../results/201030_europe3_figtraj09c.png, id=33, 361.35pt x 361.35pt>
+nput line 188.
+(pdftex.def)             Requested size: 182.09486pt x 182.0971pt.
+<../../results/201030_europe3_figtraj09c.png, id=46, 361.35pt x 361.35pt>
 File: ../../results/201030_europe3_figtraj09c.png Graphic file (type png)
 <use ../../results/201030_europe3_figtraj09c.png>
 Package pdftex.def Info: ../../results/201030_europe3_figtraj09c.png  used on i
-nput line 204.
-(pdftex.def)             Requested size: 187.89914pt x 187.89757pt.
-[4 <../../results/201030_europe3_figtraj01.png (PNG copy)>] [5 <../../results/2
-01030_europe3_figtraj02.png (PNG copy)>] [6 <../../results/201030_europe3_figtr
-aj03.png (PNG copy)>] [7 <../../results/201030_europe3_figtraj04.png (PNG copy)
->] [8 <../../results/201030_europe3_figtraj06.png (PNG copy)>] [9 <../../result
-s/201030_europe3_figtraj05.png (PNG copy)>] [10 <../../results/201030_europe3_f
-igtraj08.png (PNG copy)>] [11 <../../results/201030_europe3_figtraj07.png (PNG 
-copy)>] [12 <../../results/201030_europe3_figtraj09a.png (PNG copy)> <../../res
-ults/201030_europe3_figtraj09b.png (PNG copy)> <../../results/201030_europe3_fi
-gtraj09c.png (PNG copy)>] (./main.aux) ) 
+nput line 192.
+(pdftex.def)             Requested size: 182.09486pt x 182.0971pt.
+
+LaTeX Warning: No positions in optional float specifier.
+               Default added (so using `tbp') on input line 199.
+
+<../../results/201030_europe3_figtraj08.png, id=47, 554.07pt x 722.7pt>
+File: ../../results/201030_europe3_figtraj08.png Graphic file (type png)
+<use ../../results/201030_europe3_figtraj08.png>
+Package pdftex.def Info: ../../results/201030_europe3_figtraj08.png  used on in
+put line 201.
+(pdftex.def)             Requested size: 455.24411pt x 593.79778pt.
+[8 <../../results/201030_europe3_figtraj07.png (PNG copy)>] [9 <../../results/2
+01030_europe3_figtraj09a.png (PNG copy)> <../../results/201030_europe3_figtraj0
+9b.png (PNG copy)> <../../results/201030_europe3_figtraj09c.png (PNG copy)>]
+[10 <../../results/201030_europe3_figtraj08.png (PNG copy)>] (./main.bbl
+[11]) (./main.tdo
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <12> on input line 1.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 1.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 1.
+)
+\tf@tdo=\write4
+\openout4 = `main.tdo'.
+
+ [12] (./main.aux) ) 
 Here is how much of TeX's memory you used:
- 24200 strings out of 492649
- 631408 string characters out of 6129623
- 811029 words of memory out of 5000000
- 27656 multiletter control sequences out of 15000+600000
- 12566 words of font info for 28 fonts, out of 8000000 for 9000
+ 24253 strings out of 492649
+ 632359 string characters out of 6129623
+ 810188 words of memory out of 5000000
+ 27697 multiletter control sequences out of 15000+600000
+ 15041 words of font info for 36 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 73i,9n,127p,872b,732s stack positions out of 5000i,500n,10000p,200000b,80000s
-{/usr/local/texlive/2018/texmf-dist/fon
-ts/enc/dvips/cm-super/cm-super-t1.enc}</usr/local/texlive/2018/texmf-dist/fonts
-/type1/public/cm-super/sfbx1095.pfb></usr/local/texlive/2018/texmf-dist/fonts/t
-ype1/public/cm-super/sfbx1200.pfb></usr/local/texlive/2018/texmf-dist/fonts/typ
-e1/public/cm-super/sfbx1728.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1
-/public/cm-super/sfrm1095.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/p
-ublic/cm-super/sfrm1200.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/pub
-lic/cm-super/sfrm1440.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/publi
-c/cm-super/sfrm2074.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/
-cm-super/sfss0600.pfb>
-Output written on main.pdf (12 pages, 2263266 bytes).
+ 73i,9n,127p,1138b,857s stack positions out of 5000i,500n,10000p,200000b,80000s
+{/usr/local/texlive/2018/texmf-dist/fonts/enc/dvips/cm-supe
+r/cm-super-t1.enc}</usr/local/texlive/2018/texmf-dist/fonts/type1/public/cm-sup
+er/sfsi1200.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/cm-super
+/sfss1095.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/cm-super/s
+fss1200.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/cm-super/sfs
+s1440.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/cm-super/sfss2
+074.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/cm-super/sfsx109
+5.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/cm-super/sfsx1200.
+pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/cm-super/sfsx1728.pf
+b>
+Output written on main.pdf (12 pages, 2222033 bytes).
 PDF statistics:
- 90 PDF objects out of 1000 (max. 8388607)
- 56 compressed objects within 1 object stream
+ 92 PDF objects out of 1000 (max. 8388607)
+ 57 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  68 words of extra memory for PDF output out of 10000 (max. 10000000)
 
