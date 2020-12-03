@@ -147,7 +147,7 @@ r_reported <- reported %>%
          `Median Reporting Rate (95% CCI)` = paste0(round(reportrate, 2), " (", round(hreportrate, 2), "-", round(lreportrate, 2), ")")) %>%
   select(-one_of(colnames(reported)))
 
-write_tsv(r_reported, file = paste0(args$output_table, "01.tsv"))
+write_tsv(r_reported, paste0(args$output_table, "01.tsv"))
 
 # 2. Events 
 # 2.1. Time interval of first case (introduction) and first reported case to ECDC.
@@ -313,7 +313,7 @@ r_firsts <- firsts %>%
   left_join(r_firstmig, by = c("Country", "First Reported Case ECDC")) %>%
   select(1,4,5,6,8,2,3,7,9)
 
-write_tsv(r_firsts, file = paste0(args$output_table, "02.tsv"))
+write_tsv(r_firsts, paste0(args$output_table, "02.tsv"))
 
 
 # Plotting ---------------------------------------------------------------------
@@ -393,16 +393,22 @@ ggexport(ggarrange(plotlist = trajs, labels = chartr("123456789", "ABCDEFGHI", 1
 
 # 1.3. Reporting rate 5 days cumulative cases
 reported5days <- gt_summary %>%
+  filter(type != china_deme) %>%
   left_join(case_data %>% rename(type = deme), by = c("type", "date"))  %>%
   replace_na(list(cumcases = 0)) %>% 
-  mutate(reportrate = cumcases/Imedian) %>%
+  mutate(reportrate = ifelse(is.infinite(cumcases/Imedian), 0, cumcases/Imedian),
+         rlow = ifelse(is.infinite(cumcases/Ihigh), 0, cumcases/Ihigh),
+         rhigh = ifelse(is.infinite(cumcases/Ilow), 0, cumcases/Ilow)) %>%
+  filter(!is.na(reportrate)) %>%
   ggplot() +
-  geom_histogram(aes(x = date, y = reportrate, fill = type), stat="identity") +
-  facet_wrap(~type, scales = "free") +
+  geom_line(aes(x = date, y = reportrate, color = type), stat="identity") +
+  geom_point(aes(x = date, y = reportrate, color = type), stat="identity") +
+  #geom_ribbon(aes(date, ymin = rlow, ymax = rhigh, fill = type), alpha = 0.5) +
   ylab("Reporting rate") +
-  scale_fill_manual(values = dcolors) +
-  scale_x_date(limits = c(ymd("2020-01-01"), ymd("2020-03-08")), date_breaks = "1 month", date_labels = "%b %d") +
-  theme(legend.position = "none", 
+  scale_color_manual(values = dcolors, name = "") +
+  scale_fill_manual(values = dcolors, name = "") +
+  scale_x_date(date_breaks = "5 days", date_labels = "%b %d") +
+  theme(#legend.position = "none", 
         axis.title.x=element_blank())
 
 ggexport(reported5days, filename = paste0(args$output_figure, "03.png"),
@@ -444,7 +450,7 @@ first_prob <- events %>%
         axis.title.y=element_blank(),
         panel.background = element_rect(fill = "white", colour = "white"))
 
-# 2.2 First introduction intto Europe, distribution density destination
+# 2.2 First introduction into Europe, distribution density destination
 first_dest <-  events %>%
   # 1. Prepare data
   filter(event == "M") %>%
@@ -496,7 +502,7 @@ ggexport(ggarrange(plotlist = list(first_prob, ggarrange(plotlist = list(first_d
 # 2.3. Order set of first case
 order_imig_df <-  events %>%
   # 1. Prepare data
-  filter(event == "M") %>%
+  filter(event == "M", dest != china_deme) %>%
   group_by(traj, dest) %>%
   arrange(traj, time) %>%
   distinct(traj, dest) %>%
@@ -679,6 +685,10 @@ plot_chord <- function(grid_df, min_date, max_date) {
       circos.axis(
         h = "top", 
         major.at = seq(from = 0, to = xlim[2], by = case_when(
+          xlim[2] > 50500 ~ 50000,
+          xlim[2] > 20500 ~ 20000,
+          xlim[2] > 10500 ~ 10000,
+          xlim[2] > 5500 ~ 5000,
           xlim[2] > 2500 ~ 2000,
           xlim[2] > 1500 ~ 1000,
           xlim[2] > 800 ~ 500,
