@@ -130,6 +130,39 @@ v_flightMatrix_3i <- na.exclude(c(t(flightMatrix_i2),t(flightMatrix_i1),t(flight
 slv_flightMatrix_3i <- scale(log(v_flightMatrix_3i + 1))
 write(slv_flightMatrix_3i, "files/flight_matrix_3i.csv", sep = ",")
 
+# 3 epochs migration matrix divided by population
+
+# Find better way to load population data by deme
+demes <- read.csv("/Users/maceci/Documents/CBB Master/HS20/Master Thesis/sars-cov-2-eu-phylodynamics/workflow/files/demes.csv")
+cases <- get_cases(demes)
+pops <- cases %>%
+  select(deme, population_deme) %>%
+  mutate(GEO = as.character(deme)) %>%
+  distinct
+pops$GEO[pops$deme == "Hubei"] <- "Hubei-China"
+
+# flightMatrix_i0 <- sweep((flightsDic$matrix + flightsJan$matrix)/2, 2, pops$population_deme, `/`)
+# flightMatrix_i1 <- sweep(flightsFeb$matrix, 2, pops$population_deme, `/`)
+# flightMatrix_i2 <-  sweep(flightsMar$matrix, 2, pops$population_deme, `/`)
+nflightMatrix_i0 <- flightMatrix_i0 / pops$population_deme
+nflightMatrix_i1 <- flightMatrix_i1 / pops$population_deme
+nflightMatrix_i2 <- flightMatrix_i2 / pops$population_deme
+vn_flightMatrix_3i <- na.exclude(c(t(nflightMatrix_i2),t(nflightMatrix_i1),t(nflightMatrix_i0)))
+slnv_flightMatrix_3i <- scale(log(vn_flightMatrix_3i + 1))
+write(slnv_flightMatrix_3i, "files/flight_matrix_3i_pop.csv", sep = ",")
+
+# Population source matrix
+pop_source <- (diag(6) - 1) * (-1)
+colnames(pop_source) <- pops$deme
+rownames(pop_source) <- pops$deme
+pop_source <- pop_source * pops$population_deme
+
+# Population destination matrix
+pop_dest <- (diag(6) - 1) * (-1)
+colnames(pop_dest) <- pops$deme
+rownames(pop_dest) <- pops$deme
+pop_dest <- sweep(pop_dest, 2, pops$population_deme, `*`)
+
 
 # # Summarise into two periods (Sept - Jan and Feb - March) and calculate # passengers/day
 # first <- Reduce("+", mms[1:5])/(5*30)

@@ -30,12 +30,15 @@ get_cases <- function(demes, from = NA, to = NA) {
   # Get case data information from ECDC for specific demes (countries and regions)
   # Set from and to dates with values from the function call instead of the ones from the demes info
   cat("\nLoading case data counts from ECDC...\n")
+  #if (!is.na(division_name)) case_data <- get_dataJH() Hubei specific data, but only from 22 Jan
+  #else case_data <- get_dataECDC()
+  case_data <- get_dataECDC()
   
   if (!is.na(from)) demes$min_date <- from
   if (!is.na(to)) demes$max_date <- to
   
   # Filter case count data according to deme info
-  case_data_list <- mapply(get_cases_deme, demes$deme,
+  case_data_list <- mapply(get_cases_deme, list(case_data), demes$deme,
                            demes$region, demes$country, demes$division,
                            demes$exclude_country, demes$exclude_division,
                            demes$min_date, demes$max_date)
@@ -46,12 +49,9 @@ get_cases <- function(demes, from = NA, to = NA) {
 }
 
 
-get_cases_deme <- function(deme_name, region_name = NA, country_name = NA, division_name = NA, 
+get_cases_deme <- function(case_data, deme_name, region_name = NA, country_name = NA, division_name = NA, 
                       exclude_country = NA, exclude_division = NA,
                       from, to) {
-  #if (!is.na(division_name)) case_data <- get_dataJH() Hubei specific data, but only from 22 Jan
-  #else case_data <- get_dataECDC()
-  case_data <- get_dataECDC()
   print(deme_name)
   df_cases <- case_data %>%
     filter(if (is.na(region_name)) TRUE else region %in% region_name,
@@ -61,7 +61,14 @@ get_cases_deme <- function(deme_name, region_name = NA, country_name = NA, divis
            #if (is.na(exclude_division)) TRUE else !division_name %in% exclude_division,
            date >= as.Date(from),
            date <= as.Date(to)) %>%
-    mutate(deme = deme_name)
+    mutate(deme = deme_name) %>%
+    arrange(date) %>%
+    mutate(cumcases = cumsum(cases),
+          cumdeaths = cumsum(deaths),
+          population_deme = sum(unique(population))) %>%
+    group_by(date) %>%
+    mutate(cumcases = max(cumcases),
+           cumdeaths = max(cumdeaths))
   
   return(df_cases)
 }  
@@ -79,11 +86,7 @@ get_dataECDC <- function() {
            ) %>%
     mutate(date = as.Date(date, "%d/%m/%Y"),
            country = ifelse(country == "Czechia", "Czech Republic", gsub("_", " ", country))) %>%
-    select(region, country, geoId, date, cases, deaths, cases14days, population) %>%
-    arrange(date) %>%
-    group_by(country) %>%
-    mutate(cumcases = cumsum(cases),
-           cumdeaths = cumsum(deaths))
+    select(region, country, geoId, date, cases, deaths, cases14days, population) 
   return(case_data1)
 }
 
