@@ -239,8 +239,7 @@ bsub -W 120:00 snakemake --profile euler  -p -j 100
 - Summary log table 4% burnin [open](results/trace-tables/200914_europe1.summary.tsv)
 - Summary tree, maximum clade credibility tree mean height 4% burnin [open](results/mcc-tree/200914_europe1.typed.node.tree)
 - Trajectory figures 4% burnin 
- ![](results/traj-figs/200914_europe1_figtraj01.png) 
-
+<img src="results/traj-figs/200914_europe1_figtraj01.png"  width="500">
 
 ## Notes
 
