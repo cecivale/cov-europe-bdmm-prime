@@ -27,54 +27,19 @@ Initially, we tried three different alignments:
 
 And select 3c since we obtain a better representation of the epidemic in China (more diversity in the sequences, higher R0 and infered number of cases).
 
-File: [201014_europe2.fasta](data/201030_europe3.fasta)
+File: [201030_europe3.fasta](data/201030_europe3.fasta)
 
 New alignment based on data available on GISAID as of 2020-11-13. 
 Total number of sequences: 340
- ssprop_China:
-    France:
-      country: "France"
-      region: "Europe"
-      min_date: "2020-01-23"
-      max_date: "2020-03-08"
-      seq_per_deme: 60
-      prob: "cases"
-    Germany:
-      country: "Germany"
-      region: "Europe"
-      min_date: "2020-01-28"
-      max_date: "2020-03-08"
-      seq_per_deme: 50
-      prob: "cases"
-    Hubei-China:
-      country: "China"
-      region: "Asia"
-      min_date: "2019-12-24"
-      max_date: "2020-01-23"
-      seq_per_deme: 60
-      prob: "deaths"
-    Italy:
-      country: "Italy"
-      region: "Europe"
-      min_date: "2020-01-29"
-      max_date: "2020-03-08"
-      seq_per_deme: 60
-      prob: "cases"
-    OtherEuropean:
-      region: "Europe"
-      exclude_country: ["France","Germany","Italy","Spain"]
-      min_date: "2020-01-29"
-      max_date: "2020-03-08"
-      seq_per_deme: 50
-      prob: "cases"
-    Spain:
-      country: "Spain"
-      region: "Europe"
-      min_date: "2020-02-24"
-      max_date: "2020-03-08"
-      seq_per_deme: 60
-      prob: "cases"
 
+**ssprop_China:**
+
+* **France:** 60 sequences from 23 Jan to 8 March, prob ~ cases
+* **Germany:** 50 sequences from 28 Jan to 8 March, prob ~ cases
+* **Hubei-China:** 60 sequences from 24 Dec to 23 Jan, prob ~ deaths
+* **Italy:** 60 sequences from 29 Jan to 8 March, prob ~ cases
+* **OtherEuropean:** 50 sequences from 29 Jan to 8 March, prob ~ cases
+* **Spain:**  60 sequences from 24 Feb to 8 March, prob ~ cases
 
 ## XML
 
