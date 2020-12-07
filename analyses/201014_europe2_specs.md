@@ -37,6 +37,7 @@ Total number of sequences: 322
 
 - BDMM-Prime, same specifications that in previous analysis.
 - File: [201014_europe2.xml](analyses/201014_europe2.xml)
+- Smart scale operator for sampling prroportion so values with same initial value will be change together by the operator (same value across all mcmc steps)
 
 #### Tip Dates
 Use tip dates auto-configure.
@@ -75,7 +76,7 @@ Use tip dates auto-configure.
 | Set locations             | Autoconfigure        |
 | **R0**                        
 | Number of change times    | 0                    |
-| Values F G H I O          | 1.0 1.0 1.0 1.0 1.0  |            | x            |
+| Values F G H I O S        | 1.0 1.0 1.0 1.0 1.0 1.0 |            | x            |
 | **Become Uninfectious Rate**                        
 | Number of change times    | 0                    |
 | Values ALL                | 36.5  		       | x          |              |
@@ -83,7 +84,7 @@ Use tip dates auto-configure.
 | Number of change times    | 2                    |
 | Change times              | 0.12 0.205 *[2]*     |            |              |
 | Time as ages              | true                 |
-| Values  F G H I O         | E1: 1.0E-5 1.0E-5 0.0 1.0E-5 1.0E-5 <br> E2:  1.0E-5 1.0E-5 1.0E-5 1.0E-5 1.0E-5 <br> E3: 0.0 0.0 0.0 0.0 0.0 | | x |
+| Values  F G H I O S       | E1: 1.0E-5 1.1E-5 0.0 1.3E-5 1.4E-5 1.5E-5 <br> E2:  1.0E-5 1.1E-5 1.2E-5 1.3E-5 1.4E-5 1.5E-5 <br> E3: 0.0 0.0 0.0 0.0 0.0 0.0 | | x |
 | **Rho Sampling**                        
 | Number of elements        | 0                    |
 | **Removal Prob**                        
@@ -91,13 +92,13 @@ Use tip dates auto-configure.
 | Values ALL                | 1.0 			     | x          |              |
 | **Migration Rte**                        
 | Number of change times    | 0                    |
-| Values  F G H I O         | -- 0.1 0.0 0.1 0.1 <br> 0.1 -- 0.0 0.1 0.1 <br> 0.1 0.1 -- 0.1 0.1 <br> 0.1 0.1 0.0 -- 0.1 <br> 0.1 0.1 0.0 0.1 -- <br> *[3]* | | x |
+| Values  F G H I O S       | -- 0.1 0.0 0.1 0.1 0.1 <br> 0.1 -- 0.0 0.1 0.1 0.1 <br> 0.1 0.1 -- 0.1 0.1 0.1 <br> 0.1 0.1 0.0 -- 0.1 0.1 <br> 0.1 0.1 0.0 0.1 --  0.1 <br> 0.1 0.1 0.0 0.1 0.1 -- <br> *[3]* | | x |
 | **R0Among Demes**                        
 | Number of change times    | 0                    |
 | Values ALL                | 0.0 		           | x          |              |
 | **Origin**                | 1.0                  |            | x            |
 | **Final Sample Offset**   | ?                    |
-| **Frequencies** F G H I O | 0.0 0.0 1.0 0.0 0.0  |
+| **Frequencies** F G H I O S| 0.0 0.0 1.0 0.0 0.0 0.0 |
 | Condition on Survival     | False?               |
 | Use Analytical ST sol     | True?                |
 | Rel Tolerance             | 1.0E-7               |
@@ -113,7 +114,7 @@ Use tip dates auto-configure.
 | R0 Prior           |                                     | Modified     |
 | ------------------ | :---------------------------------: | :----------: |
 | **Parameter**      | **Value**                           | **estimate** |
-| Log Normal         | [1.0, 1.0, 1.0, 1.0, 1.0][0.0, Inf] | x            |
+| Log Normal         | [1.0, 1.0, 1.0, 1.0, 1.0, 1.0][0.0, Inf] | x            |
 | M                  | 0.8                                 |              |
 | S                  | 0.5                                 |              |
 | Mean in Real Space | False                               |
@@ -155,7 +156,7 @@ Use tip dates auto-configure.
 | Origin Prior       |                    |              |
 | ------------------ | :----------------: | :----------: |
 | **Parameter**      | **Value**          | **estimate** |
-| Log Normal         | [10.0][0.0, Inf]   | x            |
+| Log Normal         | [1.0][0.0, Inf]   | x            |
 | M                  | -1.0               |              |
 | S                  | 0.2                |              |
 | Mean in Real Space | False              |
@@ -190,9 +191,7 @@ unless otherwise noted. This is done using function `feast.function.Slice` with 
 
 
 - Enforce that sampling proportion should be the same before and after the Jan 23 
- breakpoint for all demes except Hubei. We have to modify the sampling proportion 
-operator scaler for each deme to be equal between Epochs 2 and 3. We do it with 
-the operator `feast.operators.BlockScaleOperator`. Lines 349-368 of xml.
+ breakpoint for all demes except Hubei. Done with SmartScaleOperator and initial values.
 
 - Add trajectory logger (BDDM-Prime)
 
@@ -239,13 +238,13 @@ bsub -W 120:00 snakemake --profile euler  -p -j 100
 - Summary log table 10% burnin [open](results/trace-tables/201014_europe2.summary.tsv)
 - Summary tree, maximum clade credibility tree mean height 4% burnin [open](results/mcc-tree/201014_europe2.typed.node.tree)
 - Trajectory figures 10% burnin 
- ![](results/traj-figs/201014_europe2_figtraj01.png) 
-
+<img src="results/traj-figs/201014_europe2_figtraj01.png"  width="500">
 
 
 ## Notes
 
+In this analysis we are adding a new deme for Spain. The epidemic in Spain is inferred to have started later than in the other European countries, in agreement with case counts data.
 
-TODO
+The results are similar to Europe 1. Hubei cases are largely underestimated.
 
 
