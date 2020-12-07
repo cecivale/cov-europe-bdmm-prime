@@ -230,19 +230,20 @@ Three succesful chains run with seeds 1,4,10.
 ```
 bsub -W 120:00 snakemake --profile euler  -p -j 100
 ```
-- Snakemake, config files and rule scripts in `workflow/`. Workflow dag `results/201014_europe2.dag.svg`
+- Snakemake, config files and rule scripts in `workflow/`. Workflow dag `results/dags/201014_europe2.dag.svg`
 - Final chain length: 54e6, 2e7/chain.
-- Files raw results in 200914_europe1/results/eEurope:
+- Files raw results in 200914_europe1/results/europe1
 
 ## Results processing
 
-- Summary log table 10% burnin [open](results/201014_europe2.summary.tsv)
-- Summary tree, maximum clade credibility tree mean height 4% burnin [open](results/201014_europe2.typed.node.tree)
+- Summary log table 10% burnin [open](results/trace-tables/201014_europe2.summary.tsv)
+- Summary tree, maximum clade credibility tree mean height 4% burnin [open](results/mcc-tree/201014_europe2.typed.node.tree)
 - Trajectory figures 10% burnin 
- ![](results/201014_europe2.figtraj{01-08}.png) 
+ ![](results/traj-figs/201014_europe2_figtraj01.png) 
 
 
 ## Notes
+
 
 
 

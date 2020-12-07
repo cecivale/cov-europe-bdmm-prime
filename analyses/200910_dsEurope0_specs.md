@@ -240,10 +240,10 @@ $JAVA -jar $JAR -seed $SEED  -overwrite $FILE.xml
 
 ## Results processing
 
-- Summary log table [open](results/200910_dsEurope0.logsummary.tsv)
-- Summary tree, maximum clade credibility tree mean height 10% burnin [open](results/200910_dsEurope0.typed.node.tree)
+- Summary log table [open](results/trace-tables/200910_dsEurope0.summary.tsv)
+- Summary tree, maximum clade credibility tree mean height 10% burnin [open](results/mcc-tree/200910_dsEurope0.typed.node.tree)
 - Trajectory figures
- ![](results/200910_dsEurope0_trajplots.png) 
+ ![open](results/traj-figs/200910_dsEurope0.figtraj001.png) 
 
 
 ## Notes
@@ -251,6 +251,7 @@ $JAVA -jar $JAR -seed $SEED  -overwrite $FILE.xml
 Analysis with trajectories done before BDMM-Prime bug in number of events was fixed, 
 before several events recorded but just one executed resultin in an underestimate of population size.
 
-In trajectory plots, we can nicely see how the population trajectories follow what is expected: epidemic in wuhan started earlier and italian epidemics have a higher population size. 
+In trajectory plots, we can nicely see how the population trajectories follow what is expected: epidemic in Wuhan started earlier and italian epidemics have a higher population size. 
+
 In comparison with ECDC case counts, we do not observe a clear underestimation. We should be careful since in this analysis we used a small dataset (only 5 sequences per deme) and this dataset could not be representative of all the outbreaks dynamics in each deme.
 

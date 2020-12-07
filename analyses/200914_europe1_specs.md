@@ -236,15 +236,15 @@ bsub -W 120:00 snakemake --profile euler  -p -j 100
 
 ## Results processing
 
-- Summary log table 4% burnin [open](results/200914_europe1.logsummary.tsv)
-- Summary tree, maximum clade credibility tree mean height 4% burnin [open](results/200914_europe1.typed.node.tree)
+- Summary log table 4% burnin [open](results/trace-tables/200914_europe1.summary.tsv)
+- Summary tree, maximum clade credibility tree mean height 4% burnin [open](results/mcc-tree/200914_europe1.typed.node.tree)
 - Trajectory figures 4% burnin 
- ![](results/200914_europe1.figtraj{001-004}.png) 
+ ![open](results/traj-figs) 
 
 
 ## Notes
 
-In trajectory plots, the total cases estimates are higher than for the downsampled alignment (dsEurope0) showing that now we are able to infer the dynamics of a bigger outbreak as we expected. In comparison with the case counts, in all the european demes we can observe that our analysis estimates higher number of cases but quite close to the current knowledge. However, the estimates for Hubei are very low in comparison with the case counts that we have for this deme.
+In trajectory plots, the total cases estimates are higher than for the downsampled alignment (dsEurope0) showing that now we are able to infer the dynamics of a bigger outbreak as we expected. In comparison with the case counts, in all the European demes we can observe that our analysis estimates higher number of cases but quite close to the current knowledge. However, the estimates for Hubei are very low in comparison with the case counts that we have for this deme.
 
 We think of several explanations for this underestimation of cases in Hubei:
 - Our model assumes a sampling rate after 23 Jan in Hubei of 0 (we do not include sequences from Hubei after the lockdown). This should not affect the estimates, only the uncertainty about them (from 23 Jan we have less information about what happened in Hubei but the estimates will extrapolate the previous month behaviour).

@@ -218,7 +218,6 @@ the operator `feast.operators.BlockScaleOperator`. Lines 349-368 of xml.
 
 - Analysis run using *BEAST v2.6.3* on EULER with BDMM-prime.jar 
 - Final chain length: 12000, too slow for an initial analysis, stopped. It is better to downsample the sequences.
-- Time: - seconds
 - Files raw results: `200907_sarah_traj.log, 200907_sarah_traj.trees, 200907_sarah_traj.typed.trees, 200907_sarah_traj.typed.node.trees, 200907_sarah_traj.xml.state`
 
 ## Notes
