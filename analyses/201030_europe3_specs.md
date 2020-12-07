@@ -6,7 +6,7 @@
 
 **STATUS**: Finished
 
-Analysis with same specifications than Sarah BDMM-prime analysis `2020-05-18_european_origins` (the one from the paper *Sarah Nadeau et al. doi:10.1101/2020.06.10.20127738*) but adding a deme for Spain, using China instead of only Hubei sequences,  trajectory logger BDMM-Prime and an extended sequence dataset **subsampled according to the number of covid cases or deaths in the deme (europeC).**
+Analysis with same specifications than Sarah BDMM-prime analysis `2020-05-18_european_origins` (the one from the paper *Sarah Nadeau et al. doi:10.1101/2020.06.10.20127738*) but adding a deme for Spain, **using China instead of only Hubei sequences**,  trajectory logger BDMM-Prime and an extended sequence dataset **subsampled according to the number of covid cases or deaths in the deme (europeC).**
 
 ## Preprocessing
 
