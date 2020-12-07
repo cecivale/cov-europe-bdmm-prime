@@ -242,9 +242,10 @@ bsub -W 120:00 snakemake --profile euler  -p -j 100
  ![](results/traj-figs/201014_europe2_figtraj01.png) 
 
 
+
 ## Notes
 
 
-
+TODO
 
 

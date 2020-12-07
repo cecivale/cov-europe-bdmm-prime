@@ -240,7 +240,7 @@ $JAVA -jar $JAR -seed $SEED  -overwrite $FILE.xml
 
 ## Results processing
 
-- Summary log table [open](results/trace-tables/200910_dsEurope0.summary.tsv)
+- Summary log table [open](results/trace-tables/200910_dsEurope0.summary.tsv) 
 - Summary tree, maximum clade credibility tree mean height 10% burnin [open](results/mcc-tree/200910_dsEurope0.typed.node.tree)
 - Trajectory figures
  ![open](results/traj-figs/200910_dsEurope0.figtraj001.png) 

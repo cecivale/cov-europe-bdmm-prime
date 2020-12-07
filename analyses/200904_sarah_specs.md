@@ -215,7 +215,7 @@ the operator `feast.operators.BlockScaleOperator`. Lines 349-368 of xml.
 
 ## Results processing
 
-- Summary log table [open](results/trace-tables/200904_sarah.summary.tsv)
+- Summary log table [open](results/trace-tables/200904_sarah.summary.tsv) 
 - Summary tree, maximum clade credibility tree mean height 10% burnin [open](results/mcc-tree/200904_sarah.mcc.typed.node.tree)
 
 ## Notes
