@@ -15,7 +15,7 @@
 
 <!-- Alignment -->
     <data
-        id="europe_demes"
+        id="early_europe"
         spec= "feast.fileio.AlignmentFromFasta"
         fileName = "final_alignment.fasta"
         name="alignment"/>
@@ -35,7 +35,7 @@
 
 
 <!-- MCMC -->
-    <run id="mcmc" spec="MCMC" chainLength="10000000" numInitializationAttempts="100">
+    <run id="mcmc" spec="MCMC" chainLength="$(chain_length)" numInitializationAttempts="100">
 
     <!-- State -->
         <state id="state" spec="State" storeEvery="5000">
@@ -46,7 +46,7 @@
                        delimiter= "/" 
                        everythingAfterLast="true">
                     <taxa id="TaxonSet.europe" spec="TaxonSet">
-                        <alignment idref="europe_demes"/>
+                        <alignment idref="early_europe"/>
                     </taxa>
                 </trait>
                 <taxonset idref="TaxonSet.europe"/>
@@ -65,9 +65,9 @@
     
 
     <!-- Tree initialiser -->
-        <init id="RandomTree.europe" spec="beast.evolution.tree.RandomTree" estimate="false" initial="@Tree.europe" taxa="@europe_demes">
-            <populationModel id="ConstantPopulation0.t:europe_demes" spec="ConstantPopulation">
-                <parameter id="randomPopSize.t:europe_demes" spec="parameter.RealParameter" name="popSize">1.0</parameter>
+        <init id="RandomTree.europe" spec="beast.evolution.tree.RandomTree" estimate="false" initial="@Tree.europe" taxa="@early_europe">
+            <populationModel id="ConstantPopulation0.t:early_europe" spec="ConstantPopulation">
+                <parameter id="randomPopSize.t:early_europe" spec="parameter.RealParameter" name="popSize">1.0</parameter>
             </populationModel>
         </init>
 
@@ -87,7 +87,7 @@
                         <R0 id="R0SV" spec="bdmmprime.parameterization.SkylineVectorParameter" origin="@originBDMMPrime" skylineValues="@R0" timesAreAges="true">
                             <typeSet id="typeSetBDMMPrime" spec="bdmmprime.parameterization.TypeSet">
                                 <typeTraitSet id="typeTraitSet.europe" spec="feast.fileio.TraitSetFromTaxonSet" traitname="type" delimiter="/" takeGroup="1"> 
-                                    <taxa id="TaxonSet.1" spec="TaxonSet" alignment="@europe_demes"/> 
+                                    <taxa id="TaxonSet.1" spec="TaxonSet" alignment="@early_europe"/> 
                                 </typeTraitSet>
                             </typeSet>
                         </R0>
@@ -100,7 +100,8 @@
                             <parameter id="samplingProportionChangeTimes" spec="parameter.RealParameter" dimension="2" estimate="false" lower="0.0" name="changeTimes">0.12 0.205</parameter>
                         </samplingProportion>
 
-                        <rhoSampling id="rhoSamplingProbTP" spec="bdmmprime.parameterization.TimedParameter" origin="@originBDMMPrime" timesAreAges="true" typeSet="@typeSetBDMMPrime"/>
+                    <!-- I think we do not need this, not part of the model -->
+                       <!--  <rhoSampling id="rhoSamplingProbTP" spec="bdmmprime.parameterization.TimedParameter" origin="@originBDMMPrime" timesAreAges="true" typeSet="@typeSetBDMMPrime"/> -->
 
                         <removalProb id="removalProbSV" spec="bdmmprime.parameterization.SkylineVectorParameter" origin="@originBDMMPrime" timesAreAges="true" typeSet="@typeSetBDMMPrime">
                             <parameter id="removalProb" spec="parameter.RealParameter" estimate="false" lower="0.0" name="skylineValues" upper="1.0">1.0</parameter>
@@ -223,13 +224,13 @@
 
              <!-- Likelihood -->
             <distribution id="likelihood" spec="util.CompoundDistribution" useThreads="true">
-                <distribution id="treeLikelihood" spec="ThreadedTreeLikelihood" data="@europe_demes" tree="@Tree.europe">
+                <distribution id="treeLikelihood" spec="ThreadedTreeLikelihood" data="@early_europe" tree="@Tree.europe">
                     
                     <siteModel id="SiteModel" spec="SiteModel" gammaCategoryCount="4" shape="@gammaShape">
                         <parameter id="mutationRate" spec="parameter.RealParameter" estimate="false" name="mutationRate">1.0</parameter>
                         <parameter id="proportionInvariant" spec="parameter.RealParameter" estimate="false" lower="0.0" name="proportionInvariant" upper="1.0">0.0</parameter>
                         <substModel id="hky" spec="HKY" kappa="@kappa">
-                            <frequencies id="empiricalFreqs" spec="Frequencies" data="@europe_demes"/>
+                            <frequencies id="empiricalFreqs" spec="Frequencies" data="@early_europe"/>
                         </substModel>
                     </siteModel>
 
@@ -246,6 +247,7 @@
 
         <operator id="KappaScaler" spec="ScaleOperator" parameter="@kappa" scaleFactor="0.5" weight="0.1"/>
 
+        <!-- I think we do not need this -->
         <operator id="BDMMPrimeLeafToSA" spec="LeafToSampledAncestorJump" tree="@Tree.europe" weight="10.0"/>
 
         <operator id="BDMMPrimeSAWilsonBalding" spec="SAWilsonBalding" tree="@Tree.europe" weight="10.0"/>
@@ -256,7 +258,7 @@
 
         <operator id="BDMMPrimeSAUniformOperator" spec="SAUniform" tree="@Tree.europe" weight="20.0"/>
 
-        <operator id="BDMMPrimeSATreeRootScaler" spec="SAScaleOperator" rootOnly="true" scaleFactor="0.95" tree="@Tree.europe" weight="1.0"/>
+        <operator id="BDMMPrimeSATreeRootScaler" spec="SAScaleOperator" rootOnly="true" scaleFactor="0.975" tree="@Tree.europe" weight="1.0"/>
 
         <operator id="BDMMPrimeSATreeScaler" spec="SAScaleOperator" scaleFactor="0.95" tree="@Tree.europe" weight="3.0"/>
 
@@ -283,7 +285,6 @@
             <log idref="migrationRateSM"/>
             <log idref="samplingProportionSV"/>
             <log idref="removalProbSV"/>
-            <log idref="rhoSamplingProbTP"/>
             <log idref="scaleParamGLM"/>
         </logger>
 

@@ -33,7 +33,7 @@
         <state id="state" spec="State" storeEvery="5000">
             <tree id="Tree.t:europe_demes" spec="beast.evolution.tree.Tree" name="stateNode">
                 <trait id="dateTrait.t:europe_demes" spec="feast.fileio.TraitSetFromTaxonSet" dateFormat="yyyy-M-dd" traitname="date" delimiter= "/" everythingAfterLast="true">
-                    <taxa id="TaxonSet.europe_demes" spec="TaxonSet">
+                    <taxa id="TaxonSset.europe_demes" spec="TaxonSet">
                         <alignment idref="europe_demes"/>
                     </taxa>
                 </trait>
