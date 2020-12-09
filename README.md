@@ -50,6 +50,7 @@ For the analysis, we will use the software package BEAST2, a tool for Bayesian e
 | */alignments*   | Sequence data and alignments used in the analysis |
 | */analysis*     | XML files from the analysis and Analysis specs .md file with all the information about the analysis steps|
 | */results*      | Processed results from the analysis |
+| */workflow*     | Snakefile and scripts for workflow |
 | */reports*      | PDFs documents and reports |
 
 
@@ -64,4 +65,4 @@ For the analysis, we will use the software package BEAST2, a tool for Bayesian e
 
 * **Backups**
 
-Weekly, every Friday. Backup of Master's Thesis, mt-analysis, mt-beast-dev local folders to bs-home folder.
+Weekly, every Friday. Backup of Master's Thesis, mt-analysis, mt-beast-dev local folders to Lacie hard drive and important results to my bs-home folder.
