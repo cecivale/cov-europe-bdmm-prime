@@ -89,7 +89,8 @@ states <- df$states %>%
   mutate(type = factor(type, 
                        levels = 0:(nrow(demes) - 1), 
                        labels = sort(demes$deme)),
-         date = date(date_decimal(decimal_date(ymd(MRS)) - age)))
+         date_model = date(date_decimal(decimal_date(ymd(MRS)) - age))) %>%
+  mutate(date = date_model + 10)
 
 events <- df$events %>%
   mutate(src = factor(src, 
@@ -99,7 +100,8 @@ events <- df$events %>%
                        as.character(factor(dest, 
                                            levels = 0:(nrow(demes) - 1),
                                            labels = sort(demes$deme)))),
-         date = date(date_decimal(decimal_date(ymd(MRS)) - age)))
+         date_model = date(date_decimal(decimal_date(ymd(MRS)) - age))) %>%
+  mutate(date = date_model + 10)
 
 # Date grids
 max_age <- max(states$age)

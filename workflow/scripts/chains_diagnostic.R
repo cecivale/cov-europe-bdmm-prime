@@ -17,29 +17,26 @@ library(readr)
 parser <- argparse::ArgumentParser()
 parser$add_argument("--input", nargs="+", help="Input log summary file")
 parser$add_argument("--ess", type="integer", help="ESS value cutoff")
+parser$add_argument("--burnin", type="integer", help="Burning percentage")
+parser$add_argument("--length", type="integer", help="Chain length")
 parser$add_argument("--output", type="character", help="Output diagnostic file")
 args <- parser$parse_args()
 
-INPUT <- args$input
 ESS_cutoff <- args$ess
-OUTPUT <- args$output
 
-print(paste("log summaries:", INPUT))
-print(paste("ESS cutoff value", ESS_cutoff))
-print(paste("output diagnostic file:", OUTPUT))
+
 
 # Diagnostics ------------------------------------------------------------------
 diagnostic <- data.frame()
-for (fname in INPUT){
+for (fname in args$input){
   if (file.size(fname) != 0) {
-    tb <- read.table(fname, skip = 1, fill = TRUE, header = TRUE, comment.char = "*", flush = TRUE, stringsAsFactors = FALSE) %>%
-      mutate_at(vars(ESS), as.numeric)
-    l <- last(strsplit(read_lines(fname, n_max = 1), " ")[[1]])
+    tb <- read_table(fname) 
     if (all(tb$ESS >= ESS_cutoff, na.rm = TRUE)) {
       cat("\n\n\nAll ESS values > ", ESS_cutoff, " in log file ", fname, "\n\nLog file included in analysis.\n")
       diagnostic <- rbind(diagnostic, data.frame(chain = gsub(".summary.txt", "", str_split(fname, pattern = "/", n = 2)[[1]][[2]]),
                                                  seed = str_split(fname, pattern ="\\.")[[1]][2],
-                                                 length = l,
+                                                 burnin = args$burnin,
+                                                 length = args$length,
                                                  min_ESS = ESS_cutoff, 
                                                  included = 1))
     } else {
@@ -47,7 +44,8 @@ for (fname in INPUT){
           "\n\nhave ESS value < ", ESS_cutoff, " in log file ", fname, "\n\nLog file not included in analysis.\n")
       diagnostic <- rbind(diagnostic, data.frame(chain = gsub(".summary.txt", "", str_split(fname, pattern = "/", n = 2)[[1]][[2]]), 
                                                  seed = str_split(fname, pattern ="\\.")[[1]][2],
-                                                 length = l,
+                                                 burnin = args$burnin,
+                                                 length = args$length,
                                                  min_ESS = ESS_cutoff, 
                                                  included = 0))
     }
@@ -55,5 +53,5 @@ for (fname in INPUT){
 }
 
 # Save output table ------------------------------------------------------------
-write.table(diagnostic, file = OUTPUT, sep="\t", row.names = FALSE)
+write.table(diagnostic, file = args$output, sep="\t", row.names = FALSE)
 

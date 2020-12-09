@@ -584,6 +584,7 @@ rule beast:
     params:
         log = "beast_{build_name}_{analysis_name}.{seed}.txt",
         jar = config["beast"]["jar"],
+        length = config["beast"]["l_mcmc"],
         seed = config["beast"]["n_mcmc"],
         name = "results/{build_name}/{analysis_name}.{seed}",
         action = "overwrite"
@@ -597,7 +598,7 @@ rule beast:
         """
         scp {input.xml} results/{wildcards.build_name}/
         cd results/{wildcards.build_name}/
-        java -Xmx3G -jar {params.jar} -seed {wildcards.seed} -statefile {wildcards.analysis_name}.{wildcards.seed}.state -{params.action} {input.xml} 2>&1 | tee -a {params.log} || :
+        java -Xmx3G -jar {params.jar} -D "chain_length={params.length}" -seed {wildcards.seed} -statefile {wildcards.analysis_name}.{wildcards.seed}.state -{params.action} {input.xml} 2>&1 | tee -a {params.log} || :
         cd ../../
         mv results/{wildcards.build_name}/{params.log} logs/
         touch {params.name}.log {params.name}.trees
@@ -619,10 +620,10 @@ rule summarize_trace:
         "logs/summarize_trace_{build_name}_{analysis_name}.{seed}.txt"
     params:
         log_analyser = config["beast"]["log_analyser"],
-        burnin = int(config["beast"]["burnin"] * config["beast"]["l_mcmc"])
+        burnin = config["beast"]["burnin"]
     shell:
         """
-        {params.log_analyser} -burnin {params.burnin} {input.trace} {output.trace_summary} 2> {log} || :
+        {params.log_analyser} -b {params.burnin} {input.trace} > {output.trace_summary} 2> {log} || :
         touch {output.trace_summary}
         """
 
@@ -641,7 +642,9 @@ checkpoint chains_diagnostic:
     output:
         diagnostic = "results/{build_name}/{analysis_name}_chains_diagnostic.txt",
     params:
-        min_ess = config["beast"]["min_ess"]
+        min_ess = config["beast"]["min_ess"],
+        burnin = config["beast"]["burnin"],
+        chain_length = config["beast"]["l_mcmc"]
     log:
         "logs/chains_diagnostic_{build_name}_{analysis_name}.txt"
     shell:
@@ -649,6 +652,8 @@ checkpoint chains_diagnostic:
         Rscript scripts/chains_diagnostic.R \
         --input {input.trace_summary} \
         --ess {params.min_ess} \
+        --burnin {params.burnin} \
+        --length {params.chain_length} \
         --output {output.diagnostic} 2>&1 | tee -a {log}
         """
 
@@ -684,23 +689,25 @@ rule combine_trace:
         Combine trace files with ESS >= {params.min_ess}: {input.trace_files} with LogCombiner v1.8.2.
         """
     input:
-        trace_files = _get_trace_tocombine
+        trace_files = _get_trace_tocombine    
     output:
         combined_trace = "results/{build_name}/{analysis_name}_comb.log"
     log:
         "logs/combine_trace_{build_name}_{analysis_name}.txt"
     params:
         log_combiner = config["beast"]["log_combiner"],
-        burnin = int(config["beast"]["burnin"] * config["beast"]["l_mcmc"]),
+        burnin = config["beast"]["burnin"],
         min_ess = config["beast"]["min_ess"],
-        empty_message = "message_trace_{build_name}_{analysis_name}.txt"
+        empty_message = "message_trace_{build_name}_{analysis_name}.txt",
+        input_command = lambda wildcards, input: " -log ".join(input) 
+        #input_command = lambda wildcards, input: [" -log  " + f for f in input]
     shell:
         """
         if [ -e {params.empty_message} ] 
         then 
             cat {params.empty_message} | tee {log} && rm {params.empty_message}
         else
-            {params.log_combiner} -burnin {params.burnin} {input.trace_files} {output.combined_trace}  2>&1 | tee -a {log}
+            {params.log_combiner} -log {params.input_command} -o {output.combined_trace} -b {params.burnin}  2>&1 | tee -a {log}
         fi
         """
 
@@ -717,16 +724,17 @@ rule combine_trees:
         "logs/combine_trees_{build_name}_{analysis_name}.txt"
     params:
         log_combiner = config["beast"]["log_combiner"],
-        burnin = int(config["beast"]["burnin"] * config["beast"]["l_mcmc"]),
+        burnin = config["beast"]["burnin"],
         min_ess = config["beast"]["min_ess"],
-        empty_message = "message_trees_{build_name}_{analysis_name}.txt"
+        empty_message = "message_trees_{build_name}_{analysis_name}.txt",
+        input_command = lambda wildcards, input: " -log ".join(input) 
     shell:
         """
         if [ -e {params.empty_message} ] 
         then 
             cat {params.empty_message} | tee {log} && rm {params.empty_message}
         else
-            {params.log_combiner} -burnin {params.burnin} -trees {input.tree_files} {output.combined_trees}  2>&1 | tee -a {log}
+            {params.log_combiner} -log {params.input_command} -o {output.combined_trees}  -b {params.burnin} 2>&1 | tee -a {log}
         fi
         """
 
@@ -742,7 +750,7 @@ rule resample_trace:
         resample = config["beast"]["resample"]
     shell:
         """
-        {params.log_combiner} -resample {params.resample} {input.trace} {output.thinned_trace}
+        {params.log_combiner} -log {input.trace} -o {output.thinned_trace} -resample {params.resample} 2>&1 | tee {log}
         """
 
 rule resample_trees:
@@ -757,7 +765,7 @@ rule resample_trees:
         resample = config["beast"]["resample"]
     shell:
         """
-        {params.log_combiner} -trees -resample {params.resample} {input.trees} {output.thinned_trees}
+        {params.log_combiner} -log {input.trees} -o {output.thinned_trees} -resample {params.resample}  2>&1 | tee {log}
         """
 
 rule trajectory_mapping:
@@ -813,7 +821,7 @@ rule summarize_comb_trace:
         log_analyser = config["beast"]["log_analyser"]
     shell:
         """
-        {params.log_analyser} {input.trace} {output.summary_trace} 2> {log}
+        {params.log_analyser} {input.trace} > {output.summary_trace} 2> {log}
         """
 
 

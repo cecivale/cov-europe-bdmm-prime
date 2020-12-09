@@ -362,15 +362,14 @@ beast:
   # BEAST2 jar file path
   jar: "/cluster/home/ceciliav/BDMM-Prime.jar"
   # List of parallel mcmc chains seeds to run 
-  n_mcmc: [1,4,10]
-  #n_mcmc: [1,2,3,4,5]
+  n_mcmc: [1,2,3,4,5]
   # Length of a mcmc chain, it has to be the same length than the one specified in the xml file
   l_mcmc: 10000000
   # Time for mcmc chains in cluster in minutes
   t_mcmc: 7200
   t_traj: 720
-  # Burnin fraction 
-  burnin: 0.1
+  # Burnin percentage 
+  burnin: 10
   # Log analyser bin
   log_analyser: loganalyser
   # Minimum ESS value to combine chains
@@ -379,8 +378,8 @@ beast:
   log_combiner: logcombiner
   # Tree annotator bin
   tree_annotator: treeannotator
-  mcc_heights: "median"
+  mcc_heights: "mean"
   # Trajectories
   n_traj: 200
-  resample: 10000
+  resample: 500
 
