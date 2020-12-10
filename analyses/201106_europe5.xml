@@ -100,9 +100,6 @@
                             <parameter id="samplingProportionChangeTimes" spec="parameter.RealParameter" dimension="2" estimate="false" lower="0.0" name="changeTimes">0.12 0.205</parameter>
                         </samplingProportion>
 
-                    <!-- I think we do not need this, not part of the model -->
-                       <!--  <rhoSampling id="rhoSamplingProbTP" spec="bdmmprime.parameterization.TimedParameter" origin="@originBDMMPrime" timesAreAges="true" typeSet="@typeSetBDMMPrime"/> -->
-
                         <removalProb id="removalProbSV" spec="bdmmprime.parameterization.SkylineVectorParameter" origin="@originBDMMPrime" timesAreAges="true" typeSet="@typeSetBDMMPrime">
                             <parameter id="removalProb" spec="parameter.RealParameter" estimate="false" lower="0.0" name="skylineValues" upper="1.0">1.0</parameter>
                         </removalProb>
@@ -242,25 +239,22 @@
             </distribution>
         </distribution>
 
-    <!-- Operators -->
+        <!-- Operators -->
         <operator id="gammaShapeScaler" spec="ScaleOperator" parameter="@gammaShape" scaleFactor="0.5" weight="0.1"/>
 
         <operator id="KappaScaler" spec="ScaleOperator" parameter="@kappa" scaleFactor="0.5" weight="0.1"/>
 
-        <!-- I think we do not need this -->
-        <operator id="BDMMPrimeLeafToSA" spec="LeafToSampledAncestorJump" tree="@Tree.europe" weight="10.0"/>
+        <operator id="BDMMPrimeWilsonBalding" spec="SAWilsonBalding" tree="@Tree.europe" weight="10.0"/>
 
-        <operator id="BDMMPrimeSAWilsonBalding" spec="SAWilsonBalding" tree="@Tree.europe" weight="10.0"/>
+        <operator id="BDMMPrimeWide" spec="SAExchange" isNarrow="false" tree="@Tree.europe" weight="10.0"/>
 
-        <operator id="BDMMPrimeSAWide" spec="SAExchange" isNarrow="false" tree="@Tree.europe" weight="10.0"/>
+        <operator id="BDMMPrimeNarrow" spec="SAExchange" tree="@Tree.europe" weight="10.0"/>
 
-        <operator id="BDMMPrimeSANarrow" spec="SAExchange" tree="@Tree.europe" weight="10.0"/>
+        <operator id="BDMMPrimeUniformOperator" spec="SAUniform" tree="@Tree.europe" weight="20.0"/>
 
-        <operator id="BDMMPrimeSAUniformOperator" spec="SAUniform" tree="@Tree.europe" weight="20.0"/>
+        <operator id="BDMMPrimeTreeRootScaler" spec="SAScaleOperator" rootOnly="true" scaleFactor="0.95" tree="@Tree.europe" weight="1.0"/>
 
-        <operator id="BDMMPrimeSATreeRootScaler" spec="SAScaleOperator" rootOnly="true" scaleFactor="0.975" tree="@Tree.europe" weight="1.0"/>
-
-        <operator id="BDMMPrimeSATreeScaler" spec="SAScaleOperator" scaleFactor="0.95" tree="@Tree.europe" weight="3.0"/>
+        <operator id="BDMMPrimeTreeScaler" spec="SAScaleOperator" scaleFactor="0.95" tree="@Tree.europe" weight="3.0"/>
 
         <operator id="originBDMMPrimeScaler" spec="ScaleOperator" parameter="@originBDMMPrime" scaleFactor="0.75" weight="3.0"/>
 
