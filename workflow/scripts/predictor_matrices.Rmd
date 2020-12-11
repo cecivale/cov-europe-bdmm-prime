@@ -1,0 +1,114 @@
+---
+title: "GLM Predictor Matrices"
+subtitle: "Analyses Europe6 and Europe7"
+author: "Cecilia Valenzuela"
+date: '`r format(Sys.time(), "%d %B, %Y")`'
+output:
+  beamer_presentation:
+    theme: "Pittsburgh"
+    colortheme: "dove"
+    fonttheme: "structurebold"
+    highlight: pygments
+classoption: "aspectratio=169"
+fontsize: 8pt
+tables: yes
+---
+```{r, setup, include=FALSE}
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+```
+
+```{r, echo = FALSE, results ='hide', message = FALSE}
+library(knitr)
+library(wpp2019)
+library(tidyverse)
+library(readr)
+source("./scripts/flight_data.R")
+```
+
+## Description
+
+Generation of the predictor matrices for the GLM model from different sources 
+of information: 
+
+- Eurostats, European data and statistics, transport data: <https://ec.europa.eu/eurostat/web/transport/data/database>
+- United Nations Population Division, World Population Prospects 2019: R library `wpp2019, data(pop)`
+- Distance
+
+```{r}
+## Daily flight passengers
+
+demes <- c(China = "CN", France = "FR", Germany = "DE", Italy = "IT", OtherEuropean = "OE", Spain = "ES")
+
+# These datasets are dowload from eurostats 
+intraUE_data <- "./data/avia_paincc.tsv"
+extraUE_data <- "./data/avia_paexcc.tsv"
+
+fligh_data <- get_flightData(intraUE_data, extraUE_data, countries = demes) 
+
+fligh_data_3i <- fligh_data %>%
+  filter((MONTH %in% 1:3 & YEAR == 2020) | (MONTH == 12 & YEAR == 2019)) %>%
+  mutate(EPOCH = case_when(
+    MONTH == 2 ~ 2,
+    MONTH == 3 ~ 3,
+    TRUE ~ 1)) %>%
+  group_by(GEO, PARTNER, EPOCH) %>%
+  mutate(N = n(),
+         EVALUE = sum(DVALUE/N)) %>%
+  ungroup %>%
+  # Transformations
+  mutate(LVALUE = log(EVALUE + 1),
+         SLVALUE = scale(LVALUE))
+
+write(slv_flightMatrix_3i, "files/flight_matrix_3i.csv", sep = ",")
+```
+
+
+## Population counts
+
+Population counts from World Population Prospects 2019, United Nations Population Division,  `wpp2019` R library. Values for **China**, **France**, **Germany**, **Italy**, **Other European** and **Spain**.
+
+A predictor matrix for source population and a predictor matrix for destination population are generated, log transformed and standardized. Constant across demes.
+
+\small
+```{r, echo=FALSE}
+data(pop)
+population <- pop %>% filter(name %in% labels(demes)) %>% select(name, "2020") 
+pop_eu_demes <- population %>% filter(name != "China") %>% summarise(s = sum(`2020`)) %>% pull(s)
+pop_eu_total <- pop %>% filter(name == "Europe") %>% pull("2020")
+population <- population %>%
+  tibble::add_row(name = "OtherEuropean", `2020` = pop_eu_total - pop_eu_demes) %>%
+  arrange(name)
+```
+
+```{r, echo=FALSE}
+# Population source matrix
+pop_source <- matrix(1, 6, 6) * population$`2020`
+diag(pop_source) <- NA
+vslpop_source <- scale(log(c(pop_source)))
+slpop_source <- matrix(vslpop_source, 6, 6)
+colnames(slpop_source) <- demes[population$name]
+rownames(slpop_source) <- demes[population$name]
+
+# Population destination matrix
+pop_dest <- sweep(matrix(1, 6, 6), 2, population$`2020`, `*`)
+diag(pop_dest) <- NA
+vslpop_dest <- scale(log(c(pop_dest)))
+slpop_dest <- matrix(vslpop_dest, 6, 6)
+colnames(slpop_dest) <- demes[population$name]
+rownames(slpop_dest) <- demes[population$name]
+
+knitr::kable(list(round(slpop_source, 2), round(slpop_dest, 2)), booktabs = TRUE, caption = "Population counts source (left) and destination (right)")
+```
+
+\normalsize
+Other European population count is computed as the difference between the Europe population and the sum of the populations from France, Germany, Italy and Spain.
+
+
+## Distance between countries
+ 
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
