@@ -14,7 +14,8 @@ get_flightData <- function(intraUE_data, extraUE_data, countries) {
     pivot_longer(!1, names_to = "TIME", values_to = "VALUE") %>%
     separate(1, into = c("UNIT", "TRA_MEAS", "PARTNER", "GEO"), sep = ',') %>%
     # Data from passengers, monthly
-    filter(UNIT == "PAS", GEO %in% countries, PARTNER %in% countries, grepl("M", TIME))
+    filter(UNIT == "PAS", GEO %in% countries, 
+           PARTNER %in% countries, grepl("M", TIME))
     
   df1 <- df %>%
     # Add year and month
@@ -31,44 +32,49 @@ get_flightData <- function(intraUE_data, extraUE_data, countries) {
            GEO = ifelse(TRA_MEAS == "PAS_CRD_ARR", "CN", GEO),
            TRA_MEAS = ifelse(TRA_MEAS == "PAS_CRD_ARR", "PAS_CRD_DEP", TRA_MEAS)) %>%
     # In 2020 UK is out of the european aggregated value
-    filter((YEAR == 2019 & GEO != "EU27") | (YEAR == 2020 & GEO != "EU28")) 
-  
+    filter(!is.na(VALUE)) 
   
   # Correct for UK Brexit, EU28 -> EU27 in 2020
-  # Only for months 2020:
-  # - GEO EU28 = GEO EU27 + GEO United Kingdom to Partner European Countries
-  # - GEO European countries = Partner EU27 + Partner United kingdom
-  
-  eu28_geo <-  left_join(df1 %>% filter(GEO == "EU27_2020"), 
-                         df1 %>% filter(GEO == "UK") %>% select(-GEO), 
-                         by = c("TIME", "UNIT", "TRA_MEAS", "PARTNER", "YEAR", "MONTH")) %>%
-    mutate(VALUE = VALUE.x + VALUE.y,
-           GEO = "EU28")
-  
-  eu28_partner = left_join(df1 %>% filter(PARTNER == "EU27_2020"), 
-                           df1 %>% filter(PARTNER == "UK") %>% select(-PARTNER), 
-                           by = c("TIME", "UNIT", "TRA_MEAS", "GEO", "YEAR", "MONTH")) %>%
-    filter(YEAR == 2020) %>%
-    mutate(VALUE = VALUE.x + VALUE.y,
-           PARTNER = "EU28")
-  
-  eu28 <- bind_rows(eu28_geo, eu28_partner) %>%
-    filter(!GEO %in% c("EU27_2020", "UK"), !PARTNER %in% c("EU27_2020", "UK")) %>%
-    select(-c("VALUE.x", "VALUE.y"))
+  # Only for months 2020
   
   df2 <- df1 %>%
-    filter(!GEO %in% c("EU27_2020", "UK"), 
-           !PARTNER %in% c("EU27_2020", "UK")) %>%
-    bind_rows(eu28) %>%
-    filter(!is.na(VALUE)) %>%
+    mutate(GEO = ifelse(GEO %in% c("EU27_2020", "UK"), "EU28", GEO),
+           PARTNER = ifelse(PARTNER %in% c("EU27_2020", "UK"), "EU28", PARTNER)) %>%
+    group_by(GEO, PARTNER, TIME) %>%
+    mutate(VALUE = sum(VALUE)) %>%
     unique()
+  
+  # eu28_geo <-  left_join(df1 %>% filter(GEO == "EU27_2020"), 
+  #                        df1 %>% filter(GEO == "UK") %>% select(-GEO), 
+  #                        by = c("TIME", "UNIT", "TRA_MEAS", "PARTNER", "YEAR", "MONTH")) %>%
+  #   mutate(VALUE = VALUE.x + VALUE.y,
+  #          GEO = "EU28")
+  # 
+  # eu28_partner = left_join(df1 %>% filter(PARTNER == "EU27_2020"), 
+  #                          df1 %>% filter(PARTNER == "UK") %>% select(-PARTNER), 
+  #                          by = c("TIME", "UNIT", "TRA_MEAS", "GEO", "YEAR", "MONTH")) %>%
+  #   filter(YEAR == 2020) %>%
+  #   mutate(VALUE = VALUE.x + VALUE.y,
+  #          PARTNER = "EU28")
+  # 
+  # eu28 <- bind_rows(eu28_geo, eu28_partner) %>%
+  #   filter(!GEO %in% c("EU27_2020", "UK"), !PARTNER %in% c("EU27_2020", "UK")) %>%
+  #   select(-c("VALUE.x", "VALUE.y"))
+  # 
+  # df2 <- df1 %>%
+  #   filter(!GEO %in% c("EU27_2020", "UK"), 
+  #          !PARTNER %in% c("EU27_2020", "UK")) %>%
+  #   bind_rows(eu28) %>%
+  #   filter(!is.na(VALUE)) %>%
+  #   unique()
+  # 
   
   # Create Other European = EU28 - (France, Germany, Italy, Spain)
   oe_geo <- df2 %>%
     filter(!GEO %in% c("EU28", "CN"), PARTNER != "EU28") %>%
     group_by(PARTNER, TIME) %>%
     summarise(SVALUE = sum(VALUE, na.rm = TRUE), .groups = "drop") %>%
-    left_join(eu28, by = c("PARTNER", "TIME")) %>%
+    left_join(df2 %>% filter(GEO == "EU28"), by = c("PARTNER", "TIME")) %>%
     mutate(VALUE = VALUE - SVALUE,
            GEO = "OE")
   
@@ -76,7 +82,7 @@ get_flightData <- function(intraUE_data, extraUE_data, countries) {
     filter(!PARTNER %in% c("EU28", "CN"), GEO != "EU28") %>%
     group_by(GEO, TIME) %>%
     summarise(SVALUE = sum(VALUE, na.rm = TRUE), .groups = "drop") %>%
-    left_join(eu28, by = c("GEO", "TIME")) %>%
+    left_join(df2 %>% filter(PARTNER == "EU28"), by = c("GEO", "TIME")) %>%
     mutate(VALUE = VALUE - SVALUE,
            PARTNER = "OE")
   
@@ -88,7 +94,7 @@ get_flightData <- function(intraUE_data, extraUE_data, countries) {
     select(-SVALUE) %>%
     unique() %>%
     # transform value to daily number of passengers
-    mutate(DVALUE = as.numeric(gsub(" ", "", VALUE))/lubridate::days_in_month(MONTH))
+    mutate(DVALUE = VALUE/lubridate::days_in_month(MONTH))
   
   return(df3)
   

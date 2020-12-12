@@ -22,6 +22,9 @@ library(knitr)
 library(wpp2019)
 library(tidyverse)
 library(readr)
+library(ggsci)
+library(scales)
+source("./scripts/utils.R")
 source("./scripts/flight_data.R")
 ```
 
@@ -34,9 +37,26 @@ of information:
 - United Nations Population Division, World Population Prospects 2019: R library `wpp2019, data(pop)`
 - Distance
 
-```{r}
+## GLM Model
+
+We define the migration rates $m_{ij}^{e}$ from deme $i$ to deme $j$ in epoch $e$ as a log linear function of a set of predictors $\boldsymbol{X}$, log transformed and scaled, such that
+
+$$
+m_{ij}^{e} = c \exp(\beta_{pas} \delta_{pas} x_{ij.pas}^e + \beta_{pop} \delta_{pop }x_{ij.pop} + \beta_{dist} \delta_{dist}x_{ij.dist})
+$$
+
+where $\boldsymbol{\beta}$ are the coefficients for the predictors that can be between $-\infty$ and $\infty$ (prior  $\mathcal{N}(0,4)$) and $\boldsymbol{\delta}$ are the indicators that can be 0 or 1 and denote if a predictor contributes at all. 
+
 ## Daily flight passengers
 
+Passengers carried data from Eurostats. Reported _departures_ values are taken for European countries (recommendation from Eurostats to avoid duplicates). For China, arrivals and departures values are considered.
+
+- **Epoch 1:** December 2019 - January 2020 (Wuhan lockdown 23 Jan)
+- **Epoch 2:** February 2020 
+- **Epoch 3:** March 2020
+
+\tiny
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
 demes <- c(China = "CN", France = "FR", Germany = "DE", Italy = "IT", OtherEuropean = "OE", Spain = "ES")
 
 # These datasets are dowload from eurostats 
@@ -52,24 +72,57 @@ fligh_data_3i <- fligh_data %>%
     MONTH == 3 ~ 3,
     TRUE ~ 1)) %>%
   group_by(GEO, PARTNER, EPOCH) %>%
-  mutate(N = n(),
+  summarise(N = n(),
          EVALUE = sum(DVALUE/N)) %>%
   ungroup %>%
   # Transformations
   mutate(LVALUE = log(EVALUE + 1),
-         SLVALUE = scale(LVALUE))
+         SLVALUE = scale(LVALUE)) %>%
+  arrange(EPOCH, factor(GEO, levels = demes), factor(PARTNER, levels = demes))
 
-write(slv_flightMatrix_3i, "files/flight_matrix_3i.csv", sep = ",")
+#write(slv_flightMatrix_3i, "files/flight_matrix_3i.csv", sep = ",")
+```
+
+```{r, echo = FALSE}
+flight_matrices <- lapply(1:3, function (i) {
+  fligh_data_3i %>%
+  filter(EPOCH == i) %>%
+  select(GEO, PARTNER, SLVALUE) %>%
+  pivot_wider(names_from = "PARTNER", values_from = "SLVALUE") %>%
+  mutate_if(is.numeric, ~round(.,2)) %>%
+  column_to_rownames("GEO") %>%
+  select(unname(demes))
+})
+
+knitr::kable(flight_matrices, booktabs = TRUE, caption = "Flight passengers between demes, epochs 1-3")
+```
+
+## Daily flight passengers
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.width = 6, fig.height = 3}
+set_plotopts()
+dcolors <- pal_npg("nrc")(10)[c(1:5,9)]
+dcolors <- dcolors[1:length(demes)]
+names(dcolors) <- demes[sort(labels(demes))]
+#dark_dcolors <- rgb(t(col2rgb(dcolors)/2), maxColorValue=255)
+#names(dark_dcolors) <- names(dcolors)
+
+# Fligh data plot
+ggplot(fligh_data_3i, aes(x = EPOCH, y = EVALUE, color = PARTNER)) +
+  geom_line() +
+  geom_point(size = 1) +
+  scale_y_log10(labels = trans_format("log10", math_format(10^.x)), breaks = trans_breaks('log10', function(x) 10^x)) +
+  scale_x_continuous(breaks = c(1, 2, 3), labels = c("E1", "E2", "E3")) +
+  facet_grid(~GEO) +
+  xlab("Epoch") +
+  ylab("# Daily Flight Passengers") + 
+  #theme(axis.title.x = element_blank()) + 
+  scale_color_manual(values = dcolors, name = "Destination")
 ```
 
 
 ## Population counts
 
-Population counts from World Population Prospects 2019, United Nations Population Division,  `wpp2019` R library. Values for **China**, **France**, **Germany**, **Italy**, **Other European** and **Spain**.
-
-A predictor matrix for source population and a predictor matrix for destination population are generated, log transformed and standardized. Constant across demes.
-
-\small
 ```{r, echo=FALSE}
 data(pop)
 population <- pop %>% filter(name %in% labels(demes)) %>% select(name, "2020") 
@@ -80,7 +133,13 @@ population <- population %>%
   arrange(name)
 ```
 
+Population counts from World Population Prospects 2019, United Nations Population Division,  `wpp2019` R library: **China** - `r population[1,2] * 1e3`, **France** - `r population[2,2] * 1e3`, **Germany** - `r population[3,2] * 1e3`, **Italy** - `r population[4,2] * 1e3`, **Other European** - `r population[5,2] * 1e3` and **Spain** - `r population[6,2] * 1e3`.
+
+A predictor matrix for source population and a predictor matrix for destination population are generated, log transformed and standardized. Constant across demes.
+
+\tiny
 ```{r, echo=FALSE}
+# TODO use long format, easy to combine later to export to xml, like with the flight data
 # Population source matrix
 pop_source <- matrix(1, 6, 6) * population$`2020`
 diag(pop_source) <- NA
@@ -105,10 +164,8 @@ Other European population count is computed as the difference between the Europe
 
 
 ## Distance between countries
- 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
-
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
-
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
-
+Options:
+Great circle distance between centroids of each country - Which distance for other european deme? Could be the average
+Average pairwaise distance between airports - considers that only flight transportation matters, more work
+Distance taking into account population distribution inside the country.
+Minimum distance.
