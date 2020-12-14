@@ -39,14 +39,18 @@ builds:
   #   subsampling_scheme: ssprop_China
   #   beast_analysis: 
   #     - 201030_europe3
-  europe4c:
-    subsampling_scheme: ssprop_China
-    beast_analysis: 
-      - 201102_europe4
-  europe5c:
-    subsampling_scheme: ssprop_China
-    beast_analysis: 
-      - 201106_europe5
+  # europeC:
+  #   subsampling_scheme: ssprop_China
+  #   beast_analysis: 
+  #     #- 201030_europe3 # No GLM
+  #     #- 201102_europe4 # Flight data 1 epoch
+  #     #- 201106_europe5 # Flight data 3 epochs
+  #     #- 201204_europe5b # Flight data normalized by pop 3 epochs
+  #     - 201211_europe6 # GLM 4 predictors 3 epochs
+  europeD:
+      subsampling_scheme: ssprop_China
+      beast_analysis: 
+        - 201211_europe6 # GLM 4 predictors 3 epochs
     
 
 # Define files used for external configuration. Common examples consist of a
@@ -314,7 +318,7 @@ subsampling:
       max_date: "2020-03-08"
       seq_per_deme: 50
       prob: "cases"
-    Hubei-China:
+    China:
       country: "China"
       region: "Asia"
       min_date: "2019-12-24"
@@ -348,7 +352,7 @@ tree:
 
 # TreeTime settings
 refine:
-  root: "EPI_ISL_402123/Hubei/2019-12-24" 
+  root: "EPI_ISL_402123/China/2019-12-24" 
   clock_rate: 0.0008
   clock_std_dev: 0.0004
   coalescent: "skyline"
@@ -368,12 +372,12 @@ beast:
   # Time for mcmc chains in cluster in minutes
   t_mcmc: 7200
   t_traj: 720
-  # Burnin percentage 
+  # Burnin fraction 
   burnin: 10
   # Log analyser bin
   log_analyser: loganalyser
   # Minimum ESS value to combine chains
-  min_ess: 100
+  min_ess: 0
   # Log combiner bin
   log_combiner: logcombiner
   # Tree annotator bin
@@ -381,5 +385,5 @@ beast:
   mcc_heights: "mean"
   # Trajectories
   n_traj: 200
-  resample: 500
+  resample: 10000
 

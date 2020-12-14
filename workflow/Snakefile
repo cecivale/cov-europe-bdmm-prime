@@ -3,6 +3,7 @@
 # Copyright (c) 2020 Nextstrain, full text https://github.com/nextstrain/ncov/blob/master/LICENSE
 
 import pandas as pd
+import random
 from snakemake.utils import validate
 from datetime import date
 from treetime.utils import numeric_date
@@ -15,7 +16,8 @@ validate(config, schema="schemas/config.schema.yaml")
 BUILD_NAMES = list(config["builds"].keys())
 ANALYSIS_NAME = list(chain.from_iterable([config["builds"][build_name]["beast_analysis"] for build_name in BUILD_NAMES]))
 SEED = 1234
- 
+random.seed(SEED)
+
 # Define patterns we expect for wildcards.
 wildcard_constraints:
     build_name = r"[a-zA-Z0-9_.-]+",
@@ -373,7 +375,8 @@ rule rsubsample:
         exclude_division = _get_specific_subsampling_setting("exclude_division", optional=True),
         min_date = _get_specific_subsampling_setting("min_date", optional=False),
         max_date = _get_specific_subsampling_setting("max_date", optional=False),
-        seq_per_deme = _get_specific_subsampling_setting("seq_per_deme", optional=False)
+        seq_per_deme = _get_specific_subsampling_setting("seq_per_deme", optional=False),
+        seed = sum([ord(v) for i,v in enumerate("{build_name}")]) # Using build name to set a seed
     log:
         "logs/subsample_{build_name}_{subsample}.txt"
     conda: config["conda_environment"]
@@ -391,7 +394,7 @@ rule rsubsample:
             --from {params.min_date} \
             --to {params.max_date} \
             --seq_per_deme {params.seq_per_deme} \
-            --seed {SEED} \
+            --seed {params.seed} \
             --prob "cases" \
             --output {output.sequences} \
             --output_figure {output.fig} 2>&1 | tee {log}

@@ -15,7 +15,7 @@
 
 <!-- Alignment -->
     <data
-        id="early_europe"
+        id="europe_demes"
         spec= "feast.fileio.AlignmentFromFasta"
         fileName = "final_alignment.fasta"
         name="alignment"/>
@@ -35,7 +35,7 @@
 
 
 <!-- MCMC -->
-    <run id="mcmc" spec="MCMC" chainLength="$(chain_length)" numInitializationAttempts="100">
+    <run id="mcmc" spec="MCMC" chainLength="10000000" numInitializationAttempts="100">
 
     <!-- State -->
         <state id="state" spec="State" storeEvery="5000">
@@ -46,7 +46,7 @@
                        delimiter= "/" 
                        everythingAfterLast="true">
                     <taxa id="TaxonSet.europe" spec="TaxonSet">
-                        <alignment idref="early_europe"/>
+                        <alignment idref="europe_demes"/>
                     </taxa>
                 </trait>
                 <taxonset idref="TaxonSet.europe"/>
@@ -56,18 +56,18 @@
             <parameter id="originBDMMPrime" spec="parameter.RealParameter" name="stateNode">1.0</parameter>
             <parameter id="R0" spec="parameter.RealParameter" dimension="6" name="stateNode">1.0 1.0 1.0 1.0 1.0 1.0</parameter>
             <parameter id="samplingProportion" spec="parameter.RealParameter" dimension="18" lower="0.0" name="stateNode" upper="1.0">
-                1.0E-5 1.1E-5 0.0 1.3E-5 1.4E-5 1.5E-5 
+                0.0 1.1E-5 1.2E-5 1.3E-5 1.4E-5 1.5E-5 
                 1.0E-5 1.1E-5 1.2E-5 1.3E-5 1.4E-5 1.5E-5 
                 0.0 0.0 0.0 0.0 0.0 0.0
             </parameter>
-            <parameter id="scaleParamGLM" spec="parameter.RealParameter" name="stateNode">1.0</parameter>
+            <parameter id="scaleParamGLM" spec="parameter.RealParameter" dimension="4" name="stateNode">1.0 1.0 1.0 1.0</parameter>
         </state>
     
 
     <!-- Tree initialiser -->
-        <init id="RandomTree.europe" spec="beast.evolution.tree.RandomTree" estimate="false" initial="@Tree.europe" taxa="@early_europe">
-            <populationModel id="ConstantPopulation0.t:early_europe" spec="ConstantPopulation">
-                <parameter id="randomPopSize.t:early_europe" spec="parameter.RealParameter" name="popSize">1.0</parameter>
+        <init id="RandomTree.europe" spec="beast.evolution.tree.RandomTree" estimate="false" initial="@Tree.europe" taxa="@europe_demes">
+            <populationModel id="ConstantPopulation0.t:europe_demes" spec="ConstantPopulation">
+                <parameter id="randomPopSize.t:europe_demes" spec="parameter.RealParameter" name="popSize">1.0</parameter>
             </populationModel>
         </init>
 
@@ -87,7 +87,7 @@
                         <R0 id="R0SV" spec="bdmmprime.parameterization.SkylineVectorParameter" origin="@originBDMMPrime" skylineValues="@R0" timesAreAges="true">
                             <typeSet id="typeSetBDMMPrime" spec="bdmmprime.parameterization.TypeSet">
                                 <typeTraitSet id="typeTraitSet.europe" spec="feast.fileio.TraitSetFromTaxonSet" traitname="type" delimiter="/" takeGroup="1"> 
-                                    <taxa id="TaxonSet.1" spec="TaxonSet" alignment="@early_europe"/> 
+                                    <taxa id="TaxonSet.1" spec="TaxonSet" alignment="@europe_demes"/> 
                                 </typeTraitSet>
                             </typeSet>
                         </R0>
@@ -108,7 +108,7 @@
                             <parameter id="migrationRateChangeTimes"
                             spec="parameter.RealParameter" estimate="false" name="changeTimes"> 0.02 0.12</parameter>
                             <skylineValues id="migrationRate" spec="bdmmprime.util.priors.MigRateGLM">
-                                <parameter id="GLMcovariateMatrix" spec="feast.fileio.RealParameterFromXSV" fileName="../../files/flight_matrix_3i.csv" sep="," estimate="false" name="covariateMatrix" dimension="90"/>
+                                <parameter id="covariateListGLM" spec="feast.fileio.RealParameterFromXSV" fileName="../../files/covariates_4p_3e.csv" sep="," estimate="false" name="covariateList" dimension="360"/>
                                 <parameter idref="scaleParamGLM" name="scaleParam"/>
                             </skylineValues>
                         </migrationRate> 
@@ -121,7 +121,7 @@
 
                     </parameterization>
 
-                    <parameter id="typeFrequencies" spec="parameter.RealParameter" dimension="6" estimate="false" lower="0.0" name="frequencies" upper="1.0">0.0 0.0 1.0 0.0 0.0 0.0</parameter>
+                    <parameter id="typeFrequencies" spec="parameter.RealParameter" dimension="6" estimate="false" lower="0.0" name="frequencies" upper="1.0">1.0 0.0 0.0 0.0 0.0 0.0</parameter>
 
                     <typeTraitSet idref="typeTraitSet.europe"/>
 
@@ -164,12 +164,12 @@
 
     			<!-- Prior for sampling proportion for France Epoch 1 (post-Jan 23) -->
                 <distribution spec="SmartZeroExcludingPrior">
-                    <x spec="feast.function.Slice" arg="@samplingProportion" index="0" count="1"/>
+                    <x spec="feast.function.Slice" arg="@samplingProportion" index="1" count="1"/>
                     <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.084"/>
                 </distribution>
                 <!-- Prior for sampling proportion for Germany Epoch 1 (post-Jan 23) -->
                 <distribution spec="SmartZeroExcludingPrior">
-                    <x spec="feast.function.Slice" arg="@samplingProportion" index="1" count="1"/>
+                    <x spec="feast.function.Slice" arg="@samplingProportion" index="2" count="1"/>
                     <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.060"/>
                 </distribution>
                 <!-- Prior for sampling proportion for Italy Epoch 1 (post-Jan 23) -->
@@ -187,20 +187,20 @@
                     <x spec="feast.function.Slice" arg="@samplingProportion" index="5" count="1"/>
                     <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.055"/>
                 </distribution>
-                <!-- Prior for sampling proportion for France Epoch 2 (post-first sample date) -->
+                <!-- Prior for sampling proportion for China Epoch 2 (post-first sample date) -->
                 <distribution spec="SmartZeroExcludingPrior">
                     <x spec="feast.function.Slice" arg="@samplingProportion" index="6" count="1"/>
+                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.097"/>
+                </distribution>
+                <!-- Prior for sampling proportion for France Epoch 2 (post-first sample date) -->
+                <distribution spec="SmartZeroExcludingPrior">
+                    <x spec="feast.function.Slice" arg="@samplingProportion" index="7" count="1"/>
                     <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.084"/>
                 </distribution>
                 <!-- Prior for sampling proportion for Germany Epoch 2 (post-first sample date) -->
                 <distribution spec="SmartZeroExcludingPrior">
-                    <x spec="feast.function.Slice" arg="@samplingProportion" index="7" count="1"/>
-                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.060"/>
-                </distribution>
-                <!-- Prior for sampling proportion for Hubei-China Epoch 2 (post-first sample date) -->
-                <distribution spec="SmartZeroExcludingPrior">
                     <x spec="feast.function.Slice" arg="@samplingProportion" index="8" count="1"/>
-                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.097"/>
+                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.060"/>
                 </distribution>
                 <!-- Prior for sampling proportion for Italy Epoch 2 (post-first sample date) -->
                 <distribution spec="SmartZeroExcludingPrior">
@@ -221,13 +221,13 @@
 
              <!-- Likelihood -->
             <distribution id="likelihood" spec="util.CompoundDistribution" useThreads="true">
-                <distribution id="treeLikelihood" spec="ThreadedTreeLikelihood" data="@early_europe" tree="@Tree.europe">
+                <distribution id="treeLikelihood" spec="ThreadedTreeLikelihood" data="@europe_demes" tree="@Tree.europe">
                     
                     <siteModel id="SiteModel" spec="SiteModel" gammaCategoryCount="4" shape="@gammaShape">
                         <parameter id="mutationRate" spec="parameter.RealParameter" estimate="false" name="mutationRate">1.0</parameter>
                         <parameter id="proportionInvariant" spec="parameter.RealParameter" estimate="false" lower="0.0" name="proportionInvariant" upper="1.0">0.0</parameter>
                         <substModel id="hky" spec="HKY" kappa="@kappa">
-                            <frequencies id="empiricalFreqs" spec="Frequencies" data="@early_europe"/>
+                            <frequencies id="empiricalFreqs" spec="Frequencies" data="@europe_demes"/>
                         </substModel>
                     </siteModel>
 
@@ -239,7 +239,7 @@
             </distribution>
         </distribution>
 
-        <!-- Operators -->
+    <!-- Operators -->
         <operator id="gammaShapeScaler" spec="ScaleOperator" parameter="@gammaShape" scaleFactor="0.5" weight="0.1"/>
 
         <operator id="KappaScaler" spec="ScaleOperator" parameter="@kappa" scaleFactor="0.5" weight="0.1"/>
@@ -264,7 +264,7 @@
 
         <operator id="scaleParamGLMScaler" spec="bdmmprime.util.operators.RandomWalkOperator" parameter="@scaleParamGLM" weight="3.0"/>
 
-        <logger id="tracelog" spec="Logger" fileName="$(filebase).$(seed).log" logEvery="1000" model="@posterior" sanitiseHeaders="true" sort="smart">
+        <logger id="tracelog" spec="Logger" fileName="$(filebase).$(seed).log" logEvery="10000" model="@posterior" sanitiseHeaders="true" sort="smart">
             <log idref="posterior"/>
             <log idref="likelihood"/>
             <log idref="prior"/>
@@ -288,7 +288,7 @@
             <log idref="prior"/>
         </logger>
 
-        <logger id="treelog" spec="Logger" fileName="$(filebase).$(seed).trees" logEvery="1000" mode="tree">
+        <logger id="treelog" spec="Logger" fileName="$(filebase).$(seed).trees" logEvery="10000" mode="tree">
             <log id="TreeWithMetaDataLogger" spec="beast.evolution.tree.TreeWithMetaDataLogger" tree="@Tree.europe"/>
         </logger>
 
