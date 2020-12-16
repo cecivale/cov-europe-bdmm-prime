@@ -20,6 +20,7 @@ subsample <- function(alignment, metadata, include = NA, exclude = NA,
                       exclude_country = NA, exclude_division = NA,
                       from, to, seq_per_deme, seed, prob = "time") {
   set.seed(seed)
+  
   # Read files
   alignment <- read.FASTA(file = alignment)
   metadata <- read.delim(file = metadata, stringsAsFactors = FALSE) %>%
@@ -49,7 +50,8 @@ subsample <- function(alignment, metadata, include = NA, exclude = NA,
   if (prob == "deaths") to <- ymd(to) + 14
   
   # Get case counts for deme
-  cases_deme <- get_cases_deme("deme", region_name, country_name, division_name, 
+  case_data <- get_dataECDC()
+  cases_deme <- get_cases_deme(case_data, "deme", region_name, country_name, division_name, 
                                exclude_country, exclude_division, 
                                from, to)  
   

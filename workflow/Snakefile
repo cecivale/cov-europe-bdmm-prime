@@ -604,9 +604,11 @@ rule beast:
         java -Xmx3G -jar {params.jar} -D "chain_length={params.length}" -seed {wildcards.seed} -statefile {wildcards.analysis_name}.{wildcards.seed}.state -{params.action} {input.xml} 2>&1 | tee -a {params.log} || :
         cd ../../
         mv results/{wildcards.build_name}/{params.log} logs/
+
         touch {params.name}.log {params.name}.trees
         scp {params.name}.log {output.trace}
         scp {params.name}.trees {output.trees}
+        find . -type f -empty -delete
         """
 
 

@@ -51,6 +51,8 @@ $$
 
 where $\boldsymbol{\beta}$ are the coefficients for the predictors that can be between $-\infty$ and $\infty$ (prior  $\mathcal{N}(0,4)$) and $\boldsymbol{\delta}$ are the indicators that can be 0 or 1 and denote if a predictor contributes at all. 
 
+Analysis Europe 6 without indicator variables, Europe 7 with indicator variables, same predictors.
+
 ## Daily flight passengers
 
 Passengers carried data from Eurostats. Reported _departures_ values are taken for European countries (recommendation from Eurostats to avoid duplicates). For China, arrivals and departures values are considered.
@@ -246,9 +248,9 @@ ggplot() +
         axis.title.y = element_blank())
 ```
 
-Map of Europe and part of Asia showing the demes included in the analysis (in color). The X represents the centroid of each deme. The centroids of each European country fromm the Other European deme are not drawed.
+Map of Europe and part of Asia showing the demes included in the analysis (in color). The X represents the centroid of each deme. The centroids of each European country from Other European deme are not drawed.
 
-<!-- Other distance ptions: -->
+<!-- Other distance options: -->
 <!-- Average pairwaise distance between airports - considers that only flight transportation matters, more work -->
 <!-- Distance taking into account population distribution inside the country. CEPPI dataset -->
 <!-- Minimum distance. -->
