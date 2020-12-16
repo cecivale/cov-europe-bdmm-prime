@@ -170,7 +170,7 @@ case_data <- get_cases(demes, from = ymd("2019-09-01"), to = MRS + 10) %>%
   mutate(cumcases = max(cumcases),
          cumdeaths = max(cumdeaths)) %>%
   select(deme, date, cumcases, cumdeaths, cases)  %>%
-  distinct()
+  distinct_at(vars(deme, date, cumcases, cumdeaths), .keep_all = TRUE)
 
 # Population data
 data(pop)
@@ -478,7 +478,7 @@ trajs <- lapply(demes$deme, function(deme) {
                  date_labels = "%b %d") +
     scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
     ylab("Population size") +
-    theme(legend.position = c(0.4, 0.9),
+    theme(legend.position = c(0.3, 0.9),
           axis.title.x=element_blank())
   })
 
@@ -500,7 +500,7 @@ for (d in demes$deme) {
 
 ## Reporting rate
 
-```{r report-rate}
+```{r report-rate, fig.height = 4}
 # 1.3. Reporting rate by day by case
 reportrate <- gt_summary_v2 %>%
   filter(!type %in% c(china_deme, "OtherEuropean")) %>%
@@ -534,7 +534,7 @@ reportrate
 
 
 ## Inferred case counts - Additional figures
-```{r}
+```{r traj-sum, fig.height = 4}
 # 1.1 Median and 95% CCI by deme in log scale
 gribbon <- ggplot(gt_summary) +
   geom_ribbon(aes(date, ymin = Ilow, ymax = Ihigh, fill = type), alpha = 0.5) +
@@ -550,6 +550,9 @@ gribbon <- ggplot(gt_summary) +
   theme(legend.position = c(0.2, 0.7),
         legend.box="horizontal",
         axis.title.x=element_blank())
+
+gribbon
+
 #
 # ggexport(gribbon,
 #          filename = paste0(args$output_figure, "01.png"),
