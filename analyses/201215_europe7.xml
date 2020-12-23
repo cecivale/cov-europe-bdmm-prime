@@ -56,11 +56,12 @@
             <parameter id="originBDMMPrime" spec="parameter.RealParameter" name="stateNode">1.0</parameter>
             <parameter id="R0" spec="parameter.RealParameter" dimension="6" name="stateNode">1.0 1.0 1.0 1.0 1.0 1.0</parameter>
             <parameter id="samplingProportion" spec="parameter.RealParameter" dimension="18" lower="0.0" name="stateNode" upper="1.0">
-                1.0E-5 1.1E-5 0.0 1.3E-5 1.4E-5 1.5E-5 
+                0.0 1.1E-5 1.2E-5 1.3E-5 1.4E-5 1.5E-5 
                 1.0E-5 1.1E-5 1.2E-5 1.3E-5 1.4E-5 1.5E-5 
                 0.0 0.0 0.0 0.0 0.0 0.0
             </parameter>
-            <parameter id="scaleParamGLM" spec="parameter.RealParameter" name="stateNode">1.0</parameter>
+            <parameter id="scaleParamGLM" spec="parameter.RealParameter" dimension="4" name="stateNode">1.0 1.0 1.0 1.0</parameter>
+            <parameter id="indicatorParamGLM" spec="parameter.BooleanParameter" dimension="4" name="stateNode">1 1 1 1</parameter>
         </state>
     
 
@@ -100,8 +101,6 @@
                             <parameter id="samplingProportionChangeTimes" spec="parameter.RealParameter" dimension="2" estimate="false" lower="0.0" name="changeTimes">0.12 0.205</parameter>
                         </samplingProportion>
 
-                        <rhoSampling id="rhoSamplingProbTP" spec="bdmmprime.parameterization.TimedParameter" origin="@originBDMMPrime" timesAreAges="true" typeSet="@typeSetBDMMPrime"/>
-
                         <removalProb id="removalProbSV" spec="bdmmprime.parameterization.SkylineVectorParameter" origin="@originBDMMPrime" timesAreAges="true" typeSet="@typeSetBDMMPrime">
                             <parameter id="removalProb" spec="parameter.RealParameter" estimate="false" lower="0.0" name="skylineValues" upper="1.0">1.0</parameter>
                         </removalProb>
@@ -110,8 +109,9 @@
                             <parameter id="migrationRateChangeTimes"
                             spec="parameter.RealParameter" estimate="false" name="changeTimes"> 0.02 0.12</parameter>
                             <skylineValues id="migrationRate" spec="bdmmprime.util.priors.MigRateGLM">
-                                <parameter id="GLMcovariateMatrix" spec="feast.fileio.RealParameterFromXSV" fileName="../../files/flight_matrix_3i.csv" sep="," estimate="false" name="covariateMatrix" dimension="90"/>
+                                <parameter id="covariateListGLM" spec="feast.fileio.RealParameterFromXSV" fileName="../../files/covariates_4p_3e.csv" sep="," estimate="false" name="covariateList" dimension="360"/>
                                 <parameter idref="scaleParamGLM" name="scaleParam"/>
+                                 <parameter idref="indicatorParamGLM" name="indicatorParam"/>
                             </skylineValues>
                         </migrationRate> 
 
@@ -123,7 +123,7 @@
 
                     </parameterization>
 
-                    <parameter id="typeFrequencies" spec="parameter.RealParameter" dimension="6" estimate="false" lower="0.0" name="frequencies" upper="1.0">0.0 0.0 1.0 0.0 0.0 0.0</parameter>
+                    <parameter id="typeFrequencies" spec="parameter.RealParameter" dimension="6" estimate="false" lower="0.0" name="frequencies" upper="1.0">1.0 0.0 0.0 0.0 0.0 0.0</parameter>
 
                     <typeTraitSet idref="typeTraitSet.europe"/>
 
@@ -166,12 +166,12 @@
 
     			<!-- Prior for sampling proportion for France Epoch 1 (post-Jan 23) -->
                 <distribution spec="SmartZeroExcludingPrior">
-                    <x spec="feast.function.Slice" arg="@samplingProportion" index="0" count="1"/>
+                    <x spec="feast.function.Slice" arg="@samplingProportion" index="1" count="1"/>
                     <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.084"/>
                 </distribution>
                 <!-- Prior for sampling proportion for Germany Epoch 1 (post-Jan 23) -->
                 <distribution spec="SmartZeroExcludingPrior">
-                    <x spec="feast.function.Slice" arg="@samplingProportion" index="1" count="1"/>
+                    <x spec="feast.function.Slice" arg="@samplingProportion" index="2" count="1"/>
                     <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.060"/>
                 </distribution>
                 <!-- Prior for sampling proportion for Italy Epoch 1 (post-Jan 23) -->
@@ -189,20 +189,20 @@
                     <x spec="feast.function.Slice" arg="@samplingProportion" index="5" count="1"/>
                     <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.055"/>
                 </distribution>
-                <!-- Prior for sampling proportion for France Epoch 2 (post-first sample date) -->
+                <!-- Prior for sampling proportion for China Epoch 2 (post-first sample date) -->
                 <distribution spec="SmartZeroExcludingPrior">
                     <x spec="feast.function.Slice" arg="@samplingProportion" index="6" count="1"/>
+                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.097"/>
+                </distribution>
+                <!-- Prior for sampling proportion for France Epoch 2 (post-first sample date) -->
+                <distribution spec="SmartZeroExcludingPrior">
+                    <x spec="feast.function.Slice" arg="@samplingProportion" index="7" count="1"/>
                     <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.084"/>
                 </distribution>
                 <!-- Prior for sampling proportion for Germany Epoch 2 (post-first sample date) -->
                 <distribution spec="SmartZeroExcludingPrior">
-                    <x spec="feast.function.Slice" arg="@samplingProportion" index="7" count="1"/>
-                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.060"/>
-                </distribution>
-                <!-- Prior for sampling proportion for Hubei-China Epoch 2 (post-first sample date) -->
-                <distribution spec="SmartZeroExcludingPrior">
                     <x spec="feast.function.Slice" arg="@samplingProportion" index="8" count="1"/>
-                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.097"/>
+                    <distr spec="beast.math.distributions.Uniform" lower="0" upper="0.060"/>
                 </distribution>
                 <!-- Prior for sampling proportion for Italy Epoch 2 (post-first sample date) -->
                 <distribution spec="SmartZeroExcludingPrior">
@@ -246,19 +246,17 @@
 
         <operator id="KappaScaler" spec="ScaleOperator" parameter="@kappa" scaleFactor="0.5" weight="0.1"/>
 
-        <operator id="BDMMPrimeLeafToSA" spec="LeafToSampledAncestorJump" tree="@Tree.europe" weight="10.0"/>
+        <operator id="BDMMPrimeWilsonBalding" spec="WilsonBalding" tree="@Tree.europe" weight="10.0"/>
 
-        <operator id="BDMMPrimeSAWilsonBalding" spec="SAWilsonBalding" tree="@Tree.europe" weight="10.0"/>
+        <operator id="BDMMPrimeWide" spec="Exchange" isNarrow="false" tree="@Tree.europe" weight="10.0"/>
 
-        <operator id="BDMMPrimeSAWide" spec="SAExchange" isNarrow="false" tree="@Tree.europe" weight="10.0"/>
+        <operator id="BDMMPrimeNarrow" spec="Exchange" tree="@Tree.europe" weight="10.0"/>
 
-        <operator id="BDMMPrimeSANarrow" spec="SAExchange" tree="@Tree.europe" weight="10.0"/>
+        <operator id="BDMMPrimeUniformOperator" spec="Uniform" tree="@Tree.europe" weight="20.0"/>
 
-        <operator id="BDMMPrimeSAUniformOperator" spec="SAUniform" tree="@Tree.europe" weight="20.0"/>
+        <operator id="BDMMPrimeTreeRootScaler" spec="ScaleOperator" rootOnly="true" scaleFactor="0.95" tree="@Tree.europe" weight="1.0"/>
 
-        <operator id="BDMMPrimeSATreeRootScaler" spec="SAScaleOperator" rootOnly="true" scaleFactor="0.95" tree="@Tree.europe" weight="1.0"/>
-
-        <operator id="BDMMPrimeSATreeScaler" spec="SAScaleOperator" scaleFactor="0.95" tree="@Tree.europe" weight="3.0"/>
+        <operator id="BDMMPrimeTreeScaler" spec="ScaleOperator" scaleFactor="0.95" tree="@Tree.europe" weight="3.0"/>
 
         <operator id="originBDMMPrimeScaler" spec="ScaleOperator" parameter="@originBDMMPrime" scaleFactor="0.75" weight="3.0"/>
 
@@ -268,7 +266,9 @@
 
         <operator id="scaleParamGLMScaler" spec="bdmmprime.util.operators.RandomWalkOperator" parameter="@scaleParamGLM" weight="3.0"/>
 
-        <logger id="tracelog" spec="Logger" fileName="$(filebase).$(seed).log" logEvery="1000" model="@posterior" sanitiseHeaders="true" sort="smart">
+        <operator id="indicatorParamGLMScaler" spec="BitFlipOperator" parameter="@indicatorParamGLM" uniform = "false" weight="3.0"/>
+
+        <logger id="tracelog" spec="Logger" fileName="chains/$(filebase).$(seed).log" logEvery="10000" model="@posterior" sanitiseHeaders="true" sort="smart">
             <log idref="posterior"/>
             <log idref="likelihood"/>
             <log idref="prior"/>
@@ -283,8 +283,8 @@
             <log idref="migrationRateSM"/>
             <log idref="samplingProportionSV"/>
             <log idref="removalProbSV"/>
-            <log idref="rhoSamplingProbTP"/>
             <log idref="scaleParamGLM"/>
+            <log idref="indicatorParamGLM"/>
         </logger>
 
         <logger id="screenlog" spec="Logger" logEvery="10000">
@@ -293,7 +293,7 @@
             <log idref="prior"/>
         </logger>
 
-        <logger id="treelog" spec="Logger" fileName="$(filebase).$(seed).trees" logEvery="1000" mode="tree">
+        <logger id="treelog" spec="Logger" fileName="chains/$(filebase).$(seed).trees" logEvery="10000" mode="tree">
             <log id="TreeWithMetaDataLogger" spec="beast.evolution.tree.TreeWithMetaDataLogger" tree="@Tree.europe"/>
         </logger>
 

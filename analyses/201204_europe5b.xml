@@ -110,7 +110,7 @@
                             <parameter id="migrationRateChangeTimes"
                             spec="parameter.RealParameter" estimate="false" name="changeTimes"> 0.02 0.12</parameter>
                             <skylineValues id="migrationRate" spec="bdmmprime.util.priors.MigRateGLM">
-                                <parameter id="GLMcovariateMatrix" spec="feast.fileio.RealParameterFromXSV" fileName="../../files/flight_matrix_3i.csv" sep="," estimate="false" name="covariateMatrix" dimension="90"/>
+                                <parameter id="GLMcovariateMatrix" spec="feast.fileio.RealParameterFromXSV" fileName="../../files/flight_matrix_3i_pop.csv" sep="," estimate="false" name="covariateMatrix" dimension="90"/>
                                 <parameter idref="scaleParamGLM" name="scaleParam"/>
                             </skylineValues>
                         </migrationRate> 

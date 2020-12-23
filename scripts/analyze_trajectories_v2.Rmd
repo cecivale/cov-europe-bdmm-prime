@@ -1,0 +1,745 @@
+---
+title: "Trajectory Mapping Results"
+subtitle: "analysis x"
+author: "Cecilia Valenzuela"
+date: '`r format(Sys.time(), "%d %B, %Y")`'
+output:
+  beamer_presentation:
+    theme: "Pittsburgh"
+    colortheme: "dove"
+    fonttheme: "structurebold"
+    highlight: pygments
+classoption: "aspectratio=169"
+fontsize: 8pt
+tables: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+options(knitr.kable.NA = '')
+```
+
+```{r libraries}
+# Load libraries ---------------------------------------------------------------
+library(argparse)
+library(yaml)
+library(tidyverse)
+library(lubridate)
+library(scales)
+library(ggpubr)
+library(ggsci)
+library(ggridges)
+library(patchwork)
+library(hrbrthemes)
+library(circlize)
+library(chorddiag) 
+library(ggforce)
+library(ComplexHeatmap)
+library(maps)
+library(sf)
+library(wpp2019)
+library(gridExtra)
+library(grid)
+# Source files -----------------------------------------------------------------
+source("./scripts/trajProcessing.R")
+source("./scripts/utils.R")
+```
+
+```{r parser}
+# Parser -----------------------------------------------------------------------
+parser <- argparse::ArgumentParser()
+parser$add_argument("--input", type = "character", help="trajectory file")
+parser$add_argument("--burnin", type = "double", help = "Burning fraction for trajectory files")
+parser$add_argument("--metadata", type = "character", help = "Alignment sequences metadata")
+parser$add_argument("--demes", nargs = "+", help = "Demes configuration")
+parser$add_argument("--n", type = "integer", help = "Number of trajectories to analyze")
+parser$add_argument("--output_figure", type = "character", help = "Output path for the figures")
+parser$add_argument("--output_table", type = "character", help = "Output path for the tables")
+args <- parser$parse_args()
+```
+
+```{r debugging}
+# Debugging
+args$burnin = 0.1
+args$demes = read.csv("/Users/maceci/code/mt-analysis/201014_europe2/files/demes.csv", stringsAsFactors = FALSE)
+args$input = "/Users/maceci/code/mt-analysis/europeGLM/results/europeC/201106_europe5.TL.traj"
+args$metadata =  "/Users/maceci/code/mt-analysis/europeGLM/results/europeC/final_metadata.tsv"
+args$n = 200
+demes = args$demes
+demes$exclude_country[5] = "France,Germany,Italy,Spain"
+demes$deme[3] = "China"
+demes$division[3] = NA
+demes <- demes %>% arrange(deme)
+```
+
+
+
+
+```{r plotopts}
+# Plot options -----------------------------------------------------------------------
+set_plotopts()
+dcolors <- pal_npg("nrc")(10)[c(1:5,9)]
+dcolors <- dcolors[1:nrow(demes)]
+names(dcolors) <- sort(demes$deme)
+dark_dcolors <- rgb(t(col2rgb(dcolors)/2), maxColorValue=255)
+names(dark_dcolors) <- names(dcolors)
+ecolors <- c("#1e3d59", "#f5f0e1", "#ff6e40", "#ffc13b")
+names(ecolors) <- c("B", "M", "IM", "OM")
+```
+
+
+## Deme configuration
+\tiny
+```{r demeconfig}
+# Load demes configuration and sequence metadata -------------------------------
+# demes <- data.frame(deme = NA, region = NA, country = NA, division = NA, 
+#                     exclude_country = NA, exclude_division = NA,
+#                     min_date = NA, max_date = NA, seq_per_deme = NA) %>%
+#   bind_rows(bind_rows(lapply(yaml::yaml.load(string = paste(args$demes, collapse = " ")),
+#                           data.frame, stringsAsFactors = FALSE), .id = "deme")) %>%
+#   group_by(deme) %>% 
+#   mutate(exclude_country = ifelse(is.na(exclude_country), NA, paste0(exclude_country, collapse = ","))) %>%
+#   distinct() %>%
+#   filter_all(any_vars(!is.na(.))) %>%
+#   mutate(deme = str_to_title(deme)) %>%
+#   mutate(deme = ifelse(deme %in% c("Othereuropean", "OtherEuropean"), "Other European", deme))
+
+china_deme <- demes$deme[demes$region == "Asia"]
+if (china_deme == "Hubei-China") china_deme = "China"
+```
+
+```{r map, fig.height=2, fig.align="center"}
+# https://www.r-bloggers.com/2019/04/zooming-in-on-maps-with-sf-and-ggplot2/
+worldmap <- st_as_sf(map("world", plot = FALSE, fill = TRUE)) %>%
+  mutate(country = ifelse(ID == "UK", "United Kingdom", as.character(ID)),
+         continent = countrycode(sourcevar = country,
+                             origin = "country.name",
+                             destination = "continent")) %>%
+  #filter(country %in% demes$country | continent == "Europe") %>%
+  mutate(deme = case_when(
+    country %in% demes$country ~ country,
+    continent == "Europe" ~ "OtherEuropean"))
+
+zoom_to <- c(20, 50) 
+zoom_level <- 2.6
+target_crs <- sprintf('+proj=aeqd +lon_0=%f +lat_0=%f',
+                      zoom_to[1], zoom_to[2])
+C <- 40075016.686   # ~ circumference of Earth in meters
+x_span <- C / 2^zoom_level
+y_span <- C / 2^(zoom_level+1)
+
+zoom_to_xy <- st_transform(st_sfc(st_point(zoom_to), crs = 4326),
+                           crs = target_crs)
+disp_window <- st_sfc(
+    st_point(st_coordinates(zoom_to_xy - c(x_span/2, y_span/2))),
+    st_point(st_coordinates(zoom_to_xy + c(x_span *1.2, y_span *1.2))),
+    crs = target_crs
+)
+ggplot() + geom_sf(data = worldmap, aes(fill = deme), alpha = 0.8, size = 0) +
+    scale_x_continuous(breaks = seq(-100, 200, by = 10)) +
+    scale_y_continuous(breaks = seq(0, 100, by = 10)) +
+    #geom_sf(data = zoom_to_xy, color = 'red') +
+    coord_sf(xlim = st_coordinates(disp_window)[,'X'],
+             ylim = st_coordinates(disp_window)[,'Y'],
+             crs = target_crs, expand = FALSE) +
+  scale_fill_manual(values = dcolors, na.value = "grey90") +
+  theme_void() +
+  theme(panel.grid.major = element_line(colour = "grey", size = 0.1),
+        legend.position = "none")
+        # panel.ontop = TRUE,
+        # panel.background = element_blank()) 
+
+knitr::kable(demes %>% select(-c("demeID", "exclude_division", "prob")), booktabs = TRUE)
+```
+
+
+## ECDC Case count data
+
+```{r ecdc-data, results='hide'}
+# Case data information from ECDC ----------------------------------------------
+# Most recent sample value
+metadata <- read_tsv(args$metadata)
+MRS <- max(metadata$date)
+mrs <- ymd_hms(paste(MRS, '23:59:00 UTC'))
+
+case_data <- get_cases(demes, from = ymd("2019-09-01"), to = MRS + 10) %>%
+  arrange(date) %>%
+  group_by(deme) %>%
+  mutate(cumcases = cumsum(cases),
+         cumdeaths = cumsum(deaths)) %>%
+  group_by(deme, date) %>%
+  mutate(cumcases = max(cumcases),
+         cumdeaths = max(cumdeaths)) %>%
+  select(deme, date, cumcases, cumdeaths, cases)  %>%
+  distinct_at(vars(deme, date, cumcases, cumdeaths), .keep_all = TRUE)
+
+# Population data
+data(pop)
+population <- pop %>% filter(name %in% demes$deme) %>% select(name, "2020")
+pop_eu_demes <- population %>% filter(name != "China") %>% summarise(s = sum(`2020`)) %>% pull(s)
+pop_eu_total <- pop %>% filter(name == "Europe") %>% pull("2020")
+population <- population %>%
+  tibble::add_row(name = "OtherEuropean", `2020` = pop_eu_total - pop_eu_demes) %>% rename(deme = name, pop = 2)
+
+case_data_pop <- case_data %>% left_join(population, by="deme") %>% mutate(cas100 = cumcases * 1e5 / (pop * 1e3))
+```
+
+::: {.columns}
+
+:::: {.column width="40%"}
+\small
+```{r ecdc-table, echo=FALSE}
+knitr::kable(case_data_pop %>% ungroup %>% filter(date == MRS + 10) %>% select(deme, cumcases, pop, cas100) %>% mutate_if(is.numeric, function (x) round(x,1)), booktabs = TRUE, caption = "Total number of cases reported to ECDC 18th March")
+```
+::::
+
+:::: {.column width="60%"}
+```{r ecdc-plot, fig.height = 3, fig.width=4, fig.cap="ECDC case counts for each deme from the beginning of the pandemic to March 18"}
+ggplot(case_data) +
+  geom_line(aes(x = date, y = cumcases, color = deme)) +
+   scale_color_manual(values = dcolors, name = "") +
+   scale_x_date(limits = c(ymd("2019-12-30"), ymd("2020-03-18")), date_breaks = "1 month", date_labels = "%b %d") +
+    scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
+    ylab("Case count") +
+    theme(axis.title.x=element_blank(),
+          legend.position = c(0.2, 0.7),
+          legend.box="horizontal",
+          panel.grid.major.x =  element_line(colour = "grey80", size = 0.3),
+          panel.grid.minor.x =  element_line(colour = "grey80", size = 0.2))
+```
+
+::::
+
+:::
+
+## Epidemic trajectory data
+
+From the Stochastic Trajectory Mapping analysis, we obtain one epidemic trajectory per set of parameters + typed node tree.
+
+The processing of the trajectory data includes the generation of two different datasets:
+
+- `states`: We have the total number of inferred cases by trajectory, deme and time.
+- `events`: We have each event that happened in a epidemic trajectory, with its type (origin, birth, death or migration), the source/destination deme and time.
+
+
+```{r traj-data, warnings = FALSE, message = FALSE}
+# Load trajectory data ---------------------------------------------------------
+df <- loadTrajectories(args$input, burninFrac = args$burnin, subsample = args$n)
+
+# Data wrangling ---------------------------------------------------------------
+states <- df$states %>%
+  mutate(type = factor(type,
+                       levels = 0:(nrow(demes) - 1),
+                       #labels = sort(demes$deme)),
+                       labels = c("France", "Germany","China","Italy","OtherEuropean","Spain")),
+         date_model = date(date_decimal(decimal_date(ymd(MRS)) - age))) %>%
+  mutate(date = date_model + 10)
+
+events <- df$events %>%
+  mutate(src = factor(src,
+                      levels = 0:(nrow(demes) - 1),
+                      #labels = sort(demes$deme)),
+                      labels = c("France", "Germany","China","Italy","OtherEuropean","Spain")),
+         dest = ifelse(is.na(dest), as.character(src),
+                       as.character(factor(dest,
+                                           levels = 0:(nrow(demes) - 1),
+                                           labels = sort(demes$deme)))),
+         date_model = date(date_decimal(decimal_date(ymd(MRS)) - age))) %>%
+  mutate(date = date_model + 10)
+```
+
+```{r table-states}
+knitr::kable(head(states, 5), booktabs = TRUE, caption = "States dataset")
+```
+
+## Epidemic trajectory data
+
+```{r table-events}
+knitr::kable(head(events, 5), booktabs = TRUE, caption = "Events dataset")
+```
+
+\normalsize
+To have a feasible time of analysis of the epidemic trajectories we take a random subsample of 500 trajectories.
+
+To facilitate visualization and summarise the results, we take a grid time of 1 day and summarise the number of events that day as the sum of the events in the corresponding time interval; and the number of inferred cases as the maximum of the interval.
+
+
+```{r traj-process, warning=FALSE}
+# Date grids
+max_age <- max(states$age)
+min_date <- date_decimal(decimal_date(mrs) - max_age)
+#ages_5day <- rev(decimal_date(mrs) - decimal_date(seq(mrs,min_date, by = '-5 days')))
+ages_1day <- rev(decimal_date(mrs) - decimal_date(seq(mrs,min_date, by = '-1 days')))
+
+# Grid trajectories, time grid of 5 days taking maximum value
+gt <- gridTrajectoriesByAge(states, ages_1day) %>%
+  replace_na(list(N = 0)) %>%
+  mutate(date_model = date(date_decimal(decimal_date(mrs) - age)),
+         date = date_model + 10)
+
+# Summary statistics
+gt_summary <- gt %>%
+  group_by(date, type) %>%
+  summarize(Imean = mean(N),
+            Imedian = median(N),
+            Ilow    = quantile(N, 0.025), #HPD??
+            Ihigh   = quantile(N, 0.975),
+            .groups = "drop_last") %>%
+  ungroup()
+
+# Grid events, time grid of 1 day, taking the sum of events
+ge <- gridEventsByAge(events, ages_1day) %>%
+  mutate(date_model = date(date_decimal(decimal_date(mrs) - age)),
+         date = date_model + 10,
+         dest = ifelse(is.na(dest), as.character(src), as.character(dest)))
+
+```
+
+
+<!-- ## Inferred case counts -->
+
+```{r}
+# 1. Trajectories - Total case counts
+# 1.1 Median and 95% CCI of Total cases on the full time period. Fraction median
+#    and 95% CCI (cases ecdc/inferred cases) wrt. ECDC reported cases
+
+reported <- gt_summary %>%
+  rename(deme = type) %>%
+  filter(date == MRS + 10) %>%
+  left_join(case_data_pop , by = c("deme", "date")) %>%
+  mutate(fc = cumcases/Imedian,
+         lfc = cumcases/Ihigh,
+         hfc = cumcases/Ilow,
+         rc = Imedian/cumcases,
+         lrc = Ilow/cumcases,
+         hrc = Ihigh/cumcases,
+         mcas100 = Imedian * 100 / pop,
+         lcas100 = Ilow * 100 / pop,
+         hcas100 = Ihigh * 100 / pop) %>%
+  #select(deme, Imedian, Ilow, Ihigh, rc, lrc, hrc, cumcases, pop, cas100) %>%
+  mutate_if(is.numeric, function(x) round(x,2))
+
+# r_reported <- reported %>%
+#   mutate(Country = type,
+#          `Cases ECDC` = cumcases,
+#          `Median Cases (95% CCI)` = paste0(round(Imedian), " (", round(Ilow), "-", round(Ihigh), ")"),
+#          `Median Reporting Rate (95% CCI)` = paste0(round(reportrate, 2), " (", round(hreportrate, 2), "-", round(lreportrate, 2), ")")) %>%
+#   select(-one_of(colnames(reported)))
+#
+# write_tsv(r_reported, paste0(args$output_table, "01.tsv"))
+```
+
+```{r trajs}
+# 1.2 All trajectories single deme in log scale with ECDC case count data
+trajs <- lapply(demes$deme, function(deme) {
+  gt %>%
+    # 1. Prepare data
+    filter(type == deme) %>%
+    mutate(traj = as.character(traj)) %>%
+    bind_rows(case_data %>%
+                rename(type = deme,
+                       N = cumcases) %>%
+                filter(type == deme) %>%
+                mutate(traj = "ecdc") %>%
+                select(type, traj, date, N) %>%
+                distinct()) %>%
+    # 2. Plot
+    ggplot() +
+    geom_line(aes(date, N, group = traj,
+                  color = traj == "ecdc",
+                  alpha = traj == "ecdc",
+                  linetype = traj == "ecdc",
+                  size = traj == "ecdc")) +
+    scale_color_manual(name = "",
+                       labels = c(paste0(deme, " inferred\n population trajectories"),
+                                  paste0(ifelse(deme == china_deme, "China", as.character(deme)), 
+                                         " ECDC total case count")),
+                       values = c(dcolors[[deme]], dark_dcolors[[deme]])) +
+    scale_alpha_manual(name = "", values = c(0.2, 1), guide = FALSE) +
+    scale_linetype_manual(name = "", values = c(1, 2),
+                          labels = c(paste0(deme, " inferred\n population trajectories"),
+                                     paste0(ifelse(deme == china_deme, "China", as.character(deme)), 
+                                            " ECDC total case count"))) +
+    scale_size_manual(name = "", values = c(0.5, 1),
+                      labels = c(paste0(deme, " inferred\n population trajectories"),
+                                 paste0(ifelse(deme == china_deme, "China", as.character(deme)), 
+                                        " ECDC total case count"))) +
+    scale_x_date(limits = c(ymd("2019-11-01"), ymd(MRS + 10)), date_breaks = "2 weeks", 
+                 date_labels = "%b %d") +
+    scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
+    ylab("Population size") +
+    theme(legend.position = c(0.4, 0.9),
+          axis.title.x=element_blank())
+  })
+
+names(trajs) <- demes$deme
+# ggexport(ggarrange(plotlist = trajs, labels = chartr("123456789", "ABCDEFGHI", 1:length(trajs)), nrow = 3, ncol = 2),
+#          filename = paste0(args$output_figure, "02.png"),
+#          width = 2300, height = 3000, res = 300)
+```
+
+
+\tiny
+```{r trajs-plotv2, results='asis', fig.height = 4}
+for (d in demes$deme) {
+  cat("\n## Inferred case counts - ", d, "\n")
+  grid.arrange(trajs[[d]], tableGrob(reported %>% filter(deme == d) %>% t, theme = ttheme_minimal()), ncol = 2, widths = c(2,1))
+  cat("\n")
+}
+```
+```{r}
+gt_v2 <- ge %>%
+  ungroup %>%
+  filter(event %in% c("B", "M")) %>%
+  group_by(traj, dest, date) %>%
+  arrange(date) %>%
+  summarise(Nt = sum(N), .groups = 'drop_last') %>%
+  mutate(cumNt = cumsum(Nt)) %>%
+  rename(type = dest)
+
+gt_summary_v2 <- gt_v2 %>%
+  group_by(date, type) %>%
+  summarize(Imean = mean(cumNt),
+            Imedian = median(cumNt),
+            Ilow    = quantile(cumNt, 0.025), #HPD??
+            Ihigh   = quantile(cumNt, 0.975),
+            Dmedian = median(Nt),
+            Dlow    = quantile(Nt, 0.025), #HPD??
+            Dhigh   = quantile(Nt, 0.975),
+            .groups = "drop_last") %>%
+  ungroup()
+
+```
+
+```{r trajs-infov2}
+# 1. Trajectories - Total case counts
+# 1.1 Median and 95% CCI of Total cases on the full time period. Fraction median
+#    and 95% CCI (cases ecdc/inferred cases) wrt. ECDC reported cases
+
+reported <- gt_summary_v2 %>%
+  rename(deme = type) %>%
+  filter(date == MRS + 10) %>%
+  left_join(case_data_pop , by = c("deme", "date")) %>%
+  mutate(fc = cumcases/Imedian,
+         lfc = cumcases/Ihigh,
+         hfc = cumcases/Ilow,
+         rc = Imedian/cumcases,
+         lrc = Ilow/cumcases,
+         hrc = Ihigh/cumcases,
+         mcas100 = Imedian * 100 / pop,
+         lcas100 = Ilow * 100 / pop,
+         hcas100 = Ihigh * 100 / pop) %>%
+  #select(deme, Imedian, Ilow, Ihigh, rc, lrc, hrc, cumcases, pop, cas100) %>%
+  mutate_if(is.numeric, function(x) round(x,2))
+
+# r_reported <- reported %>%
+#   mutate(Country = type,
+#          `Cases ECDC` = cumcases,
+#          `Median Cases (95% CCI)` = paste0(round(Imedian), " (", round(Ilow), "-", round(Ihigh), ")"),
+#          `Median Reporting Rate (95% CCI)` = paste0(round(reportrate, 2), " (", round(hreportrate, 2), "-", round(lreportrate, 2), ")")) %>%
+#   select(-one_of(colnames(reported)))
+#
+# write_tsv(r_reported, paste0(args$output_table, "01.tsv"))
+```
+
+```{r trajsv2}
+# 1.2 All trajectories single deme in log scale with ECDC case count data
+trajs <- lapply(demes$deme, function(deme) {
+  gt_v2 %>%
+    # 1. Prepare data
+    filter(type == deme) %>%
+    mutate(traj = as.character(traj)) %>%
+    bind_rows(case_data %>%
+                rename(type = deme,
+                       cumNt = cumcases) %>%
+                filter(type == deme) %>%
+                mutate(traj = "ecdc") %>%
+                select(type, traj, date, cumNt) %>%
+                distinct()) %>%
+    # 2. Plot
+    ggplot() +
+    geom_line(aes(date, cumNt, group = traj,
+                  color = traj == "ecdc",
+                  alpha = traj == "ecdc",
+                  linetype = traj == "ecdc",
+                  size = traj == "ecdc")) +
+    scale_color_manual(name = "",
+                       labels = c(paste0(deme, " inferred\n population trajectories"),
+                                  paste0(ifelse(deme == china_deme, "China", as.character(deme)), 
+                                         " ECDC total case count")),
+                       values = c(dcolors[[deme]], dark_dcolors[[deme]])) +
+    scale_alpha_manual(name = "", values = c(0.2, 1), guide = FALSE) +
+    scale_linetype_manual(name = "", values = c(1, 2),
+                          labels = c(paste0(deme, " inferred\n population trajectories"),
+                                     paste0(ifelse(deme == china_deme, "China", as.character(deme)), 
+                                            " ECDC total case count"))) +
+    scale_size_manual(name = "", values = c(0.5, 1),
+                      labels = c(paste0(deme, " inferred\n population trajectories"),
+                                 paste0(ifelse(deme == china_deme, "China", as.character(deme)), 
+                                        " ECDC total case count"))) +
+    scale_x_date(limits = c(ymd("2019-11-01"), ymd(MRS + 10)), date_breaks = "2 weeks", 
+                 date_labels = "%b %d") +
+    scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
+    ylab("Population size") +
+    theme(legend.position = c(0.3, 0.9),
+          axis.title.x=element_blank())
+  })
+
+names(trajs) <- demes$deme
+# ggexport(ggarrange(plotlist = trajs, labels = chartr("123456789", "ABCDEFGHI", 1:length(trajs)), nrow = 3, ncol = 2),
+#          filename = paste0(args$output_figure, "02.png"),
+#          width = 2300, height = 3000, res = 300)
+```
+
+
+\tiny
+```{r trajs-plot, results='asis', fig.height = 4}
+for (d in demes$deme) {
+  cat("\n## Inferred case counts v2- ", d, "\n")
+  grid.arrange(trajs[[d]], tableGrob(reported %>% filter(deme == d) %>% t, theme = ttheme_minimal()), ncol = 2, widths = c(2,1))
+  cat("\n")
+}
+```
+
+## Reporting rate
+
+```{r report-rate, fig.height = 4}
+# 1.3. Reporting rate by day by case
+reportrate <- gt_summary_v2 %>%
+  filter(!type %in% c(china_deme, "OtherEuropean")) %>%
+  left_join(case_data %>% rename(type = deme), by = c("type", "date"))  %>%
+  replace_na(list(cases = 0)) %>%
+  mutate(reportrate = ifelse(is.infinite(cases/Dmedian), NA, cases/Dmedian),
+         rlow = ifelse(is.infinite(cases/Dhigh), NA, cases/Dhigh),
+         rhigh = ifelse(is.infinite(cases/Dlow), NA, cases/Dlow)) %>%
+  filter(!is.na(reportrate)) %>%
+  # mutate(week = lubridate::week(date)) %>%
+  # group_by(week, type) %>%
+  # mutate(w_reportrate = mean(reportrate)) %>%
+  ggplot() +
+  geom_line(aes(x = date, y = reportrate, color = type), stat="identity") +
+  geom_point(aes(x = date, y = reportrate, color = type), stat="identity") +
+  geom_ribbon(aes(date, ymin = rlow, ymax = rhigh, fill = type), alpha = 0.1) +
+  ylab("Reporting rate") +
+  scale_color_manual(values = dcolors, name = "") +
+  scale_fill_manual(values = dcolors, name = "") +
+  scale_x_date(limits = c(ymd("2020-01-20"), ymd(MRS + 10)), date_breaks = "1 week", date_labels = "%b %d") +
+  theme(#legend.position = "none",
+        axis.title.x=element_blank()) +
+  coord_cartesian(ylim = c(0,5))
+
+reportrate
+#
+# ggexport(reported5days, filename = paste0(args$output_figure, "03.png"),
+#          width = 1500, height = 1000, res = 300)
+
+```
+
+
+## Inferred case counts - Additional figures
+```{r traj-sum, fig.height = 4}
+# 1.1 Median and 95% CCI by deme in log scale
+gribbon <- ggplot(gt_summary) +
+  geom_ribbon(aes(date, ymin = Ilow, ymax = Ihigh, fill = type), alpha = 0.5) +
+  geom_line(aes(date, Imedian, colour = type)) +
+  ylab("Population size") +
+  xlab("Date") +
+  #labs(title = "SARS-CoV-2 early epidemics in Europe and Hubei",
+       #subtitle = "Case trajectories Median and 95% CCI by deme") +
+  scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
+  scale_x_date(limits = c(ymd("2019-10-01"), ymd("2020-03-08")), date_breaks = "1 month", date_labels = "%b %d") +
+  scale_fill_manual(name = "", values = dcolors) +
+  scale_color_manual(name = "", values = dcolors) +
+  theme(legend.position = c(0.2, 0.7),
+        legend.box="horizontal",
+        axis.title.x=element_blank())
+
+gribbon
+
+#
+# ggexport(gribbon,
+#          filename = paste0(args$output_figure, "01.png"),
+#          width = 1500, height = 1000, res = 300)
+```
+
+<!-- ## First introduction -->
+<!-- ```{r} -->
+<!-- # 2. Events  -->
+<!-- # 2.1. Time interval of first case (introduction) and first reported case to ECDC. -->
+
+<!-- first_ecdc <- case_data %>%  -->
+<!--   group_by(deme) %>%  -->
+<!--   filter(cumcases != 0) %>%  -->
+<!--   arrange(date) %>%  -->
+<!--   slice(1)  %>%  -->
+<!--   rename(dest = deme, min_date = date) -->
+
+<!-- firstcase <- events %>% -->
+<!--   filter(event == "M" | event == "O") %>% -->
+<!--   mutate(dest = ifelse(is.na(dest), china_deme, dest)) %>% -->
+<!--   group_by(dest, traj) %>% -->
+<!--   arrange(time) %>% -->
+<!--   slice(1) %>% -->
+<!--   ungroup %>% -->
+<!--   # Add row for Europe (all countries) -->
+<!--   bind_rows(events %>% -->
+<!--               filter(event == "M") %>% -->
+<!--               group_by(traj) %>% -->
+<!--               arrange(time) %>% -->
+<!--               slice(1)  %>% -->
+<!--               mutate(dest = "Europe")) -->
+
+<!-- dates_firstcase <-  firstcase %>% -->
+<!--   group_by(dest, min_date) %>% -->
+<!--   summarize(Dmedian = median(date),  -->
+<!--             Dlow    = quantile(date, 0.025, type = 1),  -->
+<!--             Dhigh   = quantile(date, 0.975, type = 1), -->
+<!--             .groups = "drop") %>% -->
+<!--   mutate(difmedian = min_date - Dmedian, -->
+<!--          diflow = min_date - Dlow, -->
+<!--          difhigh = min_date - Dhigh)  -->
+
+<!-- # 2.2. Time interval of first bith event (within region transmission) and first reported case -->
+<!-- # to ECDC. -->
+<!-- # How well did the countries detecting the first cases, there was already within region transmision? -->
+
+<!-- # First introduction: Measure expected day of introduction. -->
+<!-- firstbirth <- events %>% -->
+<!--   filter(event == "B" | event == "O") %>% -->
+<!--   group_by(dest, traj) %>% -->
+<!--   arrange(time) %>% -->
+<!--   slice(1) %>% -->
+<!--   ungroup %>% -->
+<!--   left_join(case_data %>% group_by(deme) %>% filter(cumcases != 0) %>% arrange(date) %>%slice(1)  %>% rename(dest = deme, min_date = date), by = "dest") %>% -->
+<!--   bind_rows(events %>% -->
+<!--               filter(dest != china_deme, event == "B") %>% -->
+<!--               group_by(traj) %>% -->
+<!--               arrange(time) %>% -->
+<!--               slice(1)  %>% -->
+<!--               mutate(dest = "Europe")) -->
+
+
+
+<!-- dates_firstbirth <- firstbirth %>% -->
+<!--   group_by(dest, min_date) %>% -->
+<!--   summarize(Dmedian = median(date),  -->
+<!--             Dlow    = quantile(date, 0.025, type = 1),  -->
+<!--             Dhigh   = quantile(date, 0.975, type = 1), -->
+<!--             .groups = "drop") %>% -->
+<!--   mutate(difmedian = min_date - Dmedian, -->
+<!--          diflow = min_date - Dlow, -->
+<!--          difhigh = min_date - Dhigh) -->
+
+<!-- p_firstbirth <- events %>% -->
+<!--   filter(event == "B" | event == "O") %>% -->
+<!--   bind_rows(events %>% -->
+<!--               filter(dest != china_deme, event == "B") %>% -->
+<!--               group_by(traj) %>% -->
+<!--               arrange(time) %>% -->
+<!--               slice(1)  %>% -->
+<!--               mutate(dest = "Europe")) %>% -->
+<!--   group_by(dest, traj) %>% -->
+<!--   arrange(time) %>% -->
+<!--   slice(1) %>% -->
+<!--   ungroup %>% -->
+<!--   left_join(case_data %>% group_by(deme) %>% filter(cumcases != 0) %>%  -->
+<!--               arrange(date) %>% slice(1) %>% rename(dest = deme, min_date = date), by = "dest") %>% -->
+<!--   replace_na(list(min_date = ymd("2020-01-25"))) %>% -->
+<!--   filter(date <= min_date) %>% -->
+<!--   count(dest) %>% -->
+<!--   mutate(p = n/args$n * 100) -->
+
+<!-- r_firstcases <- dates_firstcase%>% -->
+<!--   left_join(dates_firstbirth, by = c("dest", "min_date")) %>% -->
+<!--   left_join(p_firstbirth, by = "dest") %>% -->
+<!--   replace_na(list(min_date = dates_firstcase$min_date[dates_firstcase$dest == "France"])) %>% -->
+<!--   mutate(Country = dest, -->
+<!--          `First Reported Case ECDC` = min_date, -->
+<!--          `Median date (95% CCI) first introduction` = paste0(Dmedian.x, " (", Dlow.x, ", ", Dhigh.x, ")"), -->
+<!--          `Median start date (95% CCI) within region transmission` = paste0(Dmedian.y, " (", Dlow.y, ", ", Dhigh.y, ")"), -->
+<!--          `Percentage of trajectories within region transmission when first reported case` = paste0(p, "%")) %>% -->
+<!--   select(c("Country", "First Reported Case ECDC", "Median date (95% CCI) first introduction", "Median start date (95% CCI) within region transmission", -->
+<!--            "Percentage of trajectories within region transmission when first reported case")) -->
+
+
+<!-- # 2.1. Time interval of first outcoming migration from a country compared to first reported case -->
+<!-- # In which percentage of trajectories, transmission from that country would have been avoided if -->
+<!-- # any ways of outcoming migrations were closed the day of first reported case. -->
+
+<!-- firstmig <- events %>% -->
+<!--   filter(event == "M") %>% -->
+<!--   group_by(src, traj) %>% -->
+<!--   arrange(time) %>% -->
+<!--   slice(1) %>% -->
+<!--   ungroup %>% -->
+<!--   left_join(case_data %>% group_by(deme) %>% filter(cumcases != 0) %>% arrange(date) %>% slice(1)  %>% rename(src = deme, min_date = date), by = "src")  -->
+
+<!-- dates_firstmig <- firstmig%>% -->
+<!--   group_by(src, min_date) %>% -->
+<!--   summarize(Dmedian = median(date),  -->
+<!--             Dlow    = quantile(date, 0.025, type = 1),  -->
+<!--             Dhigh   = quantile(date, 0.975, type = 1), -->
+<!--             .groups = "drop") %>% -->
+<!--   mutate(difmedian = min_date - Dmedian, -->
+<!--          diflow = min_date - Dlow, -->
+<!--          difhigh = min_date - Dhigh)  -->
+
+<!-- p_firstmig <- events %>% -->
+<!--   filter(event == "M") %>% -->
+<!--   group_by(src, traj) %>% -->
+<!--   arrange(time) %>% -->
+<!--   slice(1) %>% -->
+<!--   ungroup %>% -->
+<!--   left_join(case_data %>% group_by(deme) %>% filter(cumcases != 0) %>% arrange(date) %>% slice(1)  %>% rename(src = deme, min_date = date), by = "src") %>% -->
+<!--   filter(date >= min_date) %>% -->
+<!--   count(src) %>% -->
+<!--   mutate(p = n/args$n * 100) -->
+
+
+<!-- r_firstmig <- dates_firstmig %>% -->
+<!--   left_join(p_firstmig, by = "src") %>% -->
+<!--   mutate(Country = src, -->
+<!--          `First Reported Case ECDC` = min_date, -->
+<!--          `Median date (95% CCI) first outgoing migration` = paste0(Dmedian, " (", Dlow, ", ", Dhigh, ")"), -->
+<!--          `Percentage of trajectories first migration after first reported case` = paste0(p, "%")) %>% -->
+<!--   select(-one_of(c(colnames(dates_firstmig), colnames(p_firstmig)))) -->
+
+
+<!-- # Measure the time between the first migration into a country and the first birth in the country.  -->
+<!-- # Or the first outcoming mirgration from the country and first birth.  -->
+<!-- # This could be interesting to say if we should focus or not the screening and testing  -->
+<!-- # capacities to detect incoming migrations or a more general strategy to find cases in  -->
+<!-- # the population. Is it different for each country? -->
+
+<!-- firsts <- firstcase %>% -->
+<!--   select(dest, date, min_date) %>% -->
+<!--   rename(deme = dest, introduction = date) %>% -->
+<!--   left_join(firstbirth %>% select(date, dest) %>% rename(deme = dest, birth = date), by = "deme") %>% -->
+<!--   left_join(firstmig %>% select(date, src) %>% rename(deme = src, mig = date), by = "deme") %>% -->
+<!--   filter(deme != "Europe") %>% -->
+<!--   mutate(dif1 = birth - introduction, -->
+<!--          dif2 = mig - introduction) %>% -->
+<!--   group_by(deme) %>% -->
+<!--   summarize(dif1median = median(dif1),  -->
+<!--             dif1low    = quantile(dif1, 0.025, type = 1),  -->
+<!--             dif1high   = quantile(dif1, 0.975, type = 1), -->
+<!--             dif2median = median(dif2),  -->
+<!--             dif2low    = quantile(dif2, 0.025, type = 1),  -->
+<!--             dif2high   = quantile(dif2, 0.975, type = 1), -->
+<!--             .groups = "drop")  -->
+
+
+<!-- r_firsts <- firsts %>% -->
+<!--   mutate(Country = deme, -->
+<!--          `Days between introduction and first within region transmision` = paste0(dif1median, " (", dif1low, ", ", dif1high, ")"), -->
+<!--          `Days between introduction and first outgoing migration` = paste0(dif2median, " (", dif2low, ", ", dif2high, ")")) %>% -->
+<!--   select(-one_of(colnames(firsts))) %>% -->
+<!--   left_join(r_firstcases, by = "Country") %>% -->
+<!--   left_join(r_firstmig, by = c("Country", "First Reported Case ECDC")) %>% -->
+<!--   select(1,4,5,6,8,2,3,7,9) -->
+
+<!-- write_tsv(r_firsts, paste0(args$output_table, "02.tsv")) -->
+
+<!-- ``` -->
+

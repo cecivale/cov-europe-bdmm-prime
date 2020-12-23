@@ -1,0 +1,368 @@
+---
+title: "GLM predictor Matrices"
+subtitle: "Analyses Europe6 and Europe7"
+author: "Cecilia Valenzuela"
+date: '`r format(Sys.time(), "%d %B, %Y")`'
+output:
+  beamer_presentation:
+    theme: "Pittsburgh"
+    colortheme: "dove"
+    fonttheme: "structurebold"
+    highlight: pygments
+classoption: "aspectratio=169"
+fontsize: 8pt
+tables: yes
+---
+```{r, setup, include=FALSE}
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+```
+
+```{r, echo = FALSE, results ='hide', message = FALSE}
+library(knitr)
+library(wpp2019)
+library(tidyverse)
+library(readr)
+library(ggsci)
+library(scales)
+library(countrycode)
+library(geosphere)
+library(maps)
+library(sf)
+source("./scripts/utils.R")
+source("./scripts/flight_data.R")
+```
+
+## Description
+
+Generation of the predictor matrices for the GLM model from different sources 
+of information: 
+
+- Eurostats, European data and statistics, transport data: <https://ec.europa.eu/eurostat/web/transport/data/database>
+- United Nations Population Division, World Population Prospects 2019: R library `wpp2019, data(pop)`
+- World map from the Natural Earth project (2013), loaded with R library `maps`.
+
+## GLM Model
+
+We define the migration rates $m_{ij}^{e}$ from deme $i$ to deme $j$ in epoch $e$ as a log linear function of a set of predictors $\boldsymbol{X}$, log transformed and scaled, such that
+
+$$
+m_{ij}^{e} = c \exp(\beta_{pas} \delta_{pas} x_{ij.pas}^e + \beta_{popsrc} \delta_{popsrc}x_{ij.popsrc} + \beta_{popdes} \delta_{popdes}x_{ij.popdes} + \beta_{dist} \delta_{dist}x_{ij.dist})
+$$
+
+where $\boldsymbol{\beta}$ are the coefficients for the predictors that can be between $-\infty$ and $\infty$ (prior  $\mathcal{N}(0,4)$, random walk operator). The indicator $\boldsymbol{\delta}$ can be 0 or 1 and denote if a predictor contributes at all (Bit Flip Operator).
+
+## Daily flight passengers
+
+Daily number of passengers betwwen demes. Passengers carried data from Eurostats. Reported _departures_ values are taken for European countries (recommendation from Eurostats to avoid duplicates). For China, arrivals and departures values are considered.
+
+- **Epoch 1:** December 2019 - January 2020 (Wuhan lockdown 23 Jan)
+- **Epoch 2:** February 2020 
+- **Epoch 3:** March 2020
+
+\tiny
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+demes <- c(China = "CN", France = "FR", Germany = "DE", Italy = "IT", OtherEuropean = "OE", Spain = "ES")
+
+flight_df <- get_flightData(countries = demes) 
+
+flight_df_3e <- flight_df %>%
+  filter((month(time) %in% 1:3 & year(time) == 2020) | (month(time) == 12 & year(time) == 2019)) %>%
+  mutate(epoch = case_when(
+    month(time) == 2 ~ 2,
+    month(time) == 3 ~ 3,
+    TRUE ~ 1),
+    pred = 1) %>%
+  rename(src = geo, dest = partner) %>%
+  group_by(src, dest, epoch, pred) %>%
+  summarise(N = n(),
+         evalues = sum(dvalues/N)) %>%
+  ungroup %>%
+  # Transformations
+  mutate(lvalues = log(evalues + 1),
+         slvalues = scale(lvalues)) %>%
+  arrange(epoch, factor(src, levels = demes), factor(dest, levels = demes))
+```
+
+```{r, echo = FALSE}
+flight_matrices <- lapply(1:3, function (i) {
+  flight_df_3e %>%
+  filter(epoch == i) %>%
+  select(src, dest, slvalues) %>%
+  pivot_wider(names_from = "dest", values_from = "slvalues") %>%
+  mutate_if(is.numeric, ~round(.,2)) %>%
+  column_to_rownames("src") %>%
+  select(all_of(unname(demes)))
+})
+
+knitr::kable(flight_matrices, booktabs = TRUE, caption = "Flight passengers between demes, epochs 1-3")
+```
+
+## Daily flight passengers
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.width = 6, fig.height = 3}
+set_plotopts()
+dcolors <- pal_npg("nrc")(10)[c(1:5,9)]
+dcolors <- dcolors[1:length(demes)]
+names(dcolors) <- demes[sort(labels(demes))]
+
+# Fligh data plot
+ggplot(flight_df_3e, aes(x = epoch, y = evalues, color = dest)) +
+  geom_line() +
+  geom_point(size = 1) +
+  scale_y_log10(labels = trans_format("log10", math_format(10^.x)), breaks = trans_breaks('log10', function(x) 10^x)) +
+  scale_x_continuous(breaks = c(1, 2, 3), labels = c("E1", "E2", "E3")) +
+  facet_grid(~src) +
+  xlab("Epoch") +
+  ylab("# Daily Flight Passengers") + 
+  #theme(axis.title.x = element_blank()) + 
+  scale_color_manual(values = dcolors, name = "Destination")
+```
+
+
+## Population counts
+
+```{r, echo=FALSE}
+data(pop)
+population <- pop %>% filter(name %in% labels(demes)) %>% select(name, "2020") 
+pop_eu_demes <- population %>% filter(name != "China") %>% summarise(s = sum(`2020`)) %>% pull(s)
+pop_eu_total <- pop %>% filter(name == "Europe") %>% pull("2020")
+population <- population %>%
+  tibble::add_row(name = "OtherEuropean", `2020` = pop_eu_total - pop_eu_demes) %>%
+  arrange(name) %>%
+  rename(popvalue = 2) %>%
+  mutate(slvalues = scale(log(popvalue)))
+pop_df <- population %>%
+  mutate(n = 6, src = demes) %>%
+  uncount(n) %>%
+  mutate(dest = rep(demes, 6),
+         popvalue = ifelse(src == dest, NA, popvalue),
+         slvalues = ifelse(src == dest, NA, slvalues)) %>%
+  select(-name) %>%
+  filter(!is.na(popvalue))
+pop_df_3e <- bind_rows(replicate(3, pop_df %>% mutate(pred = 2), simplify = FALSE)) %>% 
+  mutate(epoch = rep(1:3, each = 30, length = 90)) %>%
+  bind_rows(bind_rows(replicate(3, pop_df %>% 
+                        arrange(factor(dest, levels = demes),
+                                factor(src, levels = demes)) %>%
+                          mutate(tmp = src,
+                                 src = dest,
+                                 dest = tmp,
+                                 pred = 3),
+                      simplify = FALSE)) %>%
+  mutate(epoch = rep(1:3, each = 30, length = 90)))
+```
+
+Population counts from World Population Prospects 2019, United Nations Population Division,  `wpp2019` R library: **China** - `r population[1,2] * 1e3`, **France** - `r population[2,2] * 1e3`, **Germany** - `r population[3,2] * 1e3`, **Italy** - `r population[4,2] * 1e3`, **Other European** - `r population[5,2] * 1e3` and **Spain** - `r population[6,2] * 1e3`.
+
+A predictor matrix for source population and a predictor matrix for destination population are generated, log transformed and standardized. Constant across epochs.
+
+\tiny
+```{r, echo=FALSE}
+pop_matrices <- lapply(c("dest", "src"), function (x) {
+  pop_df %>%
+  select(-popvalue) %>%
+  pivot_wider(names_from = all_of(x), values_from = "slvalues") %>%
+  mutate_if(is.numeric, ~round(., 2)) %>%
+  mutate_at(1, ~factor(., levels = demes)) %>%
+  arrange_at(1) %>%
+  select(1, all_of(unname(demes)))
+})
+
+knitr::kable(pop_matrices, booktabs = TRUE, caption = "Population counts source (left) and destination (right)")
+```
+
+\normalsize
+Other European population count is computed as the difference between the Europe population and the sum of the populations from France, Germany, Italy and Spain.
+
+
+## Geographical distance
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+map <- st_as_sf(map("world", plot = FALSE, fill = TRUE)) %>%
+  mutate(country = ifelse(ID == "UK", "United Kingdom", as.character(ID)),
+         continent = countrycode(sourcevar = country,
+                             origin = "country.name",
+                             destination = "continent")) %>%
+  filter(country %in% labels(demes) | continent == "Europe") %>%
+  mutate(deme = case_when(
+    country %in% labels(demes) ~ country,
+    TRUE ~ "OtherEuropean"))
+map <- cbind(map, st_coordinates(st_centroid(map))) %>%
+  rename(longitude = X, latitude = Y) %>%
+  mutate(deme = demes[deme])
+
+centroids <- data.frame(map) %>%
+  select(country, deme, longitude, latitude)
+
+dist_df <- centroids %>%
+  full_join(centroids, by = character())
+dist_df <- dist_df%>%
+  mutate(dist = distHaversine(select(dist_df, longitude.x, latitude.x),
+                              select(dist_df, longitude.y, latitude.y))) %>%
+  group_by(deme.x, deme.y) %>%
+  summarise(dist = mean(dist), .groups = "drop") %>%
+  filter(deme.x != deme.y) %>%
+  rename(src = deme.x, dest = deme.y) %>% 
+  mutate(slvalues = scale(log(dist))) %>%
+  arrange(factor(src, levels = demes), factor(dest, levels = demes))
+dist_df_3e <- bind_rows(replicate(3, dist_df, simplify = FALSE)) %>%
+  mutate(epoch = rep(1:3, each = 30, length = 90), pred = 4)
+```
+
+Great circle pairwise distance between centroids of each country. Centroids are computed  from the Natural Earth project (the 1:50m resolution version) world map 2013. Constant across epochs. Symmetric.
+
+\tiny
+```{r, echo = FALSE}
+dist_matrix <- dist_df %>%
+  select(-dist) %>%
+  pivot_wider(names_from = "dest", values_from = "slvalues") %>%
+  mutate_if(is.numeric, ~round(., 2)) %>%
+  column_to_rownames("src") %>%
+  select(all_of(unname(demes)))
+
+knitr::kable(dist_matrix, booktabs = TRUE, caption = "Great circle pairwise distance between countries geographic centroid.")
+```
+
+\normalsize
+The distance from one deme to the Other European deme is the average distance between the deme centroid and all the Other European countries centroids.
+
+## Geographical distance
+
+```{r, echo = FALSE, message =  FALSE, fig.align="center"}
+
+ggplot() +
+    geom_sf(data = map, aes(fill = deme), alpha = 0.7) + 
+    geom_point(data = map %>% filter(country %in% labels(demes)), aes(x = longitude, y = latitude), shape = 4, size = 2) +
+    coord_sf(xlim = c(-15, 120), ylim = c(25, 60), expand = FALSE) +
+  scale_fill_manual(values = dcolors, na.value = "grey") +
+  theme(legend.position = "none",
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank())
+```
+
+Map of Europe and part of Asia showing the demes included in the analysis (in color). The X represents the centroid of each deme. The centroids of each European country from Other European deme are not drawed.
+
+<!-- Other distance options: -->
+<!-- Average pairwaise distance between airports - considers that only flight transportation matters, more work -->
+<!-- Distance taking into account population distribution inside the country. CEPPI dataset -->
+<!-- Minimum distance. -->
+
+
+## Daily flight passengers by source population
+
+Daily number of passengers betwwen demes normalized by the population of the source deme. Passengers carried data from Eurostats. Reported _departures_ values are taken for European countries (recommendation from Eurostats to avoid duplicates). For China, arrivals and departures values are considered. 
+
+- **Epoch 1:** December 2019 - January 2020 (Wuhan lockdown 23 Jan)
+- **Epoch 2:** February 2020 
+- **Epoch 3:** March 2020
+
+\tiny
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+demes <- c(China = "CN", France = "FR", Germany = "DE", Italy = "IT", OtherEuropean = "OE", Spain = "ES")
+
+flight_df <- get_flightData(countries = demes) 
+
+flight_df_3e_n <- flight_df %>%
+  filter((month(time) %in% 1:3 & year(time) == 2020) | (month(time) == 12 & year(time) == 2019)) %>%
+  mutate(epoch = case_when(
+    month(time) == 2 ~ 2,
+    month(time) == 3 ~ 3,
+    TRUE ~ 1),
+    pred = 1) %>%
+  rename(src = geo, dest = partner) %>%
+  left_join(population %>% mutate(src = demes[name]), by = "src") %>%
+  group_by(src, dest, epoch, pred, popvalue) %>%
+  summarise(N = n(),
+         evalues = sum(dvalues/N)) %>%
+  mutate(nevalues = evalues/(popvalue*1000)) %>%
+  ungroup %>%
+  # Transformations
+  mutate(#lvalues = log(nevalues + 1),
+         slvalues = scale(nevalues)) %>%
+  arrange(epoch, factor(src, levels = demes), factor(dest, levels = demes))
+```
+
+```{r, echo = FALSE}
+flight_matrices <- lapply(1:3, function (i) {
+  flight_df_3e_n %>%
+  filter(epoch == i) %>%
+  select(src, dest, slvalues) %>%
+  pivot_wider(names_from = "dest", values_from = "slvalues") %>%
+  mutate_if(is.numeric, ~round(.,2)) %>%
+  column_to_rownames("src") %>%
+  select(all_of(unname(demes)))
+})
+
+knitr::kable(flight_matrices, booktabs = TRUE, caption = "Flight passengers between demes, epochs 1-3")
+```
+
+## Daily flight passengers
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.width = 6, fig.height = 3}
+set_plotopts()
+dcolors <- pal_npg("nrc")(10)[c(1:5,9)]
+dcolors <- dcolors[1:length(demes)]
+names(dcolors) <- demes[sort(labels(demes))]
+
+# Fligh data plot
+ggplot(flight_df_3e_n, aes(x = epoch, y = nevalues, color = dest)) +
+  geom_line() +
+  geom_point(size = 1) +
+  #scale_y_log10(labels = trans_format("log10", math_format(10^.x)), breaks = trans_breaks('log10', function(x) 10^x)) +
+  scale_x_continuous(breaks = c(1, 2, 3), labels = c("E1", "E2", "E3")) +
+  facet_grid(~src) +
+  xlab("Epoch") +
+  ylab("# Daily Flight Passengers") + 
+  #theme(axis.title.x = element_blank()) + 
+  scale_color_manual(values = dcolors, name = "Destination")
+```
+
+
+## Covariate list BEAST BDMM-Prime
+
+The three predictors are saved in the following order: **Flight data, population count source, population count destination and geographical distance.** 
+
+Each of the predictor is composed of three matrices, one per epoch, with the first matrix being the most recent epoch, e.g. the first 30 values correponds to the fligh data for March.
+
+Diagonal values are skipped.
+
+Therefore the final size of the covariate list is of dimension $(30 \cdot 3) \cdot 4 = 360$.
+
+```{r, echo = FALSE}
+pred_3e <- bind_rows(flight_df_3e, pop_df_3e) %>%
+  bind_rows(dist_df_3e) %>%
+  arrange(pred, desc(epoch), factor(src, levels = demes), factor(dest, levels = demes)) %>%
+  select(pred, epoch, src, dest, slvalues)
+  
+if (nrow(pred_3e) != 360) warning("Something went wrong, the size of the combined predictors is ", nrow(pred_3e))
+
+mpred_3e <- as.data.frame(matrix(pred_3e %>% pull(slvalues), ncol = 5, byrow = TRUE))
+write_csv(mpred_3e, "./files/covariates_4p_3e.csv", col_names = FALSE)
+```
+
+```{r, echo = FALSE}
+pred_3e <- bind_rows(flight_df_3e_n, pop_df_3e) %>%
+  bind_rows(dist_df_3e) %>%
+  arrange(pred, desc(epoch), factor(src, levels = demes), factor(dest, levels = demes)) %>%
+  select(pred, epoch, src, dest, slvalues)
+  
+if (nrow(pred_3e) != 360) warning("Something went wrong, the size of the combined predictors is ", nrow(pred_3e))
+
+mpred_3e <- as.data.frame(matrix(pred_3e %>% pull(slvalues), ncol = 5, byrow = TRUE))
+write_csv(mpred_3e, "./files/covariates_4p_3e_n.csv", col_names = FALSE)
+```
+
+\
+
+Covariate list saved as `files/covariates_4p_3e.csv` and `files/covariates_4p_3e_n.csv` (normalized by population passenger data).
+
+## Analyses
+
+- **Europe 4:** GLM with daily flight data as predictor, constant over all the analysis time.
+- **Europe 5:** GLM with daily flight data as predictor, 3 epochs.
+- **Europe 5b:** GLM with daily flight data normalized by population of the deme, 3 epochs.
+- **Europe 6** GLM with the 4 predictors described here, without indicator variables 
+- **Europe 6b** GLM with the 4 predictors described here (fligh data normalized by population), without indicator variables 
+- **Europe 7** with indicator variables, same predictors than eu6.
+<!-- - **Europe 7b** with indicator variables, same predictors than eu7. -->
+
