@@ -166,13 +166,12 @@ mrs <- ymd_hms(paste(MRS, '23:59:00 UTC'))
 case_data <- get_cases(demes, from = ymd("2019-09-01"), to = MRS + 10) %>%
   arrange(date) %>%
   group_by(deme) %>%
-  mutate(cumcases = cumsum(cases),
-         cumdeaths = cumsum(deaths)) %>%
+  rename(value = cases) %>%
+  mutate(cumvalue = cumsum(value)) %>%
   group_by(deme, date) %>%
-  mutate(cumcases = max(cumcases),
-         cumdeaths = max(cumdeaths)) %>%
-  select(deme, date, cumcases, cumdeaths, cases)  %>%
-  distinct_at(vars(deme, date, cumcases, cumdeaths), .keep_all = TRUE)
+  mutate(cumvalue = max(cumvalue)) %>%
+  select(deme, date, cumvalue, value)  %>%
+  distinct_at(vars(deme, date, cumvalue), .keep_all = TRUE)
 
 # Population data
 data(pop)
@@ -182,7 +181,7 @@ pop_eu_total <- pop %>% filter(name == "Europe") %>% pull("2020")
 population <- population %>%
   tibble::add_row(name = "OtherEuropean", `2020` = pop_eu_total - pop_eu_demes) %>% rename(deme = name, pop = 2)
 
-case_data_pop <- case_data %>% left_join(population, by="deme") %>% mutate(cas100 = cumcases * 1e5 / (pop * 1e3))
+case_data_pop <- case_data %>% left_join(population, by="deme") %>% mutate(ECDCcas100 = cumcases * 1e5 / (pop * 1e3)) 
 ```
 
 ::: {.columns}
@@ -236,20 +235,88 @@ states <- df$states %>%
          date_model = date(date_decimal(decimal_date(ymd(MRS)) - age))) %>%
   mutate(date = date_model + 10)
 
+# events <- df$events %>%
+#   mutate(src = factor(src,
+#                       levels = 0:(nrow(demes) - 1),
+#                       #labels = sort(demes$deme)),
+#                       labels = c("France", "Germany","China","Italy","OtherEuropean","Spain")),
+#          dest = ifelse(is.na(dest), as.character(src),
+#                        as.character(factor(dest,
+#                                            levels = 0:(nrow(demes) - 1),
+#                                            #labels = sort(demes$deme),
+#                                            labels = c("France" , "Germany","China","Italy","OtherEuropean","Spain")))),
+#          date_model = date(date_decimal(decimal_date(ymd(MRS)) - age))) 
+
+
+# Do this in a function, useful also for Claire
 events <- df$events %>%
   mutate(src = factor(src,
                       levels = 0:(nrow(demes) - 1),
                       #labels = sort(demes$deme)),
                       labels = c("France", "Germany","China","Italy","OtherEuropean","Spain")),
-         dest = ifelse(is.na(dest), as.character(src),
-                       as.character(factor(dest,
-                                           levels = 0:(nrow(demes) - 1),
-                                           #labels = sort(demes$deme),
-                                           labels = c("France" , "Germany","China","Italy","OtherEuropean","Spain")))),
-         date_model = date(date_decimal(decimal_date(ymd(MRS)) - age))) %>%
-  mutate(date = date_model + 10,
-         src = ifelse(event == "O", "China", src),
-         dest = ) #TODO
+         dest = (factor(dest,
+                           levels = 0:(nrow(demes) - 1),
+                           #labels = sort(demes$deme),
+                           labels = c("France" , "Germany","China","Italy","OtherEuropean","Spain"))))
+events[events$event == "O", "src"] = "China"
+events[events$event == "O", "mult"] =  1
+
+df_traj0 <- events %>%
+  mutate(date = date(date_decimal(decimal_date(mrs) - age))) %>%
+  select(-time, -age) %>%
+  group_by_at(vars(-mult)) %>%
+  summarise(N = sum(mult), .groups = "drop") %>%
+  mutate(srctmp = src, destmp = dest) %>%
+  pivot_longer(src:dest, names_to = "role", values_to = "deme") %>%
+  mutate(event = ifelse(event == "M" & role == "src", "OM",
+                        ifelse(event == "M" & role == "dest", "IM", event)),
+         partner = ifelse(event == "OM", as.character(destmp),
+                        ifelse(event == "IM", as.character(srctmp), NA))) %>% 
+  select(-c("role", "srctmp", "destmp")) %>%
+  filter(!is.na(deme)) %>%
+  group_by_at(vars(-N)) %>%
+  summarise(value = sum(N), .groups = "drop") %>%
+  group_by(traj, deme, partner, event) %>%
+  arrange(traj, date, deme) %>%
+  mutate(cumvalue = cumsum(value)) %>%
+  rename(var = event) 
+
+mig_cum = df_traj0 %>%
+  filter(var %in% c("IM", "OM")) %>%
+  group_by(traj, var, date, deme) %>%
+  summarise(value = sum(value), .groups = "drop") %>%
+  group_by(traj, var, deme) %>%
+  arrange(traj, date, deme) %>%
+  mutate(cumvalue = cumsum(value),
+         partner = NA) 
+            
+inout_pop = df_traj0 %>% 
+  mutate(var = ifelse(var %in% c("O", "B", "IM"), "in_pop", "out_pop")) %>%
+  group_by(traj, deme, var, date) %>%
+  summarise(value = sum(value), .groups = "drop_last") %>%
+  arrange(traj, date, deme) %>%
+  mutate(cumvalue = cumsum(value)) 
+
+active_pop = inout_pop %>%
+  select(-cumvalue) %>%
+  pivot_wider(names_from = var, values_from = value, values_fill = list(value = 0)) %>%
+  mutate(active_pop = in_pop - out_pop) %>%
+  pivot_longer(active_pop, names_to = "var", values_to = "value") %>%
+  group_by(traj, deme, var) %>%
+  arrange(traj, date, deme) %>%
+  mutate(cumvalue = cumsum(value)) %>%
+  select(-c("in_pop", "out_pop"))
+
+df_traj <- bind_rows(df_traj0, mig_cum) %>%
+  bind_rows(inout_pop) %>%
+  bind_rows(active_pop) 
+
+df_traj_cases <- df_traj %>%
+  mutate(traj = as.character(traj)) %>%
+  bind_rows(case_data %>%
+            filter(cumvalue != 0) %>%
+            mutate(var = "ECDC"))
+                  # traj = "ecdc"))
 ```
 
 ```{r table-states}
@@ -269,35 +336,35 @@ To facilitate visualization and summarise the results, we take a grid time of 1 
 
 
 ```{r traj-process, warning=FALSE}
-# Date grids
-max_age <- max(states$age)
-min_date <- date_decimal(decimal_date(mrs) - max_age)
-#ages_5day <- rev(decimal_date(mrs) - decimal_date(seq(mrs,min_date, by = '-5 days')))
-ages_1day <- rev(decimal_date(mrs) - decimal_date(seq(mrs,min_date, by = '-1 days')))
-
-# Grid trajectories, time grid of 5 days taking maximum value
-gt <- gridTrajectoriesByAge(states, ages_1day) %>%
-  replace_na(list(N = 0)) %>%
-  mutate(date_model = date(date_decimal(decimal_date(mrs) - age)),
-         date = date_model + 10)
-
-# Summary statistics
-gt_summary <- gt %>%
-  group_by(date, type) %>%
-  summarize(Imean = mean(N),
-            Imedian = median(N),
-            Ilow    = quantile(N, 0.025), #95% CI, compute HPD??
-            Ihigh   = quantile(N, 0.975),
-            .groups = "drop_last") %>%
-  ungroup()
-
-# Grid events, time grid of 1 day, taking the sum of events
-ge <- gridEventsByAge(events, ages_1day) %>%
-  mutate(date_model = date(date_decimal(decimal_date(mrs) - age)),
-         date = date_model + 10,
-         dest = ifelse(is.na(dest), as.character(src), as.character(dest))) %>%
-  ungroup %>%
-  filter(N != 0) 
+# # Date grids
+# max_age <- max(states$age)
+# min_date <- date_decimal(decimal_date(mrs) - max_age)
+# #ages_5day <- rev(decimal_date(mrs) - decimal_date(seq(mrs,min_date, by = '-5 days')))
+# ages_1day <- rev(decimal_date(mrs) - decimal_date(seq(mrs,min_date, by = '-1 days')))
+# 
+# # Grid trajectories, time grid of 5 days taking maximum value
+# gt <- gridTrajectoriesByAge(states, ages_1day) %>%
+#   replace_na(list(N = 0)) %>%
+#   mutate(date_model = date(date_decimal(decimal_date(mrs) - age)),
+#          date = date_model + 10)
+# 
+# # Summary statistics
+# gt_summary <- gt %>%
+#   group_by(date, type) %>%
+#   summarize(Imean = mean(N),
+#             Imedian = median(N),
+#             Ilow    = quantile(N, 0.025), #95% CI, compute HPD??
+#             Ihigh   = quantile(N, 0.975),
+#             .groups = "drop_last") %>%
+#   ungroup()
+# 
+# # Grid events, time grid of 1 day, taking the sum of events
+# ge <- gridEventsByAge(events, ages_1day) %>%
+#   mutate(date_model = date(date_decimal(decimal_date(mrs) - age)),
+#          date = date_model + 10,
+#          dest = ifelse(is.na(dest), as.character(src), as.character(dest))) %>%
+#   ungroup %>%
+#   filter(N != 0) 
 
 ```
 
@@ -386,175 +453,38 @@ names(trajs) <- demes$deme
 
 ```{r}
 # Active cases
-gt %>%
+d = "France"
+df_traj_cases %>%
     # 1. Prepare data
-    filter(type == deme) %>%
-    mutate(traj = as.character(traj)) %>%
-    bind_rows(case_data %>%
-                rename(type = deme,
-                       N = cumcases) %>%
-                filter(type == deme) %>%
-                mutate(traj = "ecdc") %>%
-                select(type, traj, date, N) %>%
-                distinct()) %>%
+    filter(deme == d, var %in% c("active_pop", "in_pop", "ECDC"), is.na(partner)) %>%
     # 2. Plot
     ggplot() +
-    geom_line(aes(date, N, group = traj,
-                  color = traj == "ecdc",
-                  alpha = traj == "ecdc",
-                  linetype = traj == "ecdc",
-                  size = traj == "ecdc")) +
-    scale_color_manual(name = "",
-                       labels = c(paste0(deme, " inferred\n population trajectories"),
-                                  paste0(ifelse(deme == china_deme, "China", as.character(deme)), 
-                                         " ECDC total case count")),
-                       values = c(dcolors[[deme]], dark_dcolors[[deme]])) +
-    scale_alpha_manual(name = "", values = c(0.2, 1), guide = FALSE) +
-    scale_linetype_manual(name = "", values = c(1, 2),
-                          labels = c(paste0(deme, " inferred\n population trajectories"),
-                                     paste0(ifelse(deme == china_deme, "China", as.character(deme)), 
-                                            " ECDC total case count"))) +
-    scale_size_manual(name = "", values = c(0.5, 1),
-                      labels = c(paste0(deme, " inferred\n population trajectories"),
-                                 paste0(ifelse(deme == china_deme, "China", as.character(deme)), 
-                                        " ECDC total case count"))) +
+    geom_line(aes(date, cumvalue, group = traj,
+                  color = var)) +
+                  # color = traj == "ecdc",
+                  # alpha = traj == "ecdc",
+                  # linetype = traj == "ecdc",
+                  # size = traj == "ecdc")) +
+    # scale_color_manual(name = "",
+    #                    labels = c(paste0(deme, " inferred\n population trajectories"),
+    #                               paste0(ifelse(deme == china_deme, "China", as.character(deme)), 
+    #                                      " ECDC total case count")),
+    #                    values = c(dcolors[[deme]], dark_dcolors[[deme]])) +
+    # scale_alpha_manual(name = "", values = c(0.2, 1), guide = FALSE) +
+    # scale_linetype_manual(name = "", values = c(1, 2),
+    #                       labels = c(paste0(deme, " inferred\n population trajectories"),
+    #                                  paste0(ifelse(deme == china_deme, "China", as.character(deme)), 
+    #                                         " ECDC total case count"))) +
+    # scale_size_manual(name = "", values = c(0.5, 1),
+    #                   labels = c(paste0(deme, " inferred\n population trajectories"),
+    #                              paste0(ifelse(deme == china_deme, "China", as.character(deme)), 
+    #                                     " ECDC total case count"))) +
     scale_x_date(limits = c(ymd("2019-11-01"), ymd(MRS + 10)), date_breaks = "2 weeks", 
                  date_labels = "%b %d") +
-    scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
+    scale_y_log10(expand = c(0, 0),labels = trans_format("log10", math_format(10^.x))) +
     ylab("Population size") +
     theme(legend.position = c(0.4, 0.9),
           axis.title.x=element_blank())
-  
-```
-
-```{r}
-# Cumulative cases
-events <- df$events
-
-events[events$event == "O", "src"] = 2
-events[events$event == "O", "mult"] =  1
-
-df_cases1 <- events %>%
-  group_by_at(vars(-mult)) %>%
-  summarise(N = sum(mult), .groups = "drop") %>%
-  mutate(event2 = ifelse(event == "M", paste0("IM_", src), NA),
-         event3 = ifelse(event == "M", paste0("OM_", dest), NA)) %>%
-  pivot_longer(src:dest, names_to = "role", values_to = "type") %>%
-  mutate(event = ifelse(event == "M" & role == "src", event3,
-                        ifelse(event == "M" & role == "dest", event2, event))) %>% 
-  select(-c("role", "event2", "event3")) %>%
-  filter(!is.na(type)) %>%
-  group_by_at(vars(-N)) %>%
-  summarise(value = sum(N), .groups = "drop") %>%
-  pivot_wider(names_from = event, values_from = value, values_fill = list(value = 0)) %>%
-  mutate(IM = IM_0 + IM_1 + IM_2 + IM_3 + IM_4 + IM_5,
-         OM = OM_0 + OM_1 + OM_2 + OM_3 + OM_4 + OM_5) %>%
-  group_by(traj, type) %>%
-  arrange(traj, type, time) %>%
-  mutate_at(tail(names(.), -4), list(c = cumsum)) %>%
-  mutate(activePop = O_c + B_c + IM_c - D_c - OM_c - S_c,
-         cumPop = O_c + B_c + IM_c,
-         inPop = O + B + IM,
-         outPop = D + OM + S) %>% 
-  pivot_longer(O:outPop, names_to = "var", values_to = "value")
-  # pivot_longer(O:outPop, names_to = c("value", "set"),
-  #  names_pattern = "(.*)_(.)")
-
-
-df_cases <- events %>%
-  group_by_at(vars(-mult)) %>%
-  summarise(N = sum(mult), .groups = "drop") %>%
-  mutate(srctmp = src, destmp = dest) %>%
-  pivot_longer(src:dest, names_to = "role", values_to = "type") %>%
-  mutate(event = ifelse(event == "M" & role == "src", "OM",
-                        ifelse(event == "M" & role == "dest", "IM", event)),
-         partner = ifelse(event == "OM", destmp,
-                        ifelse(event == "IM", srctmp, NA))) %>% 
-  select(-c("role", "srctmp", "destmp")) %>%
-  filter(!is.na(type)) %>%
-  group_by_at(vars(-N)) %>%
-  summarise(value = sum(N), .groups = "drop") %>%
-  group_by(traj, type, partner, event) %>%
-  arrange(traj, time, type) %>%
-  mutate(cumvalue = cumsum(value))
-
-mig_cum = df_cases %>%
-  filter(event %in% c("IM", "OM")) %>%
-  group_by(traj, event, time, age, type) %>%
-  summarise(value1 = sum(value), .groups = "drop") %>%
-  group_by(traj, event, type) %>%
-  arrange(traj, time, type) %>%
-  mutate(cumvalue1 = cumsum(value1),
-            partner1 = "all") 
-            
-inout_pop = df_cases %>% 
-  mutate(var = ifelse(event %in% c("O", "B", "IM"), "in_pop", "out_pop")) %>%
-  group_by(traj, type, var, time, age) %>%
-  summarise(value = sum(value), .groups = "drop") %>%
-  group_by(traj, type, var) %>%
-  arrange(traj, time, type) %>%
-  mutate(cumvalue = cumsum(value)) 
-
-active_pop = inout_pop %>%
-  pivot_wider(names_from = var, values_from = value, values_fill = list(value = 0)) %>%
-  mutate(active_pop = in_pop - out_pop) %>%
-  pivot_longer(active_pop, names_to = "var", values_to = "value") %>%
-  group_by(traj, type) %>%
-  arrange(traj, time, type) %>%
-  mutate(cumvalue = cumsum(value)) %>%
-  select(-c("in_pop", "out_pop"))
-  
-df_cases <- df_cases %>%
-  mutate(src = factor(src,
-                      levels = 0:(nrow(demes) - 1),
-                      #labels = sort(demes$deme)),
-                      labels = c("France", "Germany","China","Italy","OtherEuropean","Spain")),
-         dest = ifelse(is.na(dest), as.character(src),
-                       as.character(factor(dest,
-                                           levels = 0:(nrow(demes) - 1),
-                                           #labels = sort(demes$deme),
-                                           labels = c("France" , "Germany","China","Italy","OtherEuropean","Spain")))))
-
-ge %>%
-    # 1. Prepare data
-    filter((dest == deme & event == "B") | (dest == deme & event == "M")) %>%
-  filter(traj == 1) %>%
-    mutate(traj = as.character(traj)) %>%
-    bind_rows(case_data %>%
-                rename(dest = deme,
-                       N = cumcases) %>%
-                filter(dest == deme) %>%
-                mutate(traj = "ecdc") %>%
-                select(dest, traj, date, N) %>%
-                distinct()) %>%
-    # 2. Plot
-    ggplot() +
-    geom_line(aes(date, N, group = traj,
-                  color = traj == "ecdc",
-                  alpha = traj == "ecdc",
-                  linetype = traj == "ecdc",
-                  size = traj == "ecdc")) +
-    scale_color_manual(name = "",
-                       labels = c(paste0(deme, " inferred\n population trajectories"),
-                                  paste0(ifelse(deme == china_deme, "China", as.character(deme)), 
-                                         " ECDC total case count")),
-                       values = c(dcolors[[deme]], dark_dcolors[[deme]])) +
-    scale_alpha_manual(name = "", values = c(0.2, 1), guide = FALSE) +
-    scale_linetype_manual(name = "", values = c(1, 2),
-                          labels = c(paste0(deme, " inferred\n population trajectories"),
-                                     paste0(ifelse(deme == china_deme, "China", as.character(deme)), 
-                                            " ECDC total case count"))) +
-    scale_size_manual(name = "", values = c(0.5, 1),
-                      labels = c(paste0(deme, " inferred\n population trajectories"),
-                                 paste0(ifelse(deme == china_deme, "China", as.character(deme)), 
-                                        " ECDC total case count"))) +
-    scale_x_date(limits = c(ymd("2019-11-01"), ymd(MRS + 10)), date_breaks = "2 weeks", 
-                 date_labels = "%b %d") +
-    scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
-    ylab("Population size") +
-    theme(legend.position = c(0.4, 0.9),
-          axis.title.x=element_blank())
-  
 ```
 
 \tiny
