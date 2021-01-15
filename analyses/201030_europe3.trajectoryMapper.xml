@@ -63,7 +63,7 @@
 
        <!-- R0 -->
       <logFileEntry spec="LogFileRealParameter" fieldName="R0SVFrance" fieldParameterIndex="0">
-        <fieldParameter id="R0" spec="RealParameter" value="0.0 0.0 0.0 0.0 0.0 0.0"/>
+        <fieldParameter id="R0" value="0.0 0.0 0.0 0.0 0.0 0.0"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="R0SVGermany" fieldParameterIndex="1">
         <fieldParameter idref="R0"/>

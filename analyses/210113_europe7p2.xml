@@ -60,8 +60,8 @@
                 1.0E-5 1.1E-5 1.2E-5 1.3E-5 1.4E-5 1.5E-5 
                 0.0 0.0 0.0 0.0 0.0 0.0
             </parameter>
-            <parameter id="scalerParamGLM" spec="parameter.RealParameter" dimension="4" name="stateNode">1.0 1.0 1.0 1.0</parameter>
-            <parameter id="indicatorParamGLM" spec="parameter.BooleanParameter" dimension="4" name="stateNode">1 1 1 1</parameter>
+            <parameter id="scalerParamGLM" spec="parameter.RealParameter" dimension="2" name="stateNode">0.0 0.0</parameter>
+            <parameter id="indicatorParamGLM" spec="parameter.BooleanParameter" dimension="2" name="stateNode">1 1</parameter>
         </state>
     
 
@@ -109,9 +109,10 @@
                             <parameter id="migrationRateChangeTimes"
                             spec="parameter.RealParameter" estimate="false" name="changeTimes"> 0.02 0.12</parameter>
                             <skylineValues id="migrationRate" spec="bdmmprime.util.priors.MigRateGLM">
-                                <parameter id="covariateListGLM" spec="feast.fileio.RealParameterFromXSV" fileName="../../files/covariates_4p_3e.csv" sep="," estimate="false" name="covariateList" dimension="360"/>
+                                <parameter id="covariateListGLM" spec="feast.fileio.RealParameterFromXSV" fileName="../../files/covariates_2p_3e.csv" sep="," estimate="false" name="covariateList" dimension="180"/>
                                 <parameter idref="scalerParamGLM" name="scalerParam"/>
-                                 <parameter idref="indicatorParamGLM" name="indicatorParam"/>
+                                <parameter id="globalScalerParamGLM" name="globalScalerParam">1.0</parameter>
+                                <parameter idref="indicatorParamGLM" name="indicatorParam"/>
                             </skylineValues>
                         </migrationRate> 
 
@@ -258,15 +259,15 @@
 
         <operator id="BDMMPrimeTreeScaler" spec="ScaleOperator" scaleFactor="0.95" tree="@Tree.europe" weight="3.0"/>
 
-        <operator id="originBDMMPrimeScaler" spec="ScaleOperator" parameter="@originBDMMPrime" scaleFactor="0.75" weight="3.0"/>
+        <operator id="originBDMMPrimeScaler" spec="ScaleOperator" parameter="@originBDMMPrime" scaleFactor="0.75" weight="1.0"/>
 
         <operator id="R0Scaler" spec="ScaleOperator" parameter="@R0" scaleFactor="0.75" weight="3.0"/>
 
         <operator id="samplingProportionScaler" spec="SmartScaleOperator" parameter="@samplingProportion" scaleFactor="0.75" weight="3.0"/>
 
-        <operator id="scalerParamGLMScaler" spec="bdmmprime.util.operators.RandomWalkOperator" parameter="@scalerParamGLM" weight="3.0"/>
+        <operator id="scalerParamGLMScaler" spec="beast.mascot.operators.MultiRealRandomWalkOperator" windowSize="1.0" parameter="@scalerParamGLM" weight="3.0"/>
 
-        <operator id="indicatorParamGLMScaler" spec="BitFlipOperator" parameter="@indicatorParamGLM" uniform = "false" weight="3.0"/>
+        <operator id="indicatorParamGLMScaler" spec="BitFlipOperator" parameter="@indicatorParamGLM" uniform = "false" weight="10.0"/>
 
         <logger id="tracelog" spec="Logger" fileName="chains/$(filebase).$(seed).log" logEvery="10000" model="@posterior" sanitiseHeaders="true" sort="smart">
             <log idref="posterior"/>
@@ -284,13 +285,17 @@
             <log idref="samplingProportionSV"/>
             <log idref="removalProbSV"/>
             <log idref="scalerParamGLM"/>
+            <log idref="globalScalerParamGLM"/>
             <log idref="indicatorParamGLM"/>
         </logger>
 
-        <logger id="screenlog" spec="Logger" logEvery="10000">
+        <logger id="screenlog" spec="Logger" logEvery="10">
             <log idref="posterior"/>
             <log idref="likelihood"/>
             <log idref="prior"/>
+            <log idref="scalerParamGLM"/>
+            <log idref="globalScalerParamGLM"/>
+            <log idref="indicatorParamGLM"/>
         </logger>
 
         <logger id="treelog" spec="Logger" fileName="chains/$(filebase).$(seed).trees" logEvery="10000" mode="tree">

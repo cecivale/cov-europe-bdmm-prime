@@ -76,10 +76,10 @@
 
        <!-- R0 -->
       <logFileEntry spec="LogFileRealParameter" fieldName="R0SVChina" fieldParameterIndex="0">
-        <fieldParameter id="R0" value="0.0 0.0 0.0 0.0 0.0 0.0"/>
+        <fieldParameter id="R0" spec="RealParameter" value="0.0 0.0 0.0 0.0 0.0 0.0"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="R0SVFrance" fieldParameterIndex="1">
-        <fieldParameter idref="R0" spec="RealParameter"/>
+        <fieldParameter idref="R0"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="R0SVGermany" fieldParameterIndex="2">
         <fieldParameter idref="R0"/>
@@ -104,10 +104,10 @@
 
       <!-- Migration rates -->
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_China_to_France" fieldParameterIndex="0">
-        <fieldParameter id="migrationRate" value="0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0"/>
+        <fieldParameter id="migrationRate" spec="RealParameter" value="0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_China_to_Germany" fieldParameterIndex="1">
-        <fieldParameter idref="migrationRate" spec="RealParameter"/>
+        <fieldParameter idref="migrationRate"/>
       </logFileEntry>
       <logFileEntry spec="LogFileRealParameter" fieldName="migrationRateSMi2_China_to_Italy" fieldParameterIndex="2">
         <fieldParameter idref="migrationRate"/>

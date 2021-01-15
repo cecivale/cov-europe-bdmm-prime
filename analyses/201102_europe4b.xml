@@ -60,7 +60,7 @@
                 1.0E-5 1.1E-5 1.2E-5 1.3E-5 1.4E-5 1.5E-5 
                 0.0 0.0 0.0 0.0 0.0 0.0
             </parameter>
-            <parameter id="scaleParamGLM" spec="parameter.RealParameter" name="stateNode">1.0</parameter>
+            <parameter id="scalerParamGLM" spec="parameter.RealParameter" name="stateNode">1.0</parameter>
         </state>
     
 
@@ -116,7 +116,7 @@
                                     0.73452474  1.15600788 -Infinity 0.84145106 1.28488381 
                                     -0.02973447  0.43544423 -Infinity 0.05180673  1.29503903 
                                 </parameter>
-                                <parameter idref="scaleParamGLM" name="scaleParam"/>
+                                <parameter idref="scalerParamGLM" name="scalerParam"/>
                             </skylineValues>
                         </migrationRate> 
 
@@ -155,7 +155,7 @@
                     </LogNormal>
                 </prior>
 
-                <prior id="scaleParamPrior" name="distribution" x="@scaleParamGLM">
+                <prior id="scalerParamPrior" name="distribution" x="@scalerParamGLM">
                     <Normal id="Normal.0" name="distr">
                         <parameter id="RealParameter.9" spec="parameter.RealParameter" estimate="false" name="mean">0.0</parameter>
                         <parameter id="RealParameter.10" spec="parameter.RealParameter" estimate="false" name="sigma">4.0</parameter>
@@ -271,9 +271,7 @@
 
         <operator id="samplingProportionScaler" spec="SmartScaleOperator" parameter="@samplingProportion" scaleFactor="0.75" weight="3.0"/>
 
-<!--         <operator id="migrationRateScaler" spec="ScaleOperator" parameter="@migrationRate" scaleFactor="0.75" weight="3.0"/> -->
-
-        <operator id="scaleParamGLMScaler" spec="ScaleOperator" parameter="@scaleParamGLM" scaleFactor="0.75" weight="3.0"/>
+        <operator id="scalerParamGLMScaler" spec="ScaleOperator" parameter="@scalerParamGLM" scaleFactor="0.75" weight="3.0"/>
 
         <logger id="tracelog" spec="Logger" fileName="results/europe4b/$(filebase)/$(filebase).$(seed).log" logEvery="1000" model="@posterior" sanitiseHeaders="true" sort="smart">
             <log idref="posterior"/>
@@ -291,7 +289,7 @@
             <log idref="samplingProportionSV"/>
             <log idref="removalProbSV"/>
             <log idref="rhoSamplingProbTP"/>
-            <log idref="scaleParamGLM"/>
+            <log idref="scalerParamGLM"/>
         </logger>
 
         <logger id="screenlog" spec="Logger" logEvery="10000">
