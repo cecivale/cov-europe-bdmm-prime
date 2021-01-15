@@ -589,7 +589,7 @@ rule beast:
         jar = config["beast"]["jar"],
         length = config["beast"]["l_mcmc"],
         seed = config["beast"]["n_mcmc"],
-        name = "results/{build_name}/{analysis_name}.{seed}",
+        name = "results/{build_name}/chains/{analysis_name}.{seed}",
         action = "overwrite"
     benchmark:
         "benchmarks/beast_{build_name}_{analysis_name}.{seed}.benchmark.txt"
