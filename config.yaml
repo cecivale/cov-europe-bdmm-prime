@@ -16,38 +16,49 @@ conda_environment: "/envs/nextstrain.yaml"
 sequences: "data/201113_sequences.fasta"
 metadata: "data/201113_metadata.tsv"
 
-# Builds to run: subsampling + beast analysis
+# Builds to run: subsampling + beas analysis
 builds:
-  sarah5D:
-      subsampling_scheme: uniformSarah_5demes
-      beast_analysis: 
-        - 200914_europe1
-  sarah6D:
-      subsampling_scheme: uniformSarah_6demes
-      beast_analysis: 
-        - 201014_europe2
-  europeA:
-    subsampling_scheme: ssprop_Hubei
-    beast_analysis: 
-      - 201030_europe3
-  europeB:
-    subsampling_scheme: ssprop_China_old
-    beast_analysis: 
-      - 201030_europe3
-      - 201113_europe3v2 # Uniformative priors for sampling proportions
+  # europe1:
+  #     subsampling_scheme: uniformSarah_5demes
+  #     beast_analysis: 
+  #       - 200914_europe1
+  # europe2:
+  #     subsampling_scheme: uniformSarah_6demes
+  #     beast_analysis: 
+  #       - 201014_europe2
+  # europe3a:
+  #   subsampling_scheme: ssprop_Hubei
+  #   beast_analysis: 
+  #     - 201030_europe3
+  # europe3b:
+  #   subsampling_scheme: ssprop_China_old
+  #   beast_analysis: 
+  #     - 201030_europe3
+      # - 201113_europe3v2 # Uniformative priors for sampling proportions
+  # europe3c:
+  #   subsampling_scheme: ssprop_China
+  #   beast_analysis: 
+  #     - 201030_europe3
   europeC:
-    subsampling_scheme: ssprop_China
-    beast_analysis: 
-      - 201030_europe3 # No GLM
-      - 201102_europe4 # Flight data 1 epoch
-      - 201106_europe5 # Flight data 3 epochs
-      - 201204_europe5b # Flight data normalized by pop 3 epochs
-      - 201211_europe6 # GLM 4 predictors 3 epochs
-  europeD:
       subsampling_scheme: ssprop_China
       beast_analysis: 
-        - 201211_europe6 # GLM 4 predictors 3 epochs
-    
+  # #     #- 201030_europe3 # No GLM
+  # #     #- 201102_europe4 # Flight data 1 epoch
+  # #     #- 201106_europe5 # Flight data 3 epochs
+  # #     #- 201204_europe5b # Flight data normalized by pop 3 epochs
+  # #      - 201211_europe6 # GLM 4 predictors 3 epochs
+  # #      - 201215_europe7i2 # GLM 4p 3e with indicators
+  # #      - 210113_europe7p2 # GLM 2p 3e with indicators
+          - 210113_europe9fp2 
+  # dsEurope:
+  #     subsampling_scheme: dsprop_6demes
+  #     beast_analysis: 
+  #       - 210113_europe9ep2 # MCMC Coupled GLM 2p 3e with indicators
+#  europeD:
+#      subsampling_scheme: ssprop_China
+#      beast_analysis: 
+#        - 201211_europe6 # GLM 4 predictors 3 epochs
+#        - 201215_europe7i2 # GLM 4p 3e indicators
 
 # Define files used for external configuration. Common examples consist of a
 # list of strains to include and exclude from analyses, a reference sequence to
@@ -300,13 +311,6 @@ subsampling:
       prob: "cases"
 
   ssprop_China:
-    China:
-      country: "China"
-      region: "Asia"
-      min_date: "2019-12-24"
-      max_date: "2020-01-23"
-      seq_per_deme: 60
-      prob: "deaths"
     France:
       country: "France"
       region: "Europe"
@@ -321,6 +325,13 @@ subsampling:
       max_date: "2020-03-08"
       seq_per_deme: 50
       prob: "cases"
+    China:
+      country: "China"
+      region: "Asia"
+      min_date: "2019-12-24"
+      max_date: "2020-01-23"
+      seq_per_deme: 60
+      prob: "deaths"
     Italy:
       country: "Italy"
       region: "Europe"
@@ -343,6 +354,50 @@ subsampling:
       seq_per_deme: 60
       prob: "cases"
 
+  dsprop_6demes:
+    France:
+      country: "France"
+      region: "Europe"
+      min_date: "2020-01-23"
+      max_date: "2020-03-08"
+      seq_per_deme: 20
+      prob: "cases"
+    Germany:
+      country: "Germany"
+      region: "Europe"
+      min_date: "2020-01-28"
+      max_date: "2020-03-08"
+      seq_per_deme: 20
+      prob: "cases"
+    China:
+      country: "China"
+      region: "Asia"
+      min_date: "2019-12-24"
+      max_date: "2020-01-23"
+      seq_per_deme: 20
+      prob: "deaths"
+    Italy:
+      country: "Italy"
+      region: "Europe"
+      min_date: "2020-01-29"
+      max_date: "2020-03-08"
+      seq_per_deme: 20
+      prob: "cases"
+    OtherEuropean:
+      region: "Europe"
+      exclude_country: ["France","Germany","Italy","Spain"]
+      min_date: "2020-01-29"
+      max_date: "2020-03-08"
+      seq_per_deme: 20
+      prob: "cases"
+    Spain:
+      country: "Spain"
+      region: "Europe"
+      min_date: "2020-02-24"
+      max_date: "2020-03-08"
+      seq_per_deme: 20
+      prob: "cases"
+
 tree:
   tree-builder-args: "'-ninit 10 -n 4'"
 
@@ -360,10 +415,11 @@ refine:
 # BEAST2 analysis settings
 beast:
   # BEAST2 jar file path
-  #jar: "/cluster/home/ceciliav/BDMM-Prime.jar"
-  jar: "/Users/maceci/code/mt-beast-dev/BDMM-Prime/out/artifacts/BDMM_Prime_jar/BDMM-Prime.jar"
+  jar: "/cluster/home/ceciliav/BDMM-Prime.jar"
+  #jar: "/Users/maceci/code/mt-beast-dev/BDMM-Prime/out/artifacts/BDMM_Prime_jar/BDMM-Prime.jar"
+  cpus_mcmc: 2
   # List of parallel mcmc chains seeds to run 
-  n_mcmc: [1,2,3,4,5]
+  n_mcmc: [1,2]
   # Length of a mcmc chain, it has to be the same length than the one specified in the xml file
   l_mcmc: 10000000
   # Time for mcmc chains in cluster in minutes

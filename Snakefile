@@ -596,7 +596,7 @@ rule beast:
     resources:
         runtime = config["beast"]["t_mcmc"],
         mem_mb = 4096,
-    threads: 4
+        cpus = config["beast"]["cpus_mcmc"]
     shell:
         """
         scp {input.xml} results/{wildcards.build_name}/{wildcards.analysis_name}.xml

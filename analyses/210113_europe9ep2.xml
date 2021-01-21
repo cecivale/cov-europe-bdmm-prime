@@ -35,7 +35,7 @@
 
 
 <!-- MCMC -->
-    <run id="mcmc" spec="beast.coupledMCMC.CoupledMCMC" chainLength="10000000" chains="4" resampleEvery="1000" logHeatedChains="true" numInitializationAttempts="100">
+    <run id="mcmc" spec="beast.coupledMCMC.CoupledMCMC" chainLength="10000000" chains="8" resampleEvery="1000" optimiseDelay="1" maxAdaptation="0.01" target="0.117" deltaTemperature="0.1" logHeatedChains="true" numInitializationAttempts="100">
 
     <!-- State -->
         <state id="state" spec="State" storeEvery="5000">
@@ -269,7 +269,7 @@
 
         <operator id="indicatorParamGLMScaler" spec="BitFlipOperator" parameter="@indicatorParamGLM" uniform = "false" weight="10.0"/>
 
-        <logger id="tracelog" spec="Logger" fileName="$(filebase).$(seed).log" logEvery="10000" model="@posterior" sanitiseHeaders="true" sort="smart">
+        <logger id="tracelog" spec="Logger" fileName="$(filebase).$(seed).log" logEvery="1000" model="@posterior" sanitiseHeaders="true" sort="smart">
             <log idref="posterior"/>
             <log idref="likelihood"/>
             <log idref="prior"/>
@@ -298,7 +298,7 @@
             <log idref="indicatorParamGLM"/>
         </logger>
 
-        <logger id="treelog" spec="Logger" fileName="$(filebase).$(seed).trees" logEvery="10000" mode="tree">
+        <logger id="treelog" spec="Logger" fileName="$(filebase).$(seed).trees" logEvery="1000" mode="tree">
             <log id="TreeWithMetaDataLogger" spec="beast.evolution.tree.TreeWithMetaDataLogger" tree="@Tree.europe"/>
         </logger>
 

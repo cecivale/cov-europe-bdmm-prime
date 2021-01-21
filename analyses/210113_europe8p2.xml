@@ -61,8 +61,8 @@
                 0.0 0.0 0.0 0.0 0.0 0.0
             </parameter>
             <parameter id="scalerParamGLM" spec="parameter.RealParameter" dimension="2" name="stateNode">0.0 0.0</parameter>
-            <parameter id="globalScalerParamGLM" spec="parameter.RealParameter" name="stateNode">1.0</parameter>
-            <parameter id="indicatorParamGLM" spec="parameter.BooleanParameter" dimension="2" name="stateNode">1 1</parameter>
+            <parameter id="globalScalerParamGLM" spec="parameter.RealParameter" name="stateNode">0.1</parameter>
+            <parameter id="indicatorParamGLM" spec="parameter.BooleanParameter" dimension="2" name="stateNode">0 0</parameter>
         </state>
     
 
@@ -160,7 +160,10 @@
                 </prior>
 
                 <prior id="globalScalerParamPrior" name="distribution" x="@globalScalerParamGLM">
-                    <OneOnX id="OneOnX.0" name="distr"/>
+                    <LogNormal id="LogNormalDistributionModel.2" name="distr">
+                        <parameter id="RealParameter.5" spec="parameter.RealParameter" estimate="false" name="M">0</parameter>
+                        <parameter id="RealParameter.6" spec="parameter.RealParameter" estimate="false" lower="0.0" name="S" upper="5.0">1.5</parameter>
+                    </LogNormal>
                 </prior>
 
                 <prior id="originBDMMPrimePrior" name="distribution" x="@originBDMMPrime">
@@ -276,7 +279,7 @@
 
         <operator id="indicatorParamGLMScaler" spec="BitFlipOperator" parameter="@indicatorParamGLM" uniform = "false" weight="10.0"/>
 
-        <logger id="tracelog" spec="Logger" fileName="chains/$(filebase).$(seed).log" logEvery="10000" model="@posterior" sanitiseHeaders="true" sort="smart">
+        <logger id="tracelog" spec="Logger" fileName="chains/$(filebase).$(seed).log" logEvery="1000" model="@posterior" sanitiseHeaders="true" sort="smart">
             <log idref="posterior"/>
             <log idref="likelihood"/>
             <log idref="prior"/>
@@ -296,7 +299,7 @@
             <log idref="indicatorParamGLM"/>
         </logger>
 
-        <logger id="screenlog" spec="Logger" logEvery="10000">
+        <logger id="screenlog" spec="Logger" logEvery="1000">
             <log idref="posterior"/>
             <log idref="likelihood"/>
             <log idref="prior"/>
@@ -305,7 +308,7 @@
             <log idref="indicatorParamGLM"/>
         </logger>
 
-        <logger id="treelog" spec="Logger" fileName="chains/$(filebase).$(seed).trees" logEvery="10000" mode="tree">
+        <logger id="treelog" spec="Logger" fileName="chains/$(filebase).$(seed).trees" logEvery="1000" mode="tree">
             <log id="TreeWithMetaDataLogger" spec="beast.evolution.tree.TreeWithMetaDataLogger" tree="@Tree.europe"/>
         </logger>
 

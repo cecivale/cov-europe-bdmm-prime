@@ -35,7 +35,8 @@
 
 
 <!-- MCMC -->
-    <run id="mcmc" spec="beast.coupledMCMC.CoupledMCMC" chainLength="10000000" chains="4" resampleEvery="1000" logHeatedChains="true" numInitializationAttempts="100">
+    <run id="mcmc" spec="beast.coupledMCMC.CoupledMCMC" chainLength="10000000" chains="8" resampleEvery="1000" optimiseDelay="1" maxAdaptation="0.01" target="0.117" deltaTemperature="0.1" logHeatedChains="true" numInitializationAttempts="100">
+
 
     <!-- State -->
         <state id="state" spec="State" storeEvery="5000">
@@ -61,6 +62,7 @@
                 0.0 0.0 0.0 0.0 0.0 0.0
             </parameter>
             <parameter id="scalerParamGLM" spec="parameter.RealParameter" dimension="2" name="stateNode">0.0 0.0</parameter>
+            <parameter id="globalScalerParamGLM" spec="parameter.RealParameter" name="stateNode">0.1</parameter>
             <parameter id="indicatorParamGLM" spec="parameter.BooleanParameter" dimension="2" name="stateNode">1 1</parameter>
         </state>
     
@@ -111,7 +113,7 @@
                             <skylineValues id="migrationRate" spec="bdmmprime.util.priors.MigRateGLM">
                                 <parameter id="covariateListGLM" spec="feast.fileio.RealParameterFromXSV" fileName="../../files/covariates_2p_3e.csv" sep="," estimate="false" name="covariateList" dimension="180"/>
                                 <parameter idref="scalerParamGLM" name="scalerParam"/>
-                                <parameter id="globalScalerParamGLM" name="globalScalerParam">1.0</parameter>
+                                <parameter idref="globalScalerParamGLM" name="globalScalerParam"/>
                                 <parameter idref="indicatorParamGLM" name="indicatorParam"/>
                             </skylineValues>
                         </migrationRate> 
@@ -156,6 +158,13 @@
                         <parameter id="RealParameter.9" spec="parameter.RealParameter" estimate="false" name="mean">0.0</parameter>
                         <parameter id="RealParameter.10" spec="parameter.RealParameter" estimate="false" name="sigma">4.0</parameter>
                     </Normal>
+                </prior>
+
+                <prior id="globalScalerParamPrior" name="distribution" x="@globalScalerParamGLM">
+                    <LogNormal id="LogNormalDistributionModel.2" name="distr">
+                        <parameter id="RealParameter.5" spec="parameter.RealParameter" estimate="false" name="M">0</parameter>
+                        <parameter id="RealParameter.6" spec="parameter.RealParameter" estimate="false" lower="0.0" name="S" upper="5.0">1.5</parameter>
+                    </LogNormal>
                 </prior>
 
                 <prior id="originBDMMPrimePrior" name="distribution" x="@originBDMMPrime">
@@ -267,9 +276,11 @@
 
         <operator id="scalerParamGLMScaler" spec="beast.mascot.operators.MultiRealRandomWalkOperator" windowSize="1.0" parameter="@scalerParamGLM" weight="3.0"/>
 
+        <operator id="globalScalerParamGLMScaler" spec="ScaleOperator" parameter="@globalScalerParamGLM" scaleFactor="0.75" weight="3.0"/>
+
         <operator id="indicatorParamGLMScaler" spec="BitFlipOperator" parameter="@indicatorParamGLM" uniform = "false" weight="10.0"/>
 
-        <logger id="tracelog" spec="Logger" fileName="$(filebase).$(seed).log" logEvery="10000" model="@posterior" sanitiseHeaders="true" sort="smart">
+        <logger id="tracelog" spec="Logger" fileName="$(filebase).$(seed).log" logEvery="1000" model="@posterior" sanitiseHeaders="true" sort="smart">
             <log idref="posterior"/>
             <log idref="likelihood"/>
             <log idref="prior"/>
@@ -289,7 +300,7 @@
             <log idref="indicatorParamGLM"/>
         </logger>
 
-        <logger id="screenlog" spec="Logger" logEvery="10000">
+        <logger id="screenlog" spec="Logger" logEvery="1000">
             <log idref="posterior"/>
             <log idref="likelihood"/>
             <log idref="prior"/>
@@ -298,7 +309,7 @@
             <log idref="indicatorParamGLM"/>
         </logger>
 
-        <logger id="treelog" spec="Logger" fileName="$(filebase).$(seed).trees" logEvery="10000" mode="tree">
+        <logger id="treelog" spec="Logger" fileName="$(filebase).$(seed).trees" logEvery="1000" mode="tree">
             <log id="TreeWithMetaDataLogger" spec="beast.evolution.tree.TreeWithMetaDataLogger" tree="@Tree.europe"/>
         </logger>
 
