@@ -62,14 +62,15 @@ args <- parser$parse_args()
 ```{r debugging}
 # Debugging
 args$burnin = 0.1
-args$demes = read.csv("./files/demes.csv", stringsAsFactors = FALSE)
-args$input = "./results/europeC/201106_europe5.TL.traj"
+args$demes = read.csv("./files/demes_China.csv", stringsAsFactors = FALSE)
+#args$input = "./results/europeC/201211_europe6p2.TL.traj"
+args$input = "/Users/maceci/traj_10_test/notimeparameter/210122_europe10a.TL.traj"
 args$metadata =  "./results/europeC/final_metadata.tsv"
-args$n = 50
+args$n = 200
 demes = args$demes
 demes$exclude_country[5] = "France,Germany,Italy,Spain"
-demes$deme[3] = "China"
-demes$division[3] = NA
+#demes$deme[3] = "China"
+#demes$division[3] = NA
 demes <- demes %>% arrange(deme)
 ```
 
@@ -80,12 +81,13 @@ demes <- demes %>% arrange(deme)
 # Plot options -----------------------------------------------------------------------
 set_plotopts()
 dcolors <- pal_npg("nrc")(10)[c(1:5,9)]
-dcolors <- dcolors[1:nrow(demes)]
+dcolors <- c("#E64B35FF", "#4DBBD5FF", "#00A087FF", "#3C5488FF", "#ffaa4fFF", "#7E6148FF")
+#dcolors <- c("#E64B35FF", "#7E6148FF", "#00A087FF", "#3C5488FF", "#4DBBD5FF", "#ffc954")
+#dcolors <- dcolors[1:nrow(demes)]
 names(dcolors) <- sort(demes$deme)
 dark_dcolors <- rgb(t(col2rgb(dcolors)/2), maxColorValue=255)
 names(dark_dcolors) <- names(dcolors)
-ecolors <- c("#1e3d59", "#f5f0e1", "#ff6e40", "#ffc13b")
-names(ecolors) <- c("B", "M", "IM", "OM")
+ecolors <- c(B = "#1e3d59", M = "#f5f0e1", IM = "#ff6e40", OM = "#ffc13b")
 ```
 
 
@@ -133,10 +135,10 @@ zoom_to_xy <- st_transform(st_sfc(st_point(zoom_to), crs = 4326),
                            crs = target_crs)
 disp_window <- st_sfc(
     st_point(st_coordinates(zoom_to_xy - c(x_span/2, y_span/2))),
-    st_point(st_coordinates(zoom_to_xy + c(x_span *1.2, y_span *1.2))),
+    st_point(st_coordinates(zoom_to_xy + c(x_span *1.2, y_span *1.25))),
     crs = target_crs
 )
-ggplot() + geom_sf(data = worldmap, aes(fill = deme), alpha = 0.8, size = 0) +
+ggplot() + geom_sf(data = worldmap, aes(fill = deme), alpha = 0.9, size = 0) +
     scale_x_continuous(breaks = seq(-100, 200, by = 10)) +
     scale_y_continuous(breaks = seq(0, 100, by = 10)) +
     #geom_sf(data = zoom_to_xy, color = 'red') +
@@ -144,6 +146,8 @@ ggplot() + geom_sf(data = worldmap, aes(fill = deme), alpha = 0.8, size = 0) +
              ylim = st_coordinates(disp_window)[,'Y'],
              crs = target_crs, expand = FALSE) +
   scale_fill_manual(values = dcolors, na.value = "grey90") +
+  #scale_fill_manual(values = c("#E64B35FF", "grey50", "grey50", "grey50", "grey50", "grey50"), na.value = "grey90") +
+  #ggsci::scale_fill_tron()
   theme_void() +
   theme(panel.grid.major = element_line(colour = "grey", size = 0.1),
         legend.position = "none")
@@ -165,13 +169,19 @@ mrs <- ymd_hms(paste(MRS, '23:59:00 UTC'))
 
 case_data <- get_cases(demes, from = ymd("2019-09-01"), to = MRS + 10) %>%
   arrange(date) %>%
-  group_by(deme) %>%
-  rename(value = cases) %>%
-  mutate(cumvalue = cumsum(value)) %>%
   group_by(deme, date) %>%
-  mutate(cumvalue = max(cumvalue)) %>%
-  select(deme, date, cumvalue, value)  %>%
-  distinct_at(vars(deme, date, cumvalue), .keep_all = TRUE)
+  rename(value = new_cases) %>%
+  summarise(value = sum(value)) %>%
+  mutate(cumvalue = cumsum(value))
+
+library(zoo)
+
+case_data <- case_data %>%
+  group_by(deme) %>%
+  mutate(rollavg3 = zoo::rollmean(value, k = 3, fill = NA),
+         #rollavg7 = zoo::rollmean(value, k = 7, fill = NA),
+         datereport = date,
+         date = date - 10)
 
 # Population data
 data(pop)
@@ -181,7 +191,7 @@ pop_eu_total <- pop %>% filter(name == "Europe") %>% pull("2020")
 population <- population %>%
   tibble::add_row(name = "OtherEuropean", `2020` = pop_eu_total - pop_eu_demes) %>% rename(deme = name, pop = 2)
 
-case_data_pop <- case_data %>% left_join(population, by="deme") %>% mutate(ECDCcas100 = cumcases * 1e5 / (pop * 1e3)) 
+case_data_pop <- case_data %>% left_join(population, by="deme") %>% mutate(ECDCcas100 = cumvalue * 1e5 / (pop * 1e3)) 
 ```
 
 ::: {.columns}
@@ -189,23 +199,27 @@ case_data_pop <- case_data %>% left_join(population, by="deme") %>% mutate(ECDCc
 :::: {.column width="40%"}
 \small
 ```{r ecdc-table, echo=FALSE}
-knitr::kable(case_data_pop %>% ungroup %>% filter(date == MRS + 10) %>% select(deme, cumcases, pop, cas100) %>% mutate_if(is.numeric, function (x) round(x,1)), booktabs = TRUE, caption = "Total number of cases reported to ECDC 18th March")
+knitr::kable(case_data_pop %>% ungroup %>% filter(date == MRS + 10) %>% select(deme, cumvalue, pop, ECDCcas100) %>% mutate_if(is.numeric, function (x) round(x,1)), booktabs = TRUE, caption = "Total number of cases reported to ECDC 18th March")
 ```
 ::::
 
 :::: {.column width="60%"}
 ```{r ecdc-plot, fig.height = 3, fig.width=4, fig.cap="ECDC case counts for each deme from the beginning of the pandemic to March 18"}
+
 ggplot(case_data) +
-  geom_line(aes(x = date, y = cumcases, color = deme)) +
+  geom_line(aes(x = date, y = cumvalue, color = deme)) +
+  geom_point(aes(x = date, y = cumvalue, color = deme)) +
    scale_color_manual(values = dcolors, name = "") +
    scale_x_date(limits = c(ymd("2019-12-30"), ymd("2020-03-18")), date_breaks = "1 month", date_labels = "%b %d") +
-    scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
+  scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
+  #scale_y_continuous(expand = c(0, 0)) +
     ylab("Case count") +
     theme(axis.title.x=element_blank(),
           legend.position = c(0.2, 0.7),
           legend.box="horizontal",
-          panel.grid.major.x =  element_line(colour = "grey80", size = 0.3),
-          panel.grid.minor.x =  element_line(colour = "grey80", size = 0.2))
+          panel.grid.major.y =  element_line(colour = "grey80", size = 0.3, linetype = 2),
+          panel.grid.minor.y =  element_line(colour = "grey80", size = 0.2,  linetype = 2),
+          panel.background =  element_blank())
 ```
 
 ::::
@@ -252,12 +266,12 @@ states <- df$states %>%
 events <- df$events %>%
   mutate(src = factor(src,
                       levels = 0:(nrow(demes) - 1),
-                      #labels = sort(demes$deme)),
-                      labels = c("France", "Germany","China","Italy","OtherEuropean","Spain")),
+                      labels = sort(demes$deme)),
+                      #labels = c("France", "Germany","China","Italy","OtherEuropean","Spain")),
          dest = (factor(dest,
                            levels = 0:(nrow(demes) - 1),
-                           #labels = sort(demes$deme),
-                           labels = c("France" , "Germany","China","Italy","OtherEuropean","Spain"))))
+                           labels = sort(demes$deme))))
+                           #labels = c("France" , "Germany","China","Italy","OtherEuropean","Spain"))))
 events[events$event == "O", "src"] = "China"
 events[events$event == "O", "mult"] =  1
 
@@ -314,9 +328,17 @@ df_traj <- bind_rows(df_traj0, mig_cum) %>%
 df_traj_cases <- df_traj %>%
   mutate(traj = as.character(traj)) %>%
   bind_rows(case_data %>%
-            filter(cumvalue != 0) %>%
+            #filter(cumvalue != 0) %>%
             mutate(var = "ECDC"))
                   # traj = "ecdc"))
+
+min_date <- min(df_traj_cases$date)
+df_traj_cases_complete <- df_traj_cases %>%
+  group_by(traj, var, deme, partner) %>%
+  complete(date = seq.Date(min_date, MRS, by = "day")) %>%
+  replace_na(list(value = 0)) %>%
+  arrange(traj, date, deme) %>%
+  mutate(cumvalue = cumsum(value))
 ```
 
 ```{r table-states}
@@ -400,6 +422,50 @@ reported <- gt_summary %>%
 #   select(-one_of(colnames(reported)))
 #
 # write_tsv(r_reported, paste0(args$output_table, "01.tsv"))
+
+reported1 <- df_traj_cases %>%
+  filter(var == "in_pop", date == MRS) %>%
+  left_join(case_data_pop %>% rename(cumcases = cumvalue) %>% select(deme, date, cumcases, pop), by = c("deme", "date")) %>%
+  group_by(var, deme, cumcases, pop) %>%
+  summarise(median_in = median(cumvalue),
+            l95_in = HDInterval::hdi(cumvalue, 0.95)[1],
+            h95_in = HDInterval::hdi(cumvalue, 0.95)[2]) %>%
+  mutate(times_med = median_in/cumcases,
+         times_l = l95_in/cumcases,
+         times_h = h95_in/cumcases,
+         p_med = median_in/(pop*1e3) * 100,
+         p_l = l95_in/(pop*1e3) * 100,
+         p_h = h95_in/(pop*1e3) * 100)
+
+reported2 <- df_traj_cases %>%
+  filter(var == "in_pop") %>%
+  left_join(case_data_pop %>% rename(cases = value, ecdcavg3=rollavg3) %>% select(deme, date, cases, pop, ecdcavg3), by = c("deme", "date")) %>%
+  group_by(var, deme, date, cases, ecdcavg3) %>%
+  summarise(median_in = median(value),
+            l95_in = HDInterval::hdi(value, 0.95)[1],
+            h95_in = HDInterval::hdi(value, 0.95)[2]) %>%
+  mutate(report_rate = cases / median_in)
+
+reported3 <- df_traj_cases %>%
+  filter(var == "in_pop") %>%
+  left_join(case_data_pop %>% rename(cases = value, ecdcavg3=rollavg3) %>% select(deme, date, cases, pop, ecdcavg3), by = c("deme", "date")) %>%
+  group_by(var, deme, week = week(date), cases, ecdcavg3) %>%
+  summarise(median_in = median(value),
+            l95_in = HDInterval::hdi(value, 0.95)[1],
+            h95_in = HDInterval::hdi(value, 0.95)[2]) %>%
+  mutate(report_rate = cases / median_in)
+
+reported3 <- df_traj_cases_complete %>%
+  group_by(var, deme, week = week(date), cases, ecdcavg3) %>%
+  summarise(median_in = median(value),
+            l95_in = HDInterval::hdi(value, 0.95)[1],
+            h95_in = HDInterval::hdi(value, 0.95)[2]) %>%
+  mutate(report_rate = cases / median_in)
+
+ggplot(reported3 %>% filter(deme != "China")) +
+  geom_line(aes(week, report_rate, color = deme)) +
+  geom_point(aes(week, report_rate, color = deme))
+
 ```
 
 ```{r trajs}
@@ -453,38 +519,44 @@ names(trajs) <- demes$deme
 
 ```{r}
 # Active cases
-d = "France"
+library(gganimate)
+d = "Germany"
 df_traj_cases %>%
     # 1. Prepare data
-    filter(deme == d, var %in% c("active_pop", "in_pop", "ECDC"), is.na(partner)) %>%
+    filter(deme == d, 
+           #traj %in% c(1, NA), 
+           var %in% c("in_pop", "ECDC"), 
+           is.na(partner)) %>%
     # 2. Plot
     ggplot() +
     geom_line(aes(date, cumvalue, group = traj,
-                  color = var)) +
-                  # color = traj == "ecdc",
-                  # alpha = traj == "ecdc",
-                  # linetype = traj == "ecdc",
-                  # size = traj == "ecdc")) +
-    # scale_color_manual(name = "",
-    #                    labels = c(paste0(deme, " inferred\n population trajectories"),
-    #                               paste0(ifelse(deme == china_deme, "China", as.character(deme)), 
-    #                                      " ECDC total case count")),
-    #                    values = c(dcolors[[deme]], dark_dcolors[[deme]])) +
-    # scale_alpha_manual(name = "", values = c(0.2, 1), guide = FALSE) +
-    # scale_linetype_manual(name = "", values = c(1, 2),
-    #                       labels = c(paste0(deme, " inferred\n population trajectories"),
-    #                                  paste0(ifelse(deme == china_deme, "China", as.character(deme)), 
-    #                                         " ECDC total case count"))) +
-    # scale_size_manual(name = "", values = c(0.5, 1),
-    #                   labels = c(paste0(deme, " inferred\n population trajectories"),
-    #                              paste0(ifelse(deme == china_deme, "China", as.character(deme)), 
-    #                                     " ECDC total case count"))) +
-    scale_x_date(limits = c(ymd("2019-11-01"), ymd(MRS + 10)), date_breaks = "2 weeks", 
+                  color = var == "ECDC",
+                  alpha = var == "ECDC",
+                  linetype = var == "ECDC",
+                  size = var == "ECDC")) +
+    scale_color_manual(name = "",
+                       labels = c(paste0(d, " inferred\n population trajectories"),
+                                  paste0(ifelse(d == china_deme, "China", as.character(d)),
+                                         " ECDC total case count")),
+                       values = c(dcolors[[d]], dark_dcolors[[d]])) +
+                       #values = c("#4ab9ed", dark_dcolors[[d]])) +
+    scale_alpha_manual(name = "", values = c(0.2, 1), guide = FALSE) +
+    scale_linetype_manual(name = "", values = c(1, 2),
+                          labels = c(paste0(d, " inferred\n population trajectories"),
+                                     paste0(ifelse(d == china_deme, "China", as.character(d)),
+                                            " ECDC total case count"))) +
+    scale_size_manual(name = "", values = c(0.5, 1),
+                      labels = c(paste0(d, " inferred\n population trajectories"),
+                                 paste0(ifelse(d == china_deme, "China", as.character(d)),
+                                        " ECDC total case count"))) +
+    scale_x_date(limits = c(ymd("2019-11-01"), ymd(MRS + 10)), date_breaks = "2 weeks",
                  date_labels = "%b %d") +
     scale_y_log10(expand = c(0, 0),labels = trans_format("log10", math_format(10^.x))) +
     ylab("Population size") +
     theme(legend.position = c(0.4, 0.9),
           axis.title.x=element_blank())
+  #theme_void() #+
+  #transition_reveal(date)
 ```
 
 \tiny

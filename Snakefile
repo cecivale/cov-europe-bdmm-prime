@@ -588,6 +588,7 @@ rule beast:
         log = "beast_{build_name}_{analysis_name}.{seed}.txt",
         jar = config["beast"]["jar"],
         length = config["beast"]["l_mcmc"],
+        logevery = round(config["beast"]["l_mcmc"]/10000),
         seed = config["beast"]["n_mcmc"],
         name = "results/{build_name}/chains/{analysis_name}.{seed}",
         action = "overwrite"
@@ -602,14 +603,14 @@ rule beast:
         scp {input.xml} results/{wildcards.build_name}/{wildcards.analysis_name}.xml
         cd results/{wildcards.build_name}/ 
         mkdir -p chains
-        java -Xmx3G -jar {params.jar} -D "chain_length={params.length}" -seed {wildcards.seed} -statefile {wildcards.analysis_name}.{wildcards.seed}.state -{params.action} {wildcards.analysis_name}.xml 2>&1 | tee -a {params.log} || :
+        java -Xmx3G -jar {params.jar} -D "chain_length={params.length}" -D "log_every={params.logevery}" -seed {wildcards.seed} -statefile {wildcards.analysis_name}.{wildcards.seed}.state -{params.action} {wildcards.analysis_name}.xml 2>&1 | tee -a {params.log} || :
         cd ../../
         mv results/{wildcards.build_name}/{params.log} logs/
 
         touch {params.name}.log {params.name}.trees
         scp {params.name}.log {output.trace}
         scp {params.name}.trees {output.trees}
-        find . -type f -empty -delete
+        #find . -type f -empty -delete
         """
 
 
@@ -625,12 +626,13 @@ rule summarize_trace:
     log:
         "logs/summarize_trace_{build_name}_{analysis_name}.{seed}.txt"
     params:
-        log_analyser = config["beast"]["log_analyser"],
+        jar = config["beast"]["jar"],
         burnin = config["beast"]["burnin"]
     shell:
         """
-        {params.log_analyser} -b {params.burnin} {input.trace} > {output.trace_summary} 2> {log} || :
-        touch {output.trace_summary}
+        java -cp {params.jar} beast.util.LogAnalyser -b {params.burnin} {input.trace} > {output.trace_summary} 2> {log} 
+        # java -cp {params.jar} beast.util.LogAnalyser -b {params.burnin} {input.trace} > {output.trace_summary} 2> {log} || :
+        # touch {output.trace_summary}
         """
 
 def _get_tracesummary(wildcards):
@@ -701,7 +703,7 @@ rule combine_trace:
     log:
         "logs/combine_trace_{build_name}_{analysis_name}.txt"
     params:
-        log_combiner = config["beast"]["log_combiner"],
+        jar = config["beast"]["jar"],
         burnin = config["beast"]["burnin"],
         min_ess = config["beast"]["min_ess"],
         empty_message = "message_trace_{build_name}_{analysis_name}.txt",
@@ -713,7 +715,7 @@ rule combine_trace:
         then 
             cat {params.empty_message} | tee {log} && rm {params.empty_message}
         else
-            {params.log_combiner} -log {params.input_command} -o {output.combined_trace} -b {params.burnin}  2>&1 | tee -a {log}
+            java -cp {params.jar} beast.app.tools.LogCombinerLauncher -log {params.input_command} -o {output.combined_trace} -b {params.burnin}  2>&1 | tee -a {log}
         fi
         """
 
@@ -729,7 +731,7 @@ rule combine_trees:
     log:
         "logs/combine_trees_{build_name}_{analysis_name}.txt"
     params:
-        log_combiner = config["beast"]["log_combiner"],
+        jar = config["beast"]["jar"],
         burnin = config["beast"]["burnin"],
         min_ess = config["beast"]["min_ess"],
         empty_message = "message_trees_{build_name}_{analysis_name}.txt",
@@ -740,7 +742,7 @@ rule combine_trees:
         then 
             cat {params.empty_message} | tee {log} && rm {params.empty_message}
         else
-            {params.log_combiner} -log {params.input_command} -o {output.combined_trees}  -b {params.burnin} 2>&1 | tee -a {log}
+            java -cp {params.jar} beast.app.tools.LogCombinerLauncher -log {params.input_command} -o {output.combined_trees}  -b {params.burnin} 2>&1 | tee -a {log}
         fi
         """
 
@@ -752,11 +754,11 @@ rule resample_trace:
     log:
         "logs/resample_trace_{build_name}_{analysis_name}.txt"
     params:
-        log_combiner = config["beast"]["log_combiner"],
+        jar = config["beast"]["jar"],
         resample = config["beast"]["resample"]
     shell:
         """
-        {params.log_combiner} -log {input.trace} -o {output.thinned_trace} -resample {params.resample} 2>&1 | tee {log}
+        java -cp {params.jar} beast.app.tools.LogCombinerLauncher -log {input.trace} -o {output.thinned_trace} -resample {params.resample} 2>&1 | tee {log}
         """
 
 rule resample_trees:
@@ -767,11 +769,11 @@ rule resample_trees:
     log:
         "logs/resample_trees_{build_name}_{analysis_name}.txt"
     params:
-        log_combiner = config["beast"]["log_combiner"],
+        jar = config["beast"]["jar"],
         resample = config["beast"]["resample"]
     shell:
         """
-        {params.log_combiner} -log {input.trees} -o {output.thinned_trees} -resample {params.resample}  2>&1 | tee {log}
+        java -cp {params.jar} beast.app.tools.LogCombinerLauncher -log {input.trees} -o {output.thinned_trees} -resample {params.resample}  2>&1 | tee {log}
         """
 
 rule trajectory_mapping:
@@ -824,10 +826,10 @@ rule summarize_comb_trace:
     log:
         "logs/summarize_comb_trace_{build_name}_{analysis_name}.txt"
     params:
-        log_analyser = config["beast"]["log_analyser"]
+        jar = config["beast"]["jar"]
     shell:
         """
-        {params.log_analyser} {input.trace} > {output.summary_trace} 2> {log}
+        java -cp {params.jar} beast.util.LogAnalyser {input.trace} > {output.summary_trace} 2> {log}
         """
 
 
@@ -843,11 +845,11 @@ rule summarize_trees:
     log:
         "logs/summarize_trees_{build_name}_{analysis_name}.txt"
     params:
-        tree_annotator = config["beast"]["tree_annotator"],
+        jar = config["beast"]["jar"],
         heights = config["beast"]["mcc_heights"]
     shell:
         """
-        {params.tree_annotator} -heights {params.heights} {input.combined_trees} {output.summary_tree} 2>&1 | tee {log} 
+        java -cp {params.jar} beast.app.treeannotator.TreeAnnotatorLauncher -heights {params.heights} {input.combined_trees} {output.summary_tree} 2>&1 | tee {log} 
         """
 
 

@@ -30,7 +30,8 @@ ESS_cutoff <- args$ess
 diagnostic <- data.frame()
 for (fname in args$input){
   if (file.size(fname) != 0) {
-    tb <- read_table(fname) 
+    tb <- read_table(fname) %>%
+    filter(`95%HPDlo` != `95%HPDup`) # Filter fixed values
     if (all(tb$ESS >= ESS_cutoff, na.rm = TRUE)) {
       cat("\n\n\nAll ESS values > ", ESS_cutoff, " in log file ", fname, "\n\nLog file included in analysis.\n")
       diagnostic <- rbind(diagnostic, data.frame(chain = gsub(".summary.txt", "", str_split(fname, pattern = "/", n = 2)[[1]][[2]]),
@@ -40,7 +41,7 @@ for (fname in args$input){
                                                  min_ESS = ESS_cutoff, 
                                                  included = 1))
     } else {
-      cat("\n\n\nItems:\n\n", tb %>% filter(ESS < ESS_cutoff) %>% pull(statistic),
+      cat("\n\n\nItems:\n\n", tb %>% filter(ESS < ESS_cutoff) %>% pull(item),
           "\n\nhave ESS value < ", ESS_cutoff, " in log file ", fname, "\n\nLog file not included in analysis.\n")
       diagnostic <- rbind(diagnostic, data.frame(chain = gsub(".summary.txt", "", str_split(fname, pattern = "/", n = 2)[[1]][[2]]), 
                                                  seed = str_split(fname, pattern ="\\.")[[1]][2],
