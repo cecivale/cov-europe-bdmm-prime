@@ -1,0 +1,20 @@
+\contentsline {chapter}{Acknowledgements}{i}{chapter*.1}%
+\contentsline {chapter}{Abstract}{ii}{chapter*.2}%
+\contentsline {chapter}{\numberline {1}Introduction}{1}{chapter.1}%
+\contentsline {chapter}{\numberline {2}Material and Methods}{2}{chapter.2}%
+\contentsline {section}{\numberline {2.1}The multytipe birth death model}{2}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Infering epidemic trajectories}{3}{section.2.2}%
+\contentsline {section}{\numberline {2.3}Modeling the early dynamics of SARS-CoV-2 in Europe}{3}{section.2.3}%
+\contentsline {section}{\numberline {2.4}Incorporating travel data}{4}{section.2.4}%
+\contentsline {section}{\numberline {2.5}SARS-CoV 2 genome data set}{4}{section.2.5}%
+\contentsline {section}{\numberline {2.6}GLM predictos data}{4}{section.2.6}%
+\contentsline {section}{\numberline {2.7}Bayesian inference of phylodynamic parameters}{4}{section.2.7}%
+\contentsline {subsubsection}{R0}{4}{section*.4}%
+\contentsline {section}{\numberline {2.8}Processing of epidemic trajectories}{5}{section.2.8}%
+\contentsline {section}{\numberline {2.9}Data availability}{5}{section.2.9}%
+\contentsline {section}{\numberline {2.10}Code availability and analyses reproducibility}{5}{section.2.10}%
+\contentsline {chapter}{\numberline {3}Discussion}{6}{chapter.3}%
+\contentsline {chapter}{Bibliography}{7}{chapter*.5}%
+\contentsline {chapter}{\numberline {A}Data}{A-1}{appendix.U}%
+\contentsline {chapter}{\numberline {B}Priors}{B-1}{appendix.V}%
+\contentsline {chapter}{\numberline {C}Supplementary Figures}{C-1}{appendix.W}%

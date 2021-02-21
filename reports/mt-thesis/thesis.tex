@@ -1,0 +1,96 @@
+\documentclass[a4paper, oneside]{discothesis}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% DOCUMENT METADATA
+
+\thesistype{Master Thesis} % Master's Thesis, Bachelor's Thesis, Semester Thesis, Group Project
+
+\title{\fontsize{18}{22}\selectfont A comprehensive study of the phylodynamics of SARS-CoV-2 in Europe}
+
+\author{Cecilia Valenzuela Agüí}
+\email{ceciliav@student.ethz.ch}
+
+\institute{Department of Biosystems Science and Engineering \\[2pt]
+Computational Evolution \\[2pt]
+ETH Zürich}
+
+% Optionally, you can put in your own logo here
+%\logo{\includegraphics[width=0.2\columnwidth]{figures/disco_logo_faded}}
+
+\supervisors{Prof.\ Dr.\ Tanja
+  Stadler, Dr. Timothy Vaughan, Sarah Nadeau}
+
+% Optionally, keywords and categories of the work can be shown (on the Abstract page)
+%\keywords{Keywords go here.}
+%\categories{ACM categories go here.}
+
+\date{\today}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\frontmatter % do not remove this line
+\maketitle
+
+\cleardoublepage
+
+\begin{acknowledgements}
+	I thank Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+\end{acknowledgements}
+
+
+\begin{abstract}
+    The abstract should be short, stating what you did and what the most important result is.
+	Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+\end{abstract}
+
+\tableofcontents
+
+\mainmatter % do not remove this line
+
+\include{introduction}
+
+\include{methods}
+
+
+% \begin{theorem}[First Theorem] \label{thm:first theorem}
+% 	This is our first theorem.
+% \end{theorem}
+
+% \begin{proof}
+% 	And this is the proof of the first theorem with a complicated formula and a reference to Theorem \ref{thm:first theorem}. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
+% 	\begin{equation}
+% 		{\frac {\mathrm d}{\mathrm dx}}\arctan(\sin({x}^{2}))=-2 \cdot {\frac {\cos({x}^{2})x}{-2+\left (\cos({x}^{2})\right )^{2}}}
+% 	\end{equation}	
+% \end{proof}
+
+%% \begin{figure}
+%%     \centering
+%%     \includegraphics[width=0.2\columnwidth]{figures/disco_logo_faded}
+%%     \caption{This is an example graphic.}
+%%     \label{fig:example_figure}
+%% \end{figure}
+
+% And here we cite some external documents~\cite{TestReference, TestReference2}.
+% An example of an included graphic can be found in Figure~%\ref{fig:example_figure}.
+% Note that in \LaTeX, ``quotes'' do not use the usual double quote characters.
+
+
+\chapter{Discussion}
+
+
+% This displays the bibliography for all cited external documents. All references have to be defined in the file references.bib and can then be cited from within this document.
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+% This creates an appendix chapter, comment if not needed.
+\appendix
+\chapter{Data}
+\chapter{Priors}
+\chapter{Supplementary Figures}
+
+\end{document}
