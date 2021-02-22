@@ -2,16 +2,20 @@
 
 \section{The multytipe birth death model}
 
-We have used the multitype birth-death phylodynamic model. Phylodynamics studies how phylogenetic trees are being generated and infers the population parameters behind that process. A multitype birth death process describes the evolution of an structured population. The process starts with one individual in one of the subpopulations (or demes) and it can give rise to another individual at rate $\beta$, die at death $\delta$, migrate to other deme or be sampled at rate $\phi$ to become part of the phylogeny.
+\todo{Introduction?}
+In a phylodynamic analysis, we aim to integrate genetic and epidemiological information to understand pathogen evolution and transmission dynamics. This is possible for RNA viruses, and in specific for SARS-CoV-2, because population genetic and epidemic processes are in the same time scale \cite{Grenfell2013}. Thus, from virus sequences we can gain information about the interactions between hosts and the epidemic spread \cite{Volz2014}. More precisely, the field of phylodynamics studies how phylogenetic trees are being generated and infers the population parameters behind that process. 
 
-Since the rate of the evolution of RNA virus, in specific SARS-CoV-2 is in the same scale than the epidemic spread, we can study the transmission dynamics by looking at the virus sequences. 
+To study the early dynamics of SARS-CoV-2 in the European countries we have used a simplified version of the multitype birth-death model described in \cite{Kuhnert2016}. Birth death models are classical compartmental population models with high flexibility. In the multitype version, we can describe a structured population in types or subpopulations. The process starts with one individual in one of the subpopulations, e.g in subpopulation $i$, who can give rise to another individual at rate $\lambda_i$, die at death $\mu_i$, migrate to another deme $j$ at rate $m_ij$ or be sampled at rate $\phi_i$ to become part of the phylogenectic tree.
+
+This process depicts the full transmission dynamics and specifically, the generation of the sampled transmission tree that we observed from our sequence data. From the subpopulation rates we parameterize the effective reproductive number $R_i = \frac{\lambda_i}{\mu_i + \phi_i}$, a key value in epidemic control and understanding, the rate of becoming non infectious $\delta+i = \mu_i + \phi_i$ and the probability of and individual to be sampled $s_i = \frac{\phi_i}{\mu_i + \phi_i}$
 
 The parameters that we will consider are the R0, the becoming uninfectious rate, the migration rates and the sampling proportion (proportion of no longer infectious individual that arer sampled and included in the phylogenetic tree).
+
+As describen in JKuhner based in the work of stadler we can compute the tree likelihood of the multi type birth death model.
 
 Thus, the probability that we want to know is:
 
 $P(T, P | D)$
-
 
 This process describes the generation of the tree as part of the dynamics of the whole population, it is very rich and detailed in information. Therefore it is also possible to obtain information about the epidemic trajectory of the whole population. We can obtain the full sequence of events that describes the epidemic in each of the demes.
 
@@ -27,7 +31,6 @@ $P(E | Tc, P)$
 Stochastic mapping of ancestral traits
 
 Read paper and tim presentation
-
 
 Stochastic mapping of epidemic trajectories
 
