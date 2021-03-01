@@ -1,32 +1,48 @@
 \chapter{Material and Methods}
 
-\section{The multytipe birth death model}
+\section{SARS-CoV 2 genome data set}
 
+We create a dataset of 360 genetic sequences from December 2019 to March 8 2020, obtained from publicly available data on GISAID \cite{GISAID} (accessed on November 2020). We follow the Nextstrain workflow for the curation of the sequences \cite{nextstrain}. Sequences with incomplete collection date, less than 27.000 bases in length or with more than 3.000 unknown bases are omitted. Also, sequences from known clusters of transmission or from the same patient are excluded from the analysis. The resulting dataset of x sequences are aligned with MAFFT. The beggining and the end of the alignment are masked respectively by 100 and 50 sequences as well as sites  13402, 24389 and 24390, identified by Nextstrain as prone to sequencing errors.
+
+To focus on the early dynamics in Europe we select sequences from China, origin of the epidemic, France and Germany, the European countries with the earliest cases, and Italy and Spain, the European countries with the biggest outbreaks in March. To take into account the dynamics in other areas of Europe we include a group of 50 sequences from other European countries. We limit our sample of Chinese genomes to sequences until January 23, the starting date of the lockdown in Hubei. Due to the large (and unprecendented) number of available genetic sequences for SARS-CoV-2, we need to subsample the alignment. Each sequence is subsampled with a probability of having a reported case in that country the day of sample collection, inversely weigted by the probability of having a sequence in GISAID that day from the country. With this subsampling protocol, we aim to get a constant sampling proportion accross the full period for each country. 
+
+\section{The multitype birth death model}
+
+
+In a phylodynamic analysis, we aim to integrate genetic and epidemiological information to understand pathogen evolution and transmission dynamics. We can learn about the epidemic spread and the interactions between hosts from the imprint that these events leave in virus phylogenies. This is possible for RNA viruses, and in specific for SARS-CoV-2, because virus genetic evolution and epidemic processes are in the same time scale \cite{Grenfell2013} \cite{Volz2014}.  More precisely, the field of phylodynamics studies how phylogenetic trees are being generated and infers the population parameters behind that process. 
 \todo{Introduction?}
-In a phylodynamic analysis, we aim to integrate genetic and epidemiological information to understand pathogen evolution and transmission dynamics. This is possible for RNA viruses, and in specific for SARS-CoV-2, because population genetic and epidemic processes are in the same time scale \cite{Grenfell2013}. Thus, from virus sequences we can gain information about the interactions between hosts and the epidemic spread \cite{Volz2014}. More precisely, the field of phylodynamics studies how phylogenetic trees are being generated and infers the population parameters behind that process. 
 
-To study the early dynamics of SARS-CoV-2 in the European countries we have used a simplified version of the multitype birth-death model described in \cite{Kuhnert2016}. Birth death models are classical compartmental population models with high flexibility. In the multitype version, we can describe a structured population in types or subpopulations. The process starts with one individual in one of the subpopulations, e.g in subpopulation $i$, who can give rise to another individual at rate $\lambda_i$, die at death $\mu_i$, migrate to another deme $j$ at rate $m_ij$ or be sampled at rate $\phi_i$ to become part of the phylogenectic tree.
 
-This process depicts the full transmission dynamics and specifically, the generation of the sampled transmission tree that we observed from our sequence data. From the subpopulation rates we parameterize the effective reproductive number $R_i = \frac{\lambda_i}{\mu_i + \phi_i}$, a key value in epidemic control and understanding, the rate of becoming non infectious $\delta+i = \mu_i + \phi_i$ and the probability of and individual to be sampled $s_i = \frac{\phi_i}{\mu_i + \phi_i}$
+To study the early dynamics of SARS-CoV-2 in the European countries, we use a simplified version of the multitype birth-death model described in \cite{Kuhnert2016}, following the analysis in \cite{Nadeau2020}. Birth death models are compartmental population models with high flexibility that describe the process of epidemiological transmission. The stochastic formulation of these models are used in phylodynamic analyses \cite{Stadler2012}. In the multitype version, we consider a structured population in types or subpopulations with characteristic within-subpopulation dynamics and migrations between them.
 
-The parameters that we will consider are the R0, the becoming uninfectious rate, the migration rates and the sampling proportion (proportion of no longer infectious individual that arer sampled and included in the phylogenetic tree).
+The process starts with one infected host in one of the subpopulations, e.g in subpopulation $i$, who can infect another individual at rate $\lambda_i$, become uninfectious at rate $\mu_i$ by death or recovery, migrate to another deme $j$ at rate $m_{ij}$ or be sequenced at rate $\psi_i$ to become part of the phylogenectic tree. This process depicts the full transmission dynamics and specifically, the generation of the transmission tree that we observed from our sequence data. 
 
-As describen in JKuhner based in the work of stadler we can compute the tree likelihood of the multi type birth death model.
+We parameterize our model in terms of the effective reproductive number $R_i = \frac{\lambda_i}{\mu_i + \psi_i}$, a key value in epidemic control and understanding, the rate of becoming uninfectious $\delta_i = \mu_i + \psi_i$ and the probability of and individual to be sequenced $s_i = \frac{\psi_i}{\mu_i + \psi_i}$.
 
-Thus, the probability that we want to know is:
 
-$P(T, P | D)$
+\section{Multi-typed trees and epidemic trajectories}
 
-This process describes the generation of the tree as part of the dynamics of the whole population, it is very rich and detailed in information. Therefore it is also possible to obtain information about the epidemic trajectory of the whole population. We can obtain the full sequence of events that describes the epidemic in each of the demes.
+
+\section{Inference of epidemic dynamics and trajectories}
+
+Under this model, we are able to compute the likelihood of the multitype birth-death parameters for a given phylogenetic tree. This likelihood is derived in \cite{Kuhnert} by considering the probability of an individual evolved as observed in the tree.This derivation is analogous to the work in Stadler and Bonhoeffer (2013), which is based on ideas from (Maddison et al. 2007)
+
+This phylodynamic likelihood is the tree prior in our Bayesian inference. We want to estimate the overall posterior distribution of the phylogenetic tree with ancestral locations $\mathcal{T}_c$, the epidemic trajectory $\mathcal{E}$, the substitution model parameters $\theta$ and the multi-type birth death parameters $\eta$:
+
+\begin{equation}
+P(\mathcal{T}_c, \mathcal{E}, \theta, \eta | A, S) = \frac{\overbrace{P(A | \tau, \theta)}^{\text{tree likelihood}} \overbrace{P(\tau, S | \eta)}^{\text{tree prior}} \overbrace{P(\theta, \eta)}^{\text{parameters prior}}}{\underbrace{P(A, S)}_{\text{marginal likelihood}}}
+\end{equation}
+
+where A is the sequence alignment and S the observed sequence times.
+
 
 From the phylogenetic tree and the phylodynamics parameters we use Stochastic mapping to infer the ancestral traits and then to infer the epidemic trajectories.
 
 $P(Tc | T, P)$
 
+New method to infer epidemic trajectories!!
+
 $P(E | Tc, P)$
-
-
-\section{Infering epidemic trajectories}
 
 Stochastic mapping of ancestral traits
 
@@ -56,10 +72,6 @@ $mij = c exp(\sum_{i = 1}^p \delta_i \beta_i xij)$
 
 The coefficients beta describe the effect size of the predictors in the migrations rate and the delta coefficients act as a model selection variables, taking 0-1 values including orr not that specific predictor in the model.
 
-
-\section{SARS-CoV 2 genome data set}
-
-GISAID. Sequences from France, Germany, Italy, Spain and other European countries. Subsampling a sequence with probability equal to the probability of having a case that day in the country, inverseley weigthed by the probability of being sequenced that day. 
 
 \section{GLM predictos data}
 
