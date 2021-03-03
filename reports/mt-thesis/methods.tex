@@ -1,6 +1,6 @@
 \chapter{Material and Methods}
 
-\section{SARS-CoV 2 genome data set}
+\textbf{SARS-CoV 2 genome data set}
 
 We create a dataset of 360 genetic sequences from December 2019 to March 8 2020, obtained from publicly available data on GISAID \cite{GISAID} (accessed on November 2020). We follow the Nextstrain workflow for the curation of the dataset \cite{nextstrain}. Sequences with incomplete collection date, less than 27.000 bases in length or with more than 3.000 unknown bases are omitted. Also, sequences from known clusters of transmission or from the same patient are excluded from the analysis. The resulting dataset of x \todo{look number of seqs} sequences is aligned with MAFFT. The beggining and the end of the alignment are masked respectively by 100 and 50 sequences as well as sites  13402, 24389 and 24390, identified by Nextstrain as prone to sequencing errors.
 
@@ -10,7 +10,7 @@ Due to the large (and unprecendented) number of available genetic sequences for 
 
 This dataset of genetic sequences is the main source of information for our phylodynamic analysis. The goal is to infer the phylogenetic tree, i.e. the evolutionary tree-shaped relationship among the sequences, together with the epidemiological transmission parameters that gave rise to it. These parameters are defined within a population dynamic model and will inform us about the epidemic in the population that the sequences come from.
 
-\section{The multitype birth death model}
+\textbf{The multitype birth death model}
 
 To study the early dynamics of SARS-CoV-2 in the European countries, we use a simplified version of the multitype birth-death model described in \cite{Kuhnert2016}, following the analysis in \cite{Nadeau2020}. Birth death models are compartmental population models with high flexibility that describe the process of epidemiological transmission. The stochastic formulation of these models are used in phylodynamic analyses \cite{Stadler2012}. In the multitype version, we consider a structured population in types or subpopulations with characteristic within-subpopulation dynamics and migrations between them. In our case, the subpopulations are the different locations of the samples.
 
@@ -18,10 +18,9 @@ The process starts with one infected host in one of the subpopulations, e.g in s
 
 Under this model, we are able to compute the likelihood of the multitype birth-death parameters for a given tree. This likelihood is derived in \cite{Kuhnert} by considering the probability of an individual evolved as observed in the tree. This derivation is analogous to the work in Stadler and Bonhoeffer (2013), which is based on ideas from (Maddison et al. 2007)
 
-We parameterize our model in terms of the effective reproductive number $R_i = \frac{\lambda_i}{\mu_i + \psi_i}$, a key value in epidemic control and understanding, the rate of becoming uninfectious $\delta_i = \mu_i + \psi_i$ and the probability of and individual to be sequenced $s_i = \frac{\psi_i}{\mu_i + \psi_i}$.
+We parameterize our model in terms of the effective reproductive number $R_i = \frac{\lambda_i}{\mu_i + \psi_i}$, a key value in epidemic control and understanding, the rate of becoming uninfectious $\delta_i = \mu_i + \psi_i$ and the probability of and individual to be sequenced $s_i = \frac{\psi_i}{\mu_i + \psi_i}$.\\
 
-
-\section{Epidemic trajectories and structured trees}
+\textbf{Epidemic trajectories and structured trees}
 
 We will refer to the full sequence of transmissions, recoveries/deaths, migrations and sampling events as an epidemic trajectory. One set of sequences, and therefore one phylogenetic tree, is the product of one epidemic trajectory. Moreover, the tree represents a fraction of the events in the epidemic trajectory, those that involve the sampled individuals. In epidemiology, we aim to learn about the true epidemic trajectory since we usually have incomplete information caused by unreported cases or unknown transmission chains.
 
@@ -34,7 +33,7 @@ From the sequences metadata, we know the location of the tree tips. However, if 
     \label{fig:epitrajs}
 \end{figure}
 
-\section{BDMM-Prime Inference}
+\textbf{BDMM-Prime Inference}
 
 We want to infer the epidemic trajectories under the multitype birth-death model fit to SARS-CoV-2 early epidemics in Europe. In order to do this, we have to estimate the overall posterior distribution of the structured tree $\mathcal{T}_c$, the epidemic trajectory $\mathcal{E}$, the substitution model parameters $\theta$ and the multi-type birth death parameters $\eta$. This posterior probability can be expressed with Bayes' formula as:
 
@@ -67,6 +66,9 @@ The factorization of the posterior probability in this way allow us to use the f
 {}
 The tree likelihood $P(A | \mathcal{T},\theta )$ is the probability of the sequence alignment and can be efficiently evaluated using Felsenstein’s pruning algorithm (Felsenstein, 1981). The tree prior, $P(\mathcal{T} | \eta)$ also called phylodynamic likelihood is derived from the multitype birth-death model. $P(\theta)$ and $P(\eta)$ represent our prior belief in the distribution of the population and substitution model parameters. 
 
+While it is possible to do it in the same step \cite{epiestim} it is very slow and computationally expensive. With these two step analyses implmented in BDMM-Prime \cite{bdmm-primegit} the epidemic trajectory inference has almost no overcost and we obtain the same result.
+
+
 From the phylogenetic tree and the phylodynamics parameters we use Stochastic mapping to infer the ancestral traits and then to infer the epidemic trajectories.
 
 $P(Tc | T, P)$
@@ -88,15 +90,8 @@ $P(E|Tc, P)$
 Any trajectories without the events that are respresent in the tree has probability 0, so to avoid the simualtion of this trajectories, no time effcieint, we will enforce the events that arer represented in the tree (and will include a weigth). Also to avoid low probabilities trajectories, we will importance subsample one trajectory after a certain time of simulation according to the weigths detemrined by its probabilities. 
 
 
-\section{Modeling the early dynamics of SARS-CoV-2 in Europe}
 
-The time range of our analysis lasts from the origin of SARS-CoV-2 to March 8, when the first European lockdown in the Lombardy region started. This period in the European countries we expect an unimpeded spread of the virus that could be described by a constant R0 particular to each deme. However, the migration rates could have changed during these months due to the increase public awareness, so we will consider a different migration rate for origin to 23 jan, 23 jan to end of february and 1 to 8 of March. We assume a constant sampling proportion different for each of the demes, to account for difference in the sequencing efforts. The becoming uninfectious rate we will fixed in 36.5, assuming that one individual is infectious for a exponential time distirbuted with mean 10.
-
-Since we focus on the early epidemic outbreak, we expect un unimpeded spread of the virus that can be described by the exponential growth of the infected population. Thus, we assume a constant basic reproductive number $R_0$ for each of the European countries. We assume that the $R_0$ for China changes two times during this period, on January 23 and March 1.
-
-We focus on a special scenario, where only the early epidemic outbreak, i.e. exponential growth of the infected population, is being considered. We can simplify the model to a constant rate birth-death process, where we assume no significant decrease in the number of susceptibles over time \cite{TanjaBonhoeffer2014}
-
-\section{Incorporating travel data}
+\textbf{Incorporating travel data}
 
 To incorporatet travel data in the model we have use a GLM model described in Lemey et al 2009. We use a generalized linear model to describe the migration matrix KxK, where the rpedictors are the number of dayly flight from one country to another from EUROSTATS, the average distance between the centrroids of the country and the population sizes from origin and destinations. The predictors are log transformed, we add a pseudocount to make them all positive, and standardized as described in ..
 
@@ -104,13 +99,19 @@ $mij = c exp(\sum_{i = 1}^p \delta_i \beta_i xij)$
 
 The coefficients beta describe the effect size of the predictors in the migrations rate and the delta coefficients act as a model selection variables, taking 0-1 values including orr not that specific predictor in the model.
 
-
-\section{GLM predictos data}
+GLM predictos data
 
 EUROSTAT, countries considers. Distance and population datasets.
 
 
-\section{Bayesian inference of phylodynamic parameters}
+\textbf{Model specifications and priors}
+
+The time range of our analysis lasts from the origin of SARS-CoV-2 to March 8, when the first European lockdown in the Lombardy region started. This period in the European countries we expect an unimpeded spread of the virus that could be described by a constant R0 particular to each deme. However, the migration rates could have changed during these months due to the increase public awareness, so we will consider a different migration rate for origin to 23 jan, 23 jan to end of february and 1 to 8 of March. We assume a constant sampling proportion different for each of the demes, to account for difference in the sequencing efforts. The becoming uninfectious rate we will fixed in 36.5, assuming that one individual is infectious for a exponential time distirbuted with mean 10.
+
+Since we focus on the early epidemic outbreak, we expect un unimpeded spread of the virus that can be described by the exponential growth of the infected population. Thus, we assume a constant basic reproductive number $R_0$ for each of the European countries. We assume that the $R_0$ for China changes two times during this period, on January 23 and March 1.
+
+We focus on a special scenario, where only the early epidemic outbreak, i.e. exponential growth of the infected population, is being considered. We can simplify the model to a constant rate birth-death process, where we assume no significant decrease in the number of susceptibles over time \cite{TanjaBonhoeffer2014}
+
 
 We use bayesian inference and Metropolis Hasting Monte Carlo algorith to infer our phylodynamics parameters and phylogeneit tree. We use the following priors
 
@@ -122,7 +123,6 @@ Sampling rates
 Migration rates
 
 
-\subsubsection{R0}
 R0 constant except for China (and Italy? maybe not in the main analysis).
 
 Prior Log Normal (0.8, 0.5) Median 2.2, 95IQR 0.8 to 5.9.
@@ -156,14 +156,15 @@ Sampling proportion 0 before first sample. Upperbounded by number of cases.
 Implementation BEAST 2.6.3 and BDMM-Prime package.
 We run 5 chains of 10e7 iterations witth different seeds.
 
-\section{Processing of epidemic trajectories}
+
+\textbf{Processing of epidemic trajectories}
 In our case, for each set of parameters and tree we will simulate 10000 trajectories with an epsilon of 0.3 and select one of them with importance sampling.
 We have one trtajectory for each step in the MCMC. We subsampled x. 
 
-\section{Data availability}
+\textbf{Data availability}
 GISAID data table.
 
-\section{Code availability and analyses reproducibility}
+\textbf{Code availability and analyses reproducibility}
 All the code is availables at ...
 We have implement the full workflow with Snakemake so its fully reproducible.
 
