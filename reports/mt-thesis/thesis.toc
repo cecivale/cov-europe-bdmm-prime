@@ -2,8 +2,8 @@
 \contentsline {chapter}{Abstract}{ii}{chapter*.2}%
 \contentsline {chapter}{\numberline {1}Introduction}{1}{chapter.1}%
 \contentsline {chapter}{\numberline {2}Material and Methods}{2}{chapter.2}%
-\contentsline {chapter}{\numberline {3}Discussion}{10}{chapter.3}%
-\contentsline {chapter}{Bibliography}{11}{chapter*.12}%
+\contentsline {chapter}{\numberline {3}Discussion}{11}{chapter.3}%
+\contentsline {chapter}{Bibliography}{12}{chapter*.13}%
 \contentsline {chapter}{\numberline {A}Data}{A-1}{appendix.U}%
 \contentsline {chapter}{\numberline {B}Priors}{B-1}{appendix.V}%
 \contentsline {chapter}{\numberline {C}Supplementary Figures}{C-1}{appendix.W}%

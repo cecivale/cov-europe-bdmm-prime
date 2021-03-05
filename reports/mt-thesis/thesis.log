@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2021.2.2)  5 MAR 2021 08:57
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2021.2.2)  5 MAR 2021 09:35
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -805,124 +805,136 @@ ine 13.
 
  (./methods.tex
 Chapter 2.
-
-LaTeX Warning: Citation `gisaid' on page 2 undefined on input line 5.
-
 [2
 
 
 
 
 ]
-LaTeX Font Info:    Trying to load font information for U+msa on input line 17.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 15.
 
  (/Users/maceci/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 17.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 15.
 
 
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-Underfull \hbox (badness 10000) in paragraph at lines 21--22
+Overfull \hbox (38.52554pt too wide) in paragraph at lines 17--18
+\T1/cmr/m/n/10.95 birth-death pa-ram-e-ters for a given tree. This like-li-hood
+ is de-rived in [[]]
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 19--20
 
  []
 
-<figures/epitrajs.png, id=124, 555.07375pt x 340.27126pt>
+<figures/epitrajs.png, id=125, 555.07375pt x 340.27126pt>
 File: figures/epitrajs.png Graphic file (type png)
 <use figures/epitrajs.png>
-Package pdftex.def Info: figures/epitrajs.png  used on input line 31.
+Package pdftex.def Info: figures/epitrajs.png  used on input line 28.
 (pdftex.def)             Requested size: 381.4pt x 233.8061pt.
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
 [3] [4 <./figures/epitrajs.png>]
-Underfull \hbox (badness 10000) in paragraph at lines 67--68
+Overfull \hbox (8.3183pt too wide) in paragraph at lines 62--63
+\OML/cmm/m/it/10.95 P\OT1/cmr/m/n/10.95 (\OMS/cmsy/m/n/10.95 EjT[]\OML/cmm/m/it
+/10.95 ; ^^Q\OT1/cmr/m/n/10.95 )$ \T1/cmr/m/n/10.95 and adding these vari-ables
+ to ob-tain the over-all pos-te-rior $\OML/cmm/m/it/10.95 P\OT1/cmr/m/n/10.95 (
+\OMS/cmsy/m/n/10.95 T[]\OML/cmm/m/it/10.95 ; \OMS/cmsy/m/n/10.95 E\OML/cmm/m/it
+/10.95 ; ^^R; ^^Q\OMS/cmsy/m/n/10.95 j\OML/cmm/m/it/10.95 A\OT1/cmr/m/n/10.95 )
+$\T1/cmr/m/n/10.95 .
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 65--66
 
  []
 
 
-LaTeX Warning: Citation `Hohna2019' on page 5 undefined on input line 71.
+LaTeX Warning: Citation `Hohna2019' on page 5 undefined on input line 68.
 
 
-LaTeX Warning: Citation `VaughanWIP' on page 5 undefined on input line 71.
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 71--72
+Underfull \hbox (badness 10000) in paragraph at lines 67--69
 
  []
 
 [5]
-
-LaTeX Warning: Citation `VaughanWIP' on page 6 undefined on input line 89.
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 89--90
+Underfull \hbox (badness 10000) in paragraph at lines 86--87
 
  []
 
 
-LaTeX Warning: Citation `beast' on page 6 undefined on input line 91.
+LaTeX Warning: Citation `beast' on page 6 undefined on input line 88.
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 91--92
+Underfull \hbox (badness 10000) in paragraph at lines 88--89
 
  []
-
-
-LaTeX Warning: Citation `Nicola2019' on page 6 undefined on input line 96.
 
 [6]
 
-LaTeX Warning: Reference `fig:travel' on page 7 undefined on input line 103.
+LaTeX Warning: Citation `Nicola2019' on page 7 undefined on input line 92.
 
 
-Overfull \hbox (16.91396pt too wide) in paragraph at lines 105--106
+LaTeX Warning: Reference `fig:travel' on page 7 undefined on input line 99.
+
+
+Overfull \hbox (16.91396pt too wide) in paragraph at lines 101--102
 []\T1/cmr/m/n/10.95 The air travel data is ob-tained from EU-ROSTATS trans-port
  datasets \T1/cmr/m/it/10.95 avia_paexcc
  []
 
-<figures/flight_data.png, id=192, 759.83875pt x 434.62375pt>
+<figures/flight_data.png, id=196, 759.83875pt x 434.62375pt>
 File: figures/flight_data.png Graphic file (type png)
 <use figures/flight_data.png>
-Package pdftex.def Info: figures/flight_data.png  used on input line 109.
+Package pdftex.def Info: figures/flight_data.png  used on input line 105.
 (pdftex.def)             Requested size: 381.4pt x 218.1602pt.
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-
-Overfull \hbox (87.41818pt too wide) in paragraph at lines 123--162
+[7]
+Overfull \hbox (87.41818pt too wide) in paragraph at lines 118--157
 [][] 
  []
 
-[7]
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
 
-LaTeX Warning: Reference `stable:seqs' on page 8 undefined on input line 167.
+LaTeX Warning: Reference `stable:seqs' on page 8 undefined on input line 162.
 
 
-LaTeX Warning: Reference `table:cases' on page 8 undefined on input line 167.
+LaTeX Warning: Reference `table:cases' on page 8 undefined on input line 162.
 
-) [8 <./figures/flight_data.png>] [9]
+[8 <./figures/flight_data.png>]) [9] [10]
 Chapter 3.
-(./thesis.bbl [10
+(./thesis.bbl [11
 
 
 
-] [11
+] [12
 
 ]
+Underfull \hbox (badness 1454) in paragraph at lines 76--90
+\T1/cmr/m/n/10.95 095831/Well-come Trust/United King-dom 092807/Well-come Trust
+/United
+ []
+
+
+Underfull \hbox (badness 2142) in paragraph at lines 76--90
+\T1/cmr/m/n/10.95 King-dom HHSN266200700010C/PHS HHS/ DP1 OD000490-01/OD/NIH
+ []
+
+
+Underfull \hbox (badness 1286) in paragraph at lines 101--104
+[]\T1/cmr/m/n/10.95 Nextstrain-ncov (2020).  Github - nextstrain/ncov:
+ []
+
 
 LaTeX Font Warning: Font shape `T1/cmr/m/scsl' undefined
-(Font)              using `T1/cmr/m/sc' instead on input line 159.
-
-[12]
-
-LaTeX Font Warning: Font shape `T1/cmr/m/scsl' undefined
-(Font)              using `T1/cmr/m/sc' instead on input line 226.
+(Font)              using `T1/cmr/m/sc' instead on input line 130.
 
 [13])
 
@@ -948,16 +960,16 @@ LaTeX Warning: There were undefined references.
 LaTeX Warning: There were multiply-defined labels.
 
 Package rerunfilecheck Info: File `thesis.out' has not changed.
-(rerunfilecheck)             Checksum: 34DC2EC74DFE957A9C20263B15AAB362;434.
+(rerunfilecheck)             Checksum: 7F323CEA0BEA8E4F93DAB18DD4753275;434.
  ) 
 Here is how much of TeX's memory you used:
- 17817 strings out of 481252
- 339740 string characters out of 5914905
- 627105 words of memory out of 5000000
- 34257 multiletter control sequences out of 15000+600000
+ 17826 strings out of 481252
+ 339904 string characters out of 5914905
+ 630093 words of memory out of 5000000
+ 34262 multiletter control sequences out of 15000+600000
  422259 words of font info for 71 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 139i,14n,141p,1133b,1069s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 139i,14n,141p,1133b,1065s stack positions out of 5000i,500n,10000p,200000b,80000s
  </Users/maceci/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/ecrm090
 0.600pk> </Users/maceci/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/e
 cbx0900.600pk> </Users/maceci/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappe
@@ -981,10 +993,10 @@ msfonts/cm/cmr8.pfb></Users/maceci/Library/TinyTeX/texmf-dist/fonts/type1/publi
 c/amsfonts/cm/cmsy10.pfb></Users/maceci/Library/TinyTeX/texmf-dist/fonts/type1/
 public/amsfonts/cm/cmsy8.pfb></Users/maceci/Library/TinyTeX/texmf-dist/fonts/ty
 pe1/public/amsfonts/symbols/msbm10.pfb>
-Output written on thesis.pdf (21 pages, 357541 bytes).
+Output written on thesis.pdf (21 pages, 355261 bytes).
 PDF statistics:
- 774 PDF objects out of 1000 (max. 8388607)
- 336 compressed objects within 4 object streams
- 75 named destinations out of 1000 (max. 500000)
+ 747 PDF objects out of 1000 (max. 8388607)
+ 314 compressed objects within 4 object streams
+ 79 named destinations out of 1000 (max. 500000)
  196 words of extra memory for PDF output out of 10000 (max. 10000000)
 
