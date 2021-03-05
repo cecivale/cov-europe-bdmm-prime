@@ -2,18 +2,8 @@
 \BOOKMARK [0][]{chapter*.2}{Abstract}{}% 2
 \BOOKMARK [0][]{chapter.1}{1 Introduction}{}% 3
 \BOOKMARK [0][]{chapter.2}{2 Material and Methods}{}% 4
-\BOOKMARK [1][-]{section.2.1}{2.1 The multytipe birth death model}{chapter.2}% 5
-\BOOKMARK [1][-]{section.2.2}{2.2 Infering epidemic trajectories}{chapter.2}% 6
-\BOOKMARK [1][-]{section.2.3}{2.3 Modeling the early dynamics of SARS-CoV-2 in Europe}{chapter.2}% 7
-\BOOKMARK [1][-]{section.2.4}{2.4 Incorporating travel data}{chapter.2}% 8
-\BOOKMARK [1][-]{section.2.5}{2.5 SARS-CoV 2 genome data set}{chapter.2}% 9
-\BOOKMARK [1][-]{section.2.6}{2.6 GLM predictos data}{chapter.2}% 10
-\BOOKMARK [1][-]{section.2.7}{2.7 Bayesian inference of phylodynamic parameters}{chapter.2}% 11
-\BOOKMARK [1][-]{section.2.8}{2.8 Processing of epidemic trajectories}{chapter.2}% 12
-\BOOKMARK [1][-]{section.2.9}{2.9 Data availability}{chapter.2}% 13
-\BOOKMARK [1][-]{section.2.10}{2.10 Code availability and analyses reproducibility}{chapter.2}% 14
-\BOOKMARK [0][]{chapter.3}{3 Discussion}{}% 15
-\BOOKMARK [0][]{chapter*.6}{Bibliography}{}% 16
-\BOOKMARK [0][]{appendix.U}{A Data}{}% 17
-\BOOKMARK [0][]{appendix.V}{B Priors}{}% 18
-\BOOKMARK [0][]{appendix.W}{C Supplementary Figures}{}% 19
+\BOOKMARK [0][]{chapter.3}{3 Discussion}{}% 5
+\BOOKMARK [0][]{chapter*.12}{Bibliography}{}% 6
+\BOOKMARK [0][]{appendix.U}{A Data}{}% 7
+\BOOKMARK [0][]{appendix.V}{B Priors}{}% 8
+\BOOKMARK [0][]{appendix.W}{C Supplementary Figures}{}% 9

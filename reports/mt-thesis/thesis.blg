@@ -10,55 +10,70 @@ Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Database file #1: references.bib
+Warning--entry type for "covidre" isn't style-file defined
+--line 18 of file references.bib
+Warning--entry type for "Gillespie1977" isn't style-file defined
+--line 23 of file references.bib
+Warning--entry type for "Gillespie2000" isn't style-file defined
+--line 30 of file references.bib
+Warning--entry type for "bdmmp" isn't style-file defined
+--line 50 of file references.bib
+Warning--entry type for "nextstrain" isn't style-file defined
+--line 54 of file references.bib
 Warning--I didn't find a database entry for "Grenfell2013"
 Warning--I didn't find a database entry for "Volz2014"
-Warning--I didn't find a database entry for "Kuhnert2016"
-Warning--I didn't find a database entry for "Billah2020"
-Warning--I didn't find a database entry for "Park2020"
+Warning--I didn't find a database entry for "gisaid"
+Warning--I didn't find a database entry for "Hohna2019"
+Warning--I didn't find a database entry for "VaughanWIP"
+Warning--I didn't find a database entry for "beast"
+Warning--I didn't find a database entry for "Nicola2019"
 -- IEEEtran.bst version 1.12 (2007/01/11) by Michael Shell.
 -- http://www.michaelshell.org/tex/ieeetran/bibtex/
 -- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
+Warning--empty journal in Nadeau2020
+Warning--empty year in Nadeau2020
+Warning--empty journal in Park2020
 
 Done.
-You've used 0 entries,
+You've used 24 entries,
             4024 wiz_defined-function locations,
-            820 strings with 7338 characters,
-and the built_in function-call counts, 103 in all, are:
-= -- 0
-> -- 0
-< -- 0
-+ -- 0
-- -- 0
-* -- 19
-:= -- 26
-add.period$ -- 0
-call.type$ -- 0
-change.case$ -- 0
-chr.to.int$ -- 0
-cite$ -- 0
-duplicate$ -- 0
-empty$ -- 1
-format.name$ -- 0
-if$ -- 3
+            995 strings with 15289 characters,
+and the built_in function-call counts, 18983 in all, are:
+= -- 1520
+> -- 645
+< -- 101
++ -- 341
+- -- 138
+* -- 952
+:= -- 2854
+add.period$ -- 48
+call.type$ -- 24
+change.case$ -- 27
+chr.to.int$ -- 213
+cite$ -- 27
+duplicate$ -- 1388
+empty$ -- 1368
+format.name$ -- 157
+if$ -- 4335
 int.to.chr$ -- 0
-int.to.str$ -- 0
-missing$ -- 0
-newline$ -- 23
-num.names$ -- 0
-pop$ -- 0
+int.to.str$ -- 24
+missing$ -- 277
+newline$ -- 139
+num.names$ -- 21
+pop$ -- 706
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 1
+skip$ -- 1470
 stack$ -- 0
-substring$ -- 0
-swap$ -- 0
-text.length$ -- 0
+substring$ -- 629
+swap$ -- 1135
+text.length$ -- 30
 text.prefix$ -- 0
 top$ -- 5
-type$ -- 0
-warning$ -- 0
-while$ -- 0
-width$ -- 0
-write$ -- 22
-(There were 5 warnings)
+type$ -- 24
+warning$ -- 3
+while$ -- 54
+width$ -- 26
+write$ -- 299
+(There were 15 warnings)

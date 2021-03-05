@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2021.2.2)  22 FEB 2021 13:24
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2021.2.2)  5 MAR 2021 08:57
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -9,22 +9,42 @@ L3 programming layer <2021-01-09> xparse <2020-03-03> (./discothesis.cls
 Document Class: discothesis 2005/09/16 v1.4f.a Modified from Standard LaTeX doc
 ument class book.cls by Khaireel A. Mohamed April 2007 and by Tobias Langner No
 vember 2009 and June 2011
+(/Users/maceci/Library/TinyTeX/texmf-dist/tex/latex/booktabs/booktabs.sty
+Package: booktabs 2020/01/12 v1.61803398 Publication quality tables
+\heavyrulewidth=\dimen138
+\lightrulewidth=\dimen139
+\cmidrulewidth=\dimen140
+\belowrulesep=\dimen141
+\belowbottomsep=\dimen142
+\aboverulesep=\dimen143
+\abovetopsep=\dimen144
+\cmidrulesep=\dimen145
+\cmidrulekern=\dimen146
+\defaultaddspace=\dimen147
+\@cmidla=\count177
+\@cmidlb=\count178
+\@aboverulesep=\dimen148
+\@belowrulesep=\dimen149
+\@thisruleclass=\count179
+\@lastruleclass=\count180
+\@thisrulewidth=\dimen150
+)
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/latex/base/bk11.clo
 File: bk11.clo 2020/04/10 v1.4m Standard LaTeX file (size option)
 )
-\c@part=\count177
-\c@chapter=\count178
-\c@section=\count179
-\c@subsection=\count180
-\c@subsubsection=\count181
-\c@paragraph=\count182
-\c@subparagraph=\count183
-\c@appendix=\count184
-\c@figure=\count185
-\c@table=\count186
+\c@part=\count181
+\c@chapter=\count182
+\c@section=\count183
+\c@subsection=\count184
+\c@subsubsection=\count185
+\c@paragraph=\count186
+\c@subparagraph=\count187
+\c@appendix=\count188
+\c@figure=\count189
+\c@table=\count190
 \abovecaptionskip=\skip47
 \belowcaptionskip=\skip48
-\bibindent=\dimen138
+\bibindent=\dimen151
 )
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amsmath.sty
 Package: amsmath 2020/09/23 v2.17i AMS math features
@@ -37,46 +57,46 @@ Package: amstext 2000/06/29 v2.01 AMS text
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amsgen.sty
 File: amsgen.sty 1999/11/30 v2.0 generic functions
 \@emptytoks=\toks15
-\ex@=\dimen139
+\ex@=\dimen152
 ))
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amsbsy.sty
 Package: amsbsy 1999/11/29 v1.2d Bold Symbols
-\pmbraise@=\dimen140
+\pmbraise@=\dimen153
 )
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amsopn.sty
 Package: amsopn 2016/03/08 v2.02 operator names
 )
-\inf@bad=\count187
+\inf@bad=\count191
 LaTeX Info: Redefining \frac on input line 234.
-\uproot@=\count188
-\leftroot@=\count189
+\uproot@=\count192
+\leftroot@=\count193
 LaTeX Info: Redefining \overline on input line 399.
-\classnum@=\count190
-\DOTSCASE@=\count191
+\classnum@=\count194
+\DOTSCASE@=\count195
 LaTeX Info: Redefining \ldots on input line 496.
 LaTeX Info: Redefining \dots on input line 499.
 LaTeX Info: Redefining \cdots on input line 620.
 \Mathstrutbox@=\box47
 \strutbox@=\box48
-\big@size=\dimen141
+\big@size=\dimen154
 LaTeX Font Info:    Redeclaring font encoding OML on input line 743.
 LaTeX Font Info:    Redeclaring font encoding OMS on input line 744.
-\macc@depth=\count192
-\c@MaxMatrixCols=\count193
+\macc@depth=\count196
+\c@MaxMatrixCols=\count197
 \dotsspace@=\muskip16
-\c@parentequation=\count194
-\dspbrk@lvl=\count195
+\c@parentequation=\count198
+\dspbrk@lvl=\count199
 \tag@help=\toks16
-\row@=\count196
-\column@=\count197
-\maxfields@=\count198
+\row@=\count266
+\column@=\count267
+\maxfields@=\count268
 \andhelp@=\toks17
-\eqnshift@=\dimen142
-\alignsep@=\dimen143
-\tagshift@=\dimen144
-\tagwidth@=\dimen145
-\totwidth@=\dimen146
-\lineht@=\dimen147
+\eqnshift@=\dimen155
+\alignsep@=\dimen156
+\tagshift@=\dimen157
+\tagwidth@=\dimen158
+\totwidth@=\dimen159
+\lineht@=\dimen160
 \@envbody=\toks18
 \multlinegap=\skip50
 \multlinetaggap=\skip51
@@ -110,7 +130,7 @@ LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/latex/setspace/setspace.sty
 Package: setspace 2011/12/19 v6.7a set line spacing
 )
-\c@theorem=\count199
+\c@theorem=\count269
 
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/latex/xcolor/xcolor.sty
 Package: xcolor 2016/05/11 v2.12 LaTeX color extensions (UK)
@@ -176,9 +196,9 @@ Package: auxhook 2019-12-17 v1.6 Hooks for auxiliary files (HO)
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/latex/kvoptions/kvoptions.sty
 Package: kvoptions 2020-10-07 v3.14 Key value format for package options (HO)
 )
-\@linkdim=\dimen148
-\Hy@linkcounter=\count266
-\Hy@pagecounter=\count267
+\@linkdim=\dimen161
+\Hy@linkcounter=\count270
+\Hy@pagecounter=\count271
 
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/latex/hyperref/pd1enc.def
 File: pd1enc.def 2020-05-15 v7.00e Hyperref: PDFDocEncoding definition (HO)
@@ -191,7 +211,7 @@ Package: intcalc 2019/12/15 v1.3 Expandable calculations with integers (HO)
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/generic/etexcmds/etexcmds.sty
 Package: etexcmds 2019/12/15 v1.7 Avoid name clashes with e-TeX commands (HO)
 )
-\Hy@SavedSpaceFactor=\count268
+\Hy@SavedSpaceFactor=\count272
 Package hyperref Info: Option `colorlinks' set `true' on input line 4338.
 Package hyperref Info: Option `raiselinks' set `true' on input line 4338.
 Package hyperref Info: Option `bookmarks' set `true' on input line 4338.
@@ -208,14 +228,14 @@ Package hyperref Info: Plain pages OFF on input line 4479.
 Package hyperref Info: Backreferencing OFF on input line 4484.
 Package hyperref Info: Implicit mode ON; LaTeX internals redefined.
 Package hyperref Info: Bookmarks ON on input line 4717.
-\c@Hy@tempcnt=\count269
+\c@Hy@tempcnt=\count273
 
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/latex/url/url.sty
 \Urlmuskip=\muskip17
 Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
 )
 LaTeX Info: Redefining \url on input line 5076.
-\XeTeXLinkMargin=\dimen149
+\XeTeXLinkMargin=\dimen162
 
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/generic/bitset/bitset.sty
 Package: bitset 2019/12/09 v1.3 Handle bit-vector datatype (HO)
@@ -224,9 +244,9 @@ Package: bitset 2019/12/09 v1.3 Handle bit-vector datatype (HO)
 Package: bigintcalc 2019/12/15 v1.5 Expandable calculations on big integers (HO
 )
 ))
-\Fld@menulength=\count270
-\Field@Width=\dimen150
-\Fld@charsize=\dimen151
+\Fld@menulength=\count274
+\Field@Width=\dimen163
+\Fld@charsize=\dimen164
 Package hyperref Info: Hyper figures OFF on input line 6347.
 Package hyperref Info: Link nesting OFF on input line 6352.
 Package hyperref Info: Hyper index ON on input line 6355.
@@ -241,9 +261,9 @@ Package: atbegshi-ltx 2020/08/17 v1.0a Emulation of the original atbegshi packa
 ge
 with kernel methods
 )
-\Hy@abspage=\count271
-\c@Item=\count272
-\c@Hfootnote=\count273
+\Hy@abspage=\count275
+\c@Item=\count276
+\c@Hfootnote=\count277
 )
 Package hyperref Info: Driver (autodetected): hpdftex.
 
@@ -255,8 +275,8 @@ Package: atveryend-ltx 2020/08/19 v1.0a Emulation of the original atvery packag
 e
 with kernel methods
 )
-\Fld@listcount=\count274
-\c@bookmark@seq@number=\count275
+\Fld@listcount=\count278
+\c@bookmark@seq@number=\count279
 
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/latex/rerunfilecheck/rerunfileche
 ck.sty
@@ -286,7 +306,7 @@ Package: xkeyval 2020/11/20 v2.8 package option processing (HA)
 \XKV@toks=\toks27
 \XKV@tempa@toks=\toks28
 )
-\XKV@depth=\count276
+\XKV@depth=\count280
 File: xkeyval.tex 2014/12/03 v2.7a key=value parser (HA)
 ))
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/latex/pgf/frontendlayer/tikz.sty
@@ -295,8 +315,8 @@ File: xkeyval.tex 2014/12/03 v2.7a key=value parser (HA)
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/generic/pgf/utilities/pgfutil-com
 mon.tex
 \pgfutil@everybye=\toks29
-\pgfutil@tempdima=\dimen152
-\pgfutil@tempdimb=\dimen153
+\pgfutil@tempdima=\dimen165
+\pgfutil@tempdimb=\dimen166
 
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/generic/pgf/utilities/pgfutil-com
 mon-lists.tex))
@@ -326,8 +346,8 @@ File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
 )
 Package graphics Info: Driver file: pdftex.def on input line 105.
 )
-\Gin@req@height=\dimen154
-\Gin@req@width=\dimen155
+\Gin@req@height=\dimen167
+\Gin@req@width=\dimen168
 )
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/latex/pgf/systemlayer/pgfsys.sty
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/generic/pgf/systemlayer/pgfsys.co
@@ -343,26 +363,26 @@ e.tex
 ered.code.tex
 \pgfkeys@tmptoks=\toks32
 ))
-\pgf@x=\dimen156
-\pgf@y=\dimen157
-\pgf@xa=\dimen158
-\pgf@ya=\dimen159
-\pgf@xb=\dimen160
-\pgf@yb=\dimen161
-\pgf@xc=\dimen162
-\pgf@yc=\dimen163
-\pgf@xd=\dimen164
-\pgf@yd=\dimen165
+\pgf@x=\dimen169
+\pgf@y=\dimen170
+\pgf@xa=\dimen171
+\pgf@ya=\dimen172
+\pgf@xb=\dimen173
+\pgf@yb=\dimen174
+\pgf@xc=\dimen175
+\pgf@yc=\dimen176
+\pgf@xd=\dimen177
+\pgf@yd=\dimen178
 \w@pgf@writea=\write3
 \r@pgf@reada=\read2
-\c@pgf@counta=\count277
-\c@pgf@countb=\count278
-\c@pgf@countc=\count279
-\c@pgf@countd=\count280
+\c@pgf@counta=\count281
+\c@pgf@countb=\count282
+\c@pgf@countc=\count283
+\c@pgf@countd=\count284
 \t@pgf@toka=\toks33
 \t@pgf@tokb=\toks34
 \t@pgf@tokc=\toks35
-\pgf@sys@id@count=\count281
+\pgf@sys@id@count=\count285
 
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/generic/pgf/systemlayer/pgf.cfg
 File: pgf.cfg 2020/12/27 v3.1.8b (3.1.8b)
@@ -380,8 +400,8 @@ File: pgfsys-common-pdf.def 2020/12/27 v3.1.8b (3.1.8b)
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/generic/pgf/systemlayer/pgfsyssof
 tpath.code.tex
 File: pgfsyssoftpath.code.tex 2020/12/27 v3.1.8b (3.1.8b)
-\pgfsyssoftpath@smallbuffer@items=\count282
-\pgfsyssoftpath@bigbuffer@items=\count283
+\pgfsyssoftpath@smallbuffer@items=\count286
+\pgfsyssoftpath@bigbuffer@items=\count287
 )
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/generic/pgf/systemlayer/pgfsyspro
 tocol.code.tex
@@ -399,8 +419,8 @@ Package: pgfcore 2020/12/27 v3.1.8b (3.1.8b)
 .tex)
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathparser.co
 de.tex
-\pgfmath@dimen=\dimen166
-\pgfmath@count=\count284
+\pgfmath@dimen=\dimen179
+\pgfmath@count=\count288
 \pgfmath@box=\box50
 \pgfmath@toks=\toks36
 \pgfmath@stack@operand=\toks37
@@ -426,39 +446,39 @@ de.tex
 .integerarithmetics.code.tex)))
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfloat.cod
 e.tex
-\c@pgfmathroundto@lastzeros=\count285
+\c@pgfmathroundto@lastzeros=\count289
 ))
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfint.code.tex)
 
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepoi
 nts.code.tex
 File: pgfcorepoints.code.tex 2020/12/27 v3.1.8b (3.1.8b)
-\pgf@picminx=\dimen167
-\pgf@picmaxx=\dimen168
-\pgf@picminy=\dimen169
-\pgf@picmaxy=\dimen170
-\pgf@pathminx=\dimen171
-\pgf@pathmaxx=\dimen172
-\pgf@pathminy=\dimen173
-\pgf@pathmaxy=\dimen174
-\pgf@xx=\dimen175
-\pgf@xy=\dimen176
-\pgf@yx=\dimen177
-\pgf@yy=\dimen178
-\pgf@zx=\dimen179
-\pgf@zy=\dimen180
+\pgf@picminx=\dimen180
+\pgf@picmaxx=\dimen181
+\pgf@picminy=\dimen182
+\pgf@picmaxy=\dimen183
+\pgf@pathminx=\dimen184
+\pgf@pathmaxx=\dimen185
+\pgf@pathminy=\dimen186
+\pgf@pathmaxy=\dimen187
+\pgf@xx=\dimen188
+\pgf@xy=\dimen189
+\pgf@yx=\dimen190
+\pgf@yy=\dimen191
+\pgf@zx=\dimen192
+\pgf@zy=\dimen193
 )
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepat
 hconstruct.code.tex
 File: pgfcorepathconstruct.code.tex 2020/12/27 v3.1.8b (3.1.8b)
-\pgf@path@lastx=\dimen181
-\pgf@path@lasty=\dimen182
+\pgf@path@lastx=\dimen194
+\pgf@path@lasty=\dimen195
 )
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepat
 husage.code.tex
 File: pgfcorepathusage.code.tex 2020/12/27 v3.1.8b (3.1.8b)
-\pgf@shorten@end@additional=\dimen183
-\pgf@shorten@start@additional=\dimen184
+\pgf@shorten@end@additional=\dimen196
+\pgf@shorten@start@additional=\dimen197
 )
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcoresco
 pes.code.tex
@@ -466,19 +486,19 @@ File: pgfcorescopes.code.tex 2020/12/27 v3.1.8b (3.1.8b)
 \pgfpic=\box51
 \pgf@hbox=\box52
 \pgf@layerbox@main=\box53
-\pgf@picture@serial@count=\count286
+\pgf@picture@serial@count=\count290
 )
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcoregra
 phicstate.code.tex
 File: pgfcoregraphicstate.code.tex 2020/12/27 v3.1.8b (3.1.8b)
-\pgflinewidth=\dimen185
+\pgflinewidth=\dimen198
 )
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcoretra
 nsformations.code.tex
 File: pgfcoretransformations.code.tex 2020/12/27 v3.1.8b (3.1.8b)
-\pgf@pt@x=\dimen186
-\pgf@pt@y=\dimen187
-\pgf@pt@temp=\dimen188
+\pgf@pt@x=\dimen199
+\pgf@pt@y=\dimen256
+\pgf@pt@temp=\dimen257
 )
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorequi
 ck.code.tex
@@ -495,14 +515,14 @@ File: pgfcorepathprocessing.code.tex 2020/12/27 v3.1.8b (3.1.8b)
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorearr
 ows.code.tex
 File: pgfcorearrows.code.tex 2020/12/27 v3.1.8b (3.1.8b)
-\pgfarrowsep=\dimen189
+\pgfarrowsep=\dimen258
 )
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcoresha
 de.code.tex
 File: pgfcoreshade.code.tex 2020/12/27 v3.1.8b (3.1.8b)
-\pgf@max=\dimen190
-\pgf@sys@shading@range@num=\count287
-\pgf@shadingcount=\count288
+\pgf@max=\dimen259
+\pgf@sys@shading@range@num=\count291
+\pgf@shadingcount=\count292
 )
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreima
 ge.code.tex
@@ -541,8 +561,8 @@ File: pgfmoduleplot.code.tex 2020/12/27 v3.1.8b (3.1.8b)
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/latex/pgf/compatibility/pgfcomp-v
 ersion-0-65.sty
 Package: pgfcomp-version-0-65 2020/12/27 v3.1.8b (3.1.8b)
-\pgf@nodesepstart=\dimen191
-\pgf@nodesepend=\dimen192
+\pgf@nodesepstart=\dimen260
+\pgf@nodesepend=\dimen261
 )
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/latex/pgf/compatibility/pgfcomp-v
 ersion-1-18.sty
@@ -561,8 +581,8 @@ Package: pgffor 2020/12/27 v3.1.8b (3.1.8b)
 
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmath.code.tex
 )
-\pgffor@iter=\dimen193
-\pgffor@skip=\dimen194
+\pgffor@iter=\dimen262
+\pgffor@skip=\dimen263
 \pgffor@stack=\toks39
 \pgffor@toks=\toks40
 ))
@@ -573,34 +593,34 @@ Package: tikz 2020/12/27 v3.1.8b (3.1.8b)
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/generic/pgf/libraries/pgflibraryp
 lothandlers.code.tex
 File: pgflibraryplothandlers.code.tex 2020/12/27 v3.1.8b (3.1.8b)
-\pgf@plot@mark@count=\count289
-\pgfplotmarksize=\dimen195
+\pgf@plot@mark@count=\count293
+\pgfplotmarksize=\dimen264
 )
-\tikz@lastx=\dimen196
-\tikz@lasty=\dimen197
-\tikz@lastxsaved=\dimen198
-\tikz@lastysaved=\dimen199
-\tikz@lastmovetox=\dimen256
-\tikz@lastmovetoy=\dimen257
-\tikzleveldistance=\dimen258
-\tikzsiblingdistance=\dimen259
+\tikz@lastx=\dimen265
+\tikz@lasty=\dimen266
+\tikz@lastxsaved=\dimen267
+\tikz@lastysaved=\dimen268
+\tikz@lastmovetox=\dimen269
+\tikz@lastmovetoy=\dimen270
+\tikzleveldistance=\dimen271
+\tikzsiblingdistance=\dimen272
 \tikz@figbox=\box56
 \tikz@figbox@bg=\box57
 \tikz@tempbox=\box58
 \tikz@tempbox@bg=\box59
-\tikztreelevel=\count290
-\tikznumberofchildren=\count291
-\tikznumberofcurrentchild=\count292
-\tikz@fig@count=\count293
+\tikztreelevel=\count294
+\tikznumberofchildren=\count295
+\tikznumberofcurrentchild=\count296
+\tikz@fig@count=\count297
 
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/generic/pgf/modules/pgfmodulematr
 ix.code.tex
 File: pgfmodulematrix.code.tex 2020/12/27 v3.1.8b (3.1.8b)
-\pgfmatrixcurrentrow=\count294
-\pgfmatrixcurrentcolumn=\count295
-\pgf@matrix@numberofcolumns=\count296
+\pgfmatrixcurrentrow=\count298
+\pgfmatrixcurrentcolumn=\count299
+\pgf@matrix@numberofcolumns=\count300
 )
-\tikz@expandcount=\count297
+\tikz@expandcount=\count301
 
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/generic/pgf/frontendlayer/tikz/li
 braries/tikzlibrarytopaths.code.tex
@@ -624,18 +644,18 @@ File: pgflibraryfadings.code.tex 2020/12/27 v3.1.8b (3.1.8b)
 )))
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/latex/tools/calc.sty
 Package: calc 2017/05/25 v4.3 Infix arithmetic (KKT,FJ)
-\calc@Acount=\count298
-\calc@Bcount=\count299
-\calc@Adimen=\dimen260
-\calc@Bdimen=\dimen261
+\calc@Acount=\count302
+\calc@Bcount=\count303
+\calc@Adimen=\dimen273
+\calc@Bdimen=\dimen274
 \calc@Askip=\skip56
 \calc@Bskip=\skip57
 LaTeX Info: Redefining \setlength on input line 80.
 LaTeX Info: Redefining \addtolength on input line 81.
-\calc@Ccount=\count300
+\calc@Ccount=\count304
 \calc@Cskip=\skip58
 )
-\c@@todonotes@numberoftodonotes=\count301
+\c@@todonotes@numberoftodonotes=\count305
 )
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/latex/base/inputenc.sty
 Package: inputenc 2020/08/01 v1.3d Input encoding file
@@ -648,9 +668,13 @@ Package: fontenc 2020/08/10 v2.0s Standard LaTeX package
 (/Users/maceci/Library/TinyTeX/texmf-dist/tex/latex/l3backend/l3backend-pdftex.
 def
 File: l3backend-pdftex.def 2020-01-29 L3 backend support: PDF output (pdfTeX)
-\l__color_backend_stack_int=\count302
+\l__color_backend_stack_int=\count306
 \l__pdf_internal_box=\box60
-) (./thesis.aux (./introduction.aux) (./methods.aux))
+) (./thesis.aux (./introduction.aux) (./methods.aux
+
+LaTeX Warning: Label `fig:epitrajs' multiply defined.
+
+))
 \openout1 = `thesis.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 34.
@@ -699,7 +723,7 @@ Package: refcount 2019/12/15 v3.6 Data extraction from label references (HO)
 ring.sty
 Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 )
-\c@section@level=\count303
+\c@section@level=\count307
 )
 LaTeX Info: Redefining \ref on input line 34.
 LaTeX Info: Redefining \pageref on input line 34.
@@ -723,8 +747,7 @@ Package epstopdf Info: Output file is already uptodate.
 
 pdfTeX warning: pdflatex (file ./figures/eth_logo_black-eps-converted-to.pdf): 
 PDF inclusion: found PDF version <1.7>, but at most version <1.5> allowed
-<figures/eth_logo_black-eps-converted-to.pdf, id=107, 191.71625pt x 57.21375pt>
-
+<figures/eth_logo_black-eps-converted-to.pdf, id=67, 191.71625pt x 57.21375pt>
 File: figures/eth_logo_black-eps-converted-to.pdf Graphic file (type pdf)
 <use figures/eth_logo_black-eps-converted-to.pdf>
 Package pdftex.def Info: figures/eth_logo_black-eps-converted-to.pdf  used on i
@@ -754,17 +777,7 @@ l.46 \begin{abstract}
 
 ] [2
 
-] (./thesis.toc
-LaTeX Font Info:    Trying to load font information for U+msa on input line 5.
-
-(/Users/maceci/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/umsa.fd
-File: umsa.fd 2013/01/14 v3.01 AMS symbols A
-)
-LaTeX Font Info:    Trying to load font information for U+msb on input line 5.
-
-(/Users/maceci/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/umsb.fd
-File: umsb.fd 2013/01/14 v3.01 AMS symbols B
-))
+] (./thesis.toc)
 \tf@toc=\write5
 \openout5 = `thesis.toc'.
 
@@ -773,9 +786,16 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ]
 \openout2 = `introduction.aux'.
 
-
-(./introduction.tex
+ (./introduction.tex
 Chapter 1.
+
+LaTeX Warning: Citation `Grenfell2013' on page 1 undefined on input line 12.
+
+
+LaTeX Warning: Citation `Volz2014' on page 1 undefined on input line 12.
+
+Package hyperref Info: bookmark level for unknown todo defaults to 0 on input l
+ine 13.
 ) [1
 
 
@@ -785,48 +805,131 @@ Chapter 1.
 
  (./methods.tex
 Chapter 2.
-Package hyperref Info: bookmark level for unknown todo defaults to 0 on input l
-ine 5.
 
-LaTeX Warning: Citation `Grenfell2013' on page 2 undefined on input line 6.
-
-
-LaTeX Warning: Citation `Volz2014' on page 2 undefined on input line 6.
-
-
-LaTeX Warning: Citation `Kuhnert2016' on page 2 undefined on input line 8.
-
-
-Overfull \hbox (1.06743pt too wide) in paragraph at lines 18--19
-[]\T1/cmr/m/n/10.95 From the phy-lo-ge-netic tree and the phy-lo-dy-nam-ics pa-
-ram-e-ters we use Stochas-
- []
+LaTeX Warning: Citation `gisaid' on page 2 undefined on input line 5.
 
 [2
 
 
 
 
-] [3] [4]
+]
+LaTeX Font Info:    Trying to load font information for U+msa on input line 17.
 
-LaTeX Warning: Citation `Billah2020' on page 5 undefined on input line 91.
+ (/Users/maceci/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/umsa.fd
+File: umsa.fd 2013/01/14 v3.01 AMS symbols A
+)
+LaTeX Font Info:    Trying to load font information for U+msb on input line 17.
 
 
-LaTeX Warning: Citation `Park2020' on page 5 undefined on input line 94.
+(/Users/maceci/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/umsb.fd
+File: umsb.fd 2013/01/14 v3.01 AMS symbols B
+)
+Underfull \hbox (badness 10000) in paragraph at lines 21--22
 
-) [5] [6]
+ []
+
+<figures/epitrajs.png, id=124, 555.07375pt x 340.27126pt>
+File: figures/epitrajs.png Graphic file (type png)
+<use figures/epitrajs.png>
+Package pdftex.def Info: figures/epitrajs.png  used on input line 31.
+(pdftex.def)             Requested size: 381.4pt x 233.8061pt.
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[3] [4 <./figures/epitrajs.png>]
+Underfull \hbox (badness 10000) in paragraph at lines 67--68
+
+ []
+
+
+LaTeX Warning: Citation `Hohna2019' on page 5 undefined on input line 71.
+
+
+LaTeX Warning: Citation `VaughanWIP' on page 5 undefined on input line 71.
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 71--72
+
+ []
+
+[5]
+
+LaTeX Warning: Citation `VaughanWIP' on page 6 undefined on input line 89.
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 89--90
+
+ []
+
+
+LaTeX Warning: Citation `beast' on page 6 undefined on input line 91.
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 91--92
+
+ []
+
+
+LaTeX Warning: Citation `Nicola2019' on page 6 undefined on input line 96.
+
+[6]
+
+LaTeX Warning: Reference `fig:travel' on page 7 undefined on input line 103.
+
+
+Overfull \hbox (16.91396pt too wide) in paragraph at lines 105--106
+[]\T1/cmr/m/n/10.95 The air travel data is ob-tained from EU-ROSTATS trans-port
+ datasets \T1/cmr/m/it/10.95 avia_paexcc
+ []
+
+<figures/flight_data.png, id=192, 759.83875pt x 434.62375pt>
+File: figures/flight_data.png Graphic file (type png)
+<use figures/flight_data.png>
+Package pdftex.def Info: figures/flight_data.png  used on input line 109.
+(pdftex.def)             Requested size: 381.4pt x 218.1602pt.
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+Overfull \hbox (87.41818pt too wide) in paragraph at lines 123--162
+[][] 
+ []
+
+[7]
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+LaTeX Warning: Reference `stable:seqs' on page 8 undefined on input line 167.
+
+
+LaTeX Warning: Reference `table:cases' on page 8 undefined on input line 167.
+
+) [8 <./figures/flight_data.png>] [9]
 Chapter 3.
-(./thesis.bbl [7
+(./thesis.bbl [10
 
 
+
+] [11
 
 ]
 
-LaTeX Warning: Empty `thebibliography' environment on input line 24.
+LaTeX Font Warning: Font shape `T1/cmr/m/scsl' undefined
+(Font)              using `T1/cmr/m/sc' instead on input line 159.
 
-) [8
+[12]
 
-] [1
+LaTeX Font Warning: Font shape `T1/cmr/m/scsl' undefined
+(Font)              using `T1/cmr/m/sc' instead on input line 226.
+
+[13])
+
+LaTeX Font Warning: Font shape `T1/cmr/m/scsl' undefined
+(Font)              using `T1/cmr/m/sc' instead on input line 91.
+
+[14] [1
 
 
 ] [1
@@ -841,39 +944,47 @@ LaTeX Font Warning: Size substitutions with differences
 
 LaTeX Warning: There were undefined references.
 
+
+LaTeX Warning: There were multiply-defined labels.
+
 Package rerunfilecheck Info: File `thesis.out' has not changed.
-(rerunfilecheck)             Checksum: EEB2744297A38EE84194010D1CFC3BAD;1269.
+(rerunfilecheck)             Checksum: 34DC2EC74DFE957A9C20263B15AAB362;434.
  ) 
 Here is how much of TeX's memory you used:
- 17640 strings out of 481252
- 337050 string characters out of 5914905
- 613874 words of memory out of 5000000
- 34128 multiletter control sequences out of 15000+600000
- 418614 words of font info for 60 fonts, out of 8000000 for 9000
+ 17817 strings out of 481252
+ 339740 string characters out of 5914905
+ 627105 words of memory out of 5000000
+ 34257 multiletter control sequences out of 15000+600000
+ 422259 words of font info for 71 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 139i,9n,141p,905b,957s stack positions out of 5000i,500n,10000p,200000b,80000s
- </Users/maceci/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/eccc109
-5.600pk> </Users/maceci/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/e
-cbx1440.600pk> </Users/maceci/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappe
-n/ec/ecrm1440.600pk> </Users/maceci/Library/TinyTeX/texmf-var/fonts/pk/ljfour/j
-knappen/ec/eccc1440.600pk> </Users/maceci/Library/TinyTeX/texmf-var/fonts/pk/lj
-four/jknappen/ec/ecbx2488.600pk> </Users/maceci/Library/TinyTeX/texmf-var/fonts
-/pk/ljfour/jknappen/ec/ecbx1095.600pk> </Users/maceci/Library/TinyTeX/texmf-var
-/fonts/pk/ljfour/jknappen/ec/ecrm1095.600pk> </Users/maceci/Library/TinyTeX/tex
-mf-var/fonts/pk/ljfour/jknappen/ec/ectt1000.600pk> </Users/maceci/Library/TinyT
-eX/texmf-var/fonts/pk/ljfour/jknappen/ec/ecrm1200.600pk> </Users/maceci/Library
-/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/ecbx1728.600pk></Users/maceci/Li
-brary/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></Users/mace
-ci/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></Users
-/maceci/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></U
-sers/maceci/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb
-></Users/maceci/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.
-pfb></Users/maceci/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cm
-sy10.pfb>
-Output written on thesis.pdf (15 pages, 172939 bytes).
+ 139i,14n,141p,1133b,1069s stack positions out of 5000i,500n,10000p,200000b,80000s
+ </Users/maceci/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/ecrm090
+0.600pk> </Users/maceci/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/e
+cbx0900.600pk> </Users/maceci/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappe
+n/ec/ecti1095.600pk> </Users/maceci/Library/TinyTeX/texmf-var/fonts/pk/ljfour/j
+knappen/ec/eccc1095.600pk> </Users/maceci/Library/TinyTeX/texmf-var/fonts/pk/lj
+four/jknappen/ec/ecrm1440.600pk> </Users/maceci/Library/TinyTeX/texmf-var/fonts
+/pk/ljfour/jknappen/ec/eccc1440.600pk> </Users/maceci/Library/TinyTeX/texmf-var
+/fonts/pk/ljfour/jknappen/ec/ecbx2488.600pk> </Users/maceci/Library/TinyTeX/tex
+mf-var/fonts/pk/ljfour/jknappen/ec/ecbx1095.600pk> </Users/maceci/Library/TinyT
+eX/texmf-var/fonts/pk/ljfour/jknappen/ec/ecrm1095.600pk> </Users/maceci/Library
+/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/ectt1000.600pk> </Users/maceci/L
+ibrary/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/ecrm1200.600pk> </Users/ma
+ceci/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/ecbx1728.600pk></Use
+rs/maceci/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb>
+</Users/maceci/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10
+.pfb></Users/maceci/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/c
+mmi6.pfb></Users/maceci/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/
+cm/cmmi8.pfb></Users/maceci/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfo
+nts/cm/cmr10.pfb></Users/maceci/Library/TinyTeX/texmf-dist/fonts/type1/public/a
+msfonts/cm/cmr8.pfb></Users/maceci/Library/TinyTeX/texmf-dist/fonts/type1/publi
+c/amsfonts/cm/cmsy10.pfb></Users/maceci/Library/TinyTeX/texmf-dist/fonts/type1/
+public/amsfonts/cm/cmsy8.pfb></Users/maceci/Library/TinyTeX/texmf-dist/fonts/ty
+pe1/public/amsfonts/symbols/msbm10.pfb>
+Output written on thesis.pdf (21 pages, 357541 bytes).
 PDF statistics:
- 563 PDF objects out of 1000 (max. 8388607)
- 236 compressed objects within 3 object streams
- 41 named destinations out of 1000 (max. 500000)
- 266 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 774 PDF objects out of 1000 (max. 8388607)
+ 336 compressed objects within 4 object streams
+ 75 named destinations out of 1000 (max. 500000)
+ 196 words of extra memory for PDF output out of 10000 (max. 10000000)
 
