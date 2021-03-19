@@ -3,6 +3,9 @@ Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: thesis.aux
 A level-1 auxiliary file: introduction.aux
 A level-1 auxiliary file: methods.aux
+A level-1 auxiliary file: results.aux
+A level-1 auxiliary file: discussion.aux
+A level-1 auxiliary file: conclusion.aux
 The style file: apalike.bst
 Database file #1: references.bib
 Warning--entry type for "covidre" isn't style-file defined
@@ -22,13 +25,14 @@ Warning--I didn't find a database entry for "Volz2014"
 Warning--I didn't find a database entry for "Hohna2019"
 Warning--I didn't find a database entry for "beast"
 Warning--I didn't find a database entry for "Nicola2019"
+Warning--I didn't find a database entry for "Li2020"
 Warning--empty year in Nadeau2020
 Warning--empty journal in Nadeau2020
 Warning--empty journal in Park2020
 Warning--empty journal in VaughanWIP
 You've used 27 entries,
             1935 wiz_defined-function locations,
-            659 strings with 10835 characters,
+            664 strings with 10886 characters,
 and the built_in function-call counts, 12473 in all, are:
 = -- 1142
 > -- 799
@@ -67,4 +71,4 @@ warning$ -- 4
 while$ -- 70
 width$ -- 0
 write$ -- 330
-(There were 15 warnings)
+(There were 16 warnings)
