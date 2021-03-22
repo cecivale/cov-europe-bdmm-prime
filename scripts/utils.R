@@ -301,7 +301,7 @@ plot_map <- function(demes) {
     #filter(country %in% demes$country | continent == "Europe") %>%
     mutate(deme = case_when(
       country %in% demes$country ~ country,
-      continent == "Europe" ~ "OtherEuropean"))
+      continent == "Europe" ~ "Other European"))
   
   zoom_to <- c(20, 50) 
   zoom_level <- 2.5

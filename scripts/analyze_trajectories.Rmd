@@ -12,15 +12,20 @@ output:
 classoption: "aspectratio=169"
 fontsize: 8pt
 tables: yes
-params:
-  input: traj_file.traj
-  burnin: 0
-  metadata: metadata.csv
-  demes: demes_yaml
-  n: 1000
-  output_figure: path
-  output_table: path
 ---
+
+```{r parser, echo = FALSE}
+library(tidyverse)
+# Parser -----------------------------------------------------------------------
+argsR <- commandArgs(TRUE)
+args_list = str_split(paste(argsR, collapse=""), pattern="--")
+args_llist = lapply(args_list, function(x) str_split(x, pattern="="))
+argsDF = as.data.frame(do.call("rbind", args_llist[[1]]))
+args <- as.list(as.character(argsDF$V2))
+names(args) <- argsDF$V1
+args$burnin = as.integer(args$burnin)
+args$n = as.integer(args$n)
+```
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
@@ -28,11 +33,9 @@ knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 options(knitr.kable.NA = '')
 ```
 
-```{r libraries}
+```{r libraries, results='hide', message=FALSE, warning=FALSE}
 # Load libraries ---------------------------------------------------------------
-library(argparse)
 library(yaml)
-library(tidyverse)
 library(lubridate)
 library(scales)
 library(ggpubr)
@@ -43,7 +46,7 @@ library(hrbrthemes)
 library(circlize)
 library(chorddiag) 
 library(ggforce)
-library(ComplexHeatmap)
+#library(ComplexHeatmap)
 library(maps)
 library(sf)
 library(wpp2019)
@@ -55,25 +58,13 @@ source("./scripts/utils.R")
 source("./scripts/flight_data.R")
 ```
 
-```{r parser}
-# Parser -----------------------------------------------------------------------
-# parser <- argparse::ArgumentParser()
-# parser$add_argument("--input", type = "character", help="trajectory file")
-# parser$add_argument("--burnin", type = "double", help = "Burning fraction for trajectory files")
-# parser$add_argument("--metadata", type = "character", help = "Alignment sequences metadata")
-# parser$add_argument("--demes", nargs = "+", help = "Demes configuration")
-# parser$add_argument("--n", type = "integer", help = "Number of trajectories to analyze")
-# parser$add_argument("--output_figure", type = "character", help = "Output path for the figures")
-# parser$add_argument("--output_table", type = "character", help = "Output path for the tables")
-# args <- parser$parse_args()
-```
 
 ```{r debugging}
 # Debugging
 # args$burnin = 0.1
 # args$demes = read.csv("./files/demes_China.csv", stringsAsFactors = FALSE)
-# #params$input = "./results/europeC/201211_europe6p2.TL.traj"
-# params$input = "/Users/maceci/210205_europe10/results/europeC/210205_europe10.10000.TL.traj"
+# #args$input = "./results/europeC/201211_europe6p2.TL.traj"
+# args$input = "/Users/maceci/210205_europe10/results/europeC/210205_europe10.10000.TL.traj"
 # args$metadata =  "./results/europeC/final_metadata.tsv"
 # args$n = 100
 # demes = args$demes
@@ -89,7 +80,7 @@ source("./scripts/flight_data.R")
 demes <- data.frame(deme = NA, region = NA, country = NA, division = NA,
                     exclude_country = NA, exclude_division = NA,
                     min_date = NA, max_date = NA, seq_per_deme = NA) %>%
-  bind_rows(bind_rows(lapply(yaml::yaml.load(string = paste(params$demes, collapse = " ")),
+  bind_rows(bind_rows(lapply(yaml::yaml.load(string = gsub(",", ", ", gsub(":", ": ", args$demes))),
                           data.frame, stringsAsFactors = FALSE), .id = "deme")) %>%
   group_by(deme) %>%
   mutate(exclude_country = ifelse(is.na(exclude_country), NA, paste0(exclude_country, collapse = ","))) %>%
@@ -98,12 +89,10 @@ demes <- data.frame(deme = NA, region = NA, country = NA, division = NA,
   mutate(deme = str_to_title(deme)) %>%
   mutate(deme = ifelse(deme %in% c("Othereuropean", "OtherEuropean"), "Other European", deme))
 
-print("DEME CONFIG")
-knitr::kable(demes)
-# 
-# china_deme <- demes$deme[demes$region == "Asia"]
-# if (china_deme == "Hubei-China") china_deme = "China"
+china_deme <- demes$deme[demes$region == "Asia"]
+if (china_deme == "Hubei-China") china_deme = "China"
 ```
+
 
 
 ```{r plotopts}
@@ -122,7 +111,7 @@ ecolors <- c(B = "#1e3d59", M = "#f5f0e1", IM = "#ff6e40", OM = "#ffc13b")
 
 ```{r map, fig.height=2, fig.align="center"}
 plot_map(demes)
-knitr::kable(demes %>% select(-c("demeID", "exclude_division", "prob")), booktabs = TRUE)
+knitr::kable(demes %>% select(-c("exclude_division", "prob")), booktabs = TRUE)
 ```
 
 
@@ -131,7 +120,7 @@ knitr::kable(demes %>% select(-c("demeID", "exclude_division", "prob")), booktab
 ```{r ecdc-data, results='hide'}
 # Case data information from ECDC ----------------------------------------------
 # Most recent sample value
-metadata <- read_tsv(params$metadata)
+metadata <- read_tsv(args$metadata)
 MRS <- max(metadata$date)
 mrs <- ymd_hms(paste(MRS, '23:59:00 UTC'))
 
@@ -146,7 +135,7 @@ case_data <- get_cases(demes, from = ymd("2019-09-01"), to = MRS)
 knitr::kable(case_data %>% filter(date == MRS) %>% select(deme, source, total_confirmed)%>% pivot_wider(names_from = "source", values_from = total_confirmed) %>% mutate_if(is.numeric, function (x) round(x,1)), booktabs = TRUE, caption = paste("Total number of cases reported to ECDC on March 8, 2020"))
 ```
 ::::
-
+  
 :::: {.column width="60%"}
 ```{r ecdc-plot, fig.height = 3, fig.width=4, fig.cap="ECDC case counts for each deme from the beginning of the pandemic to March 8, 2020"}
 
@@ -157,33 +146,33 @@ ggplot(case_data %>% filter(source == "ecdc")) +
   scale_color_manual(values = dcolors, name = "") +
   scale_x_date(limits = c(ymd("2019-12-30"), ymd("2020-03-18")), date_breaks = "1 month", date_labels = "%b %d") +
   scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
-    ylab("Total confirmed cases") +
-    theme(axis.title.x=element_blank(),
-          legend.position = c(0.2, 0.7),
-          legend.box="horizontal",
-          panel.grid.major.y =  element_line(colour = "grey80", size = 0.3, linetype = 2),
-          panel.grid.minor.y =  element_line(colour = "grey80", size = 0.2,  linetype = 2),
-          panel.background =  element_blank())
+  ylab("Total confirmed cases") +
+  theme(axis.title.x=element_blank(),
+        legend.position = c(0.2, 0.7),
+        legend.box="horizontal",
+        panel.grid.major.y =  element_line(colour = "grey80", size = 0.3, linetype = 2),
+        panel.grid.minor.y =  element_line(colour = "grey80", size = 0.2,  linetype = 2),
+        panel.background =  element_blank())
 ```
 
 ::::
-
+  
 :::
-
+  
 ## Epidemic trajectory data
-
-From the Stochastic Trajectory Mapping analysis, we sample with importance sampling one epidemic trajectory per set of parameters + typed node tree from the set of simulated trajectories.
+  
+  From the Stochastic Trajectory Mapping analysis, we sample with importance sampling one epidemic trajectory per set of parameters + typed node tree from the set of simulated trajectories.
 
 The processing of the trajectory data includes the generation of two different datasets:
-
-- `states`: We have the total number of inferred cases by trajectory, deme and time.
+  
+  - `states`: We have the total number of inferred cases by trajectory, deme and time.
 - `events`: We have each event that happened in a epidemic trajectory, with its type (origin, birth, death or migration), the source/destination deme and time.
 
 ## Epidemic trajectory data
 
 We use the events dataset to compute quantities of interest:
-
-- `B`: transmissions (births) events 
+  
+  - `B`: transmissions (births) events 
 - `D`: becoming unifectious (deaths) events
 - `IM`: migrations into the deme 
 - `OM`: migrations out of the deme
@@ -195,7 +184,7 @@ We use the events dataset to compute quantities of interest:
 
 ```{r traj-data, warnings = FALSE, message = FALSE, cache = FALSE}
 # Load trajectory data ---------------------------------------------------------
-df <- loadTrajectories(params$input, burninFrac = params$burnin, subsample = params$n)
+df <- loadTrajectories(args$args, burninFrac = args$burnin, subsample = args$n)
 
 # Data wrangling ---------------------------------------------------------------
 df_traj <- processEvents(df$events, demes, "China", mrs)
@@ -217,10 +206,10 @@ To facilitate visualization and summarise the results, we take a grid time of 1 
 ```{r traj-processing}
 # Add reported case counts
 df_traj_cases <- df_traj %>%
-    mutate(traj = as.character(traj)) %>%
-    bind_rows(case_data %>%
-                mutate(var = source, value = new_confirmed, cumvalue = total_confirmed) %>%
-                select(deme, var, date, value, cumvalue))
+  mutate(traj = as.character(traj)) %>%
+  bind_rows(case_data %>%
+              mutate(var = source, value = new_confirmed, cumvalue = total_confirmed) %>%
+              select(deme, var, date, value, cumvalue))
 
 # Summarise trajectories, compute mean, median and 95% HPD interval for each variable
 traj_summary <- df_traj %>%
@@ -266,7 +255,7 @@ gribbon <- ggplot(traj_summary %>% filter(var == "active_pop")) +
   ylab("Population size") +
   xlab("Date") +
   #labs(title = "SARS-CoV-2 early epidemics in Europe and Hubei",
-       #subtitle = "Case trajectories Median and 95% CCI by deme") +
+  #subtitle = "Case trajectories Median and 95% CCI by deme") +
   scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
   scale_x_date(limits = c(ymd("2019-10-01"), ymd(MRS)), date_breaks = "1 month", date_labels = "%b %d") +
   scale_fill_manual(name = "", values = dcolors) +
@@ -278,57 +267,57 @@ gribbon <- ggplot(traj_summary %>% filter(var == "active_pop")) +
 gribbon
 
 ggexport(gribbon,
-         filename = paste0(params$output_figure, "01.png"),
+         filename = paste0(args$output_figure, "01.png"),
          width = 1500, height = 1000, res = 300)
 ```
 
 ```{r trajs}
 # 1.2 All trajectories single deme in log scale with reported cases date
 trajs <- lapply(demes$deme, function(d) {
-df_traj_cases%>%
-  # 1. Prepare data
-  filter(deme == d, 
-         var %in% c("D", "ecdc"), 
-         is.na(partner)) %>%
-  # 2. Plot
-  ggplot() +
-  geom_line(aes(date, cumvalue, group = traj,
-                color = var == "ecdc",
-                alpha = var == "ecdc",
-                linetype = var == "ecdc",
-                size = var == "ecdc")) +
-  scale_color_manual(name = "",
-                     labels = c(paste0(d, " inferred\n population trajectories"),
-                                paste0(ifelse(d == china_deme, "China", as.character(d)),
-                                       " total reported cases")),
-                     values = c(dcolors[[d]], dark_dcolors[[d]])) +
-  scale_alpha_manual(name = "", values = c(0.2, 1), guide = FALSE) +
-  scale_linetype_manual(name = "", values = c(1, 5),
-                        labels = c(paste0(d, " inferred\n population trajectories"),
-                                   paste0(ifelse(d == china_deme, "China", as.character(d)),
-                                          " total reported cases"))) +
-  scale_size_manual(name = "", values = c(0.5, 1.5),
-                    labels = c(paste0(d, " inferred\n population trajectories"),
-                               paste0(ifelse(d == china_deme, "China", as.character(d)),
-                                      " total reported cases"))) +
-  scale_x_date(limits = c(ymd("2019-10-01"), ymd(MRS)), date_breaks = "1 month",
-               date_labels = "%b %y") +
-  scale_y_log10(limits= c(1,10^7.5), expand = c(0, 0),labels = trans_format("log10", math_format(10^.x))) +
-  labs(title = d) +
-  ylab("COVID-19 cases") +
-  theme(axis.title.x=element_blank(),
-        legend.position = "none",
-        legend.box="horizontal",
-        panel.grid.major.y =  element_line(colour = "grey80", size = 0.3, linetype = 2),
-        panel.grid.minor.y =  element_line(colour = "grey80", size = 0.2,  linetype = 3),
-        panel.background =  element_blank(),
-        axis.text.x = element_text(size = 8),
-        axis.text.y = element_text(size = 10)) 
-  })
+  df_traj_cases%>%
+    # 1. Prepare data
+    filter(deme == d, 
+           var %in% c("D", "ecdc"), 
+           is.na(partner)) %>%
+    # 2. Plot
+    ggplot() +
+    geom_line(aes(date, cumvalue, group = traj,
+                  color = var == "ecdc",
+                  alpha = var == "ecdc",
+                  linetype = var == "ecdc",
+                  size = var == "ecdc")) +
+    scale_color_manual(name = "",
+                       labels = c(paste0(d, " inferred\n population trajectories"),
+                                  paste0(ifelse(d == china_deme, "China", as.character(d)),
+                                         " total reported cases")),
+                       values = c(dcolors[[d]], dark_dcolors[[d]])) +
+    scale_alpha_manual(name = "", values = c(0.2, 1), guide = FALSE) +
+    scale_linetype_manual(name = "", values = c(1, 5),
+                          labels = c(paste0(d, " inferred\n population trajectories"),
+                                     paste0(ifelse(d == china_deme, "China", as.character(d)),
+                                            " total reported cases"))) +
+    scale_size_manual(name = "", values = c(0.5, 1.5),
+                      labels = c(paste0(d, " inferred\n population trajectories"),
+                                 paste0(ifelse(d == china_deme, "China", as.character(d)),
+                                        " total reported cases"))) +
+    scale_x_date(limits = c(ymd("2019-10-01"), ymd(MRS)), date_breaks = "1 month",
+                 date_labels = "%b %y") +
+    scale_y_log10(limits= c(1,10^7.5), expand = c(0, 0),labels = trans_format("log10", math_format(10^.x))) +
+    labs(title = d) +
+    ylab("COVID-19 cases") +
+    theme(axis.title.x=element_blank(),
+          legend.position = "none",
+          legend.box="horizontal",
+          panel.grid.major.y =  element_line(colour = "grey80", size = 0.3, linetype = 2),
+          panel.grid.minor.y =  element_line(colour = "grey80", size = 0.2,  linetype = 3),
+          panel.background =  element_blank(),
+          axis.text.x = element_text(size = 8),
+          axis.text.y = element_text(size = 10)) 
+})
 
 names(trajs) <- demes$deme
 ggexport(ggarrange(plotlist = trajs, labels = chartr("123456789", "ABCDEFGHI", 1:length(trajs)), nrow = 3, ncol = 2),
-         filename = paste0(params$output_figure, "02.png"),
+         filename = paste0(args$output_figure, "02.png"),
          width = 2300, height = 3000, res = 300)
 ```
 
@@ -390,7 +379,7 @@ first_times <- df_traj_cases %>%
 first_times
 
 ggexport(first_times,
-         filename = paste0(params$output_figure, "03.png"),
+         filename = paste0(args$output_figure, "03.png"),
          width = 2000, height = 800, res = 300)
 ```
 
@@ -405,7 +394,7 @@ first_df1 <- df_traj %>%
   arrange(date, partner) %>%
   slice(1:m)
 
-first_eu <- ggplot(first_df1, aes(x = date, y = ..count../(m*params$n))) +
+first_eu <- ggplot(first_df1, aes(x = date, y = ..count../(m*args$n))) +
   geom_density_line(
     data = select(first_df1, -deme), aes(fill = NA),
     color = "transparent", alpha = 0.8, bw = 2) + 
@@ -420,7 +409,7 @@ first_eu <- ggplot(first_df1, aes(x = date, y = ..count../(m*params$n))) +
         axis.text.x = element_text(angle = 90))
 first_eu
 ggexport(first_eu,
-         filename = paste0(params$output_figure, "04.png"),
+         filename = paste0(args$output_figure, "04.png"),
          width = 2100, height = 600, res = 300)
 ```
 
@@ -435,7 +424,7 @@ first_df10 <- df_traj %>%
   arrange(date, partner) %>%
   slice(1:m)
 
-first_dest <- ggplot(first_df10, aes(x = date, y = ..count../(m*params$n))) +
+first_dest <- ggplot(first_df10, aes(x = date, y = ..count../(m*args$n))) +
   geom_density_line(
     data = select(first_df10, -deme), aes(fill = NA),
     color = "transparent", alpha = 0.8, bw = 2
@@ -451,7 +440,7 @@ first_dest <- ggplot(first_df10, aes(x = date, y = ..count../(m*params$n))) +
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank())
 
-first_source <- ggplot(first_df10, aes(x = date, y = ..count../(m*params$n))) +
+first_source <- ggplot(first_df10, aes(x = date, y = ..count../(m*args$n))) +
   geom_density_line(
     data = select(first_df10, -deme), aes(fill = NA),
     color = "transparent", alpha = 0.8, bw = 2
@@ -470,7 +459,7 @@ first_source <- ggplot(first_df10, aes(x = date, y = ..count../(m*params$n))) +
 first_10eu <- ggarrange(first_dest, first_source, labels = chartr("123456789", "ABCDEFGHI", 1:3), nrow = 2, ncol = 1)
 first_10eu
 ggexport(first_10eu,
-         filename = paste0(params$output_figure, "05.png"),
+         filename = paste0(args$output_figure, "05.png"),
          width = 2000, height = 1200, res = 300)
 ```
 
@@ -485,7 +474,7 @@ first_country <- df_traj %>%
   arrange(date, partner) %>%
   slice(1:m)
 
-first_countryplot <- ggplot(first_country, aes(x = date, y = ..count../(m*params$n))) +
+first_countryplot <- ggplot(first_country, aes(x = date, y = ..count../(m*args$n))) +
   geom_density_line(
     data = select(first_country, -deme), aes(fill = NA),
     color = "transparent", alpha = 0.8, bw = 3
@@ -503,7 +492,7 @@ first_countryplot <- ggplot(first_country, aes(x = date, y = ..count../(m*params
         axis.text.x = element_text(angle = 90))
 first_countryplot
 ggexport(first_countryplot,
-         filename = paste0(params$output_figure, "06.png"),
+         filename = paste0(args$output_figure, "06.png"),
          width = 2000, height = 1200, res = 300)
 ```
 
@@ -519,7 +508,7 @@ first_10country <- df_traj %>%
   arrange(date, partner) %>%
   slice(1:m)
 
-first_10countryplot <- ggplot(first_10country, aes(x = date, y = ..count../(m*params$n))) +
+first_10countryplot <- ggplot(first_10country, aes(x = date, y = ..count../(m*args$n))) +
   geom_density_line(
     data = select(first_10country, -deme), aes(fill = NA),
     color = "transparent", alpha = 0.8, bw = 3
@@ -537,7 +526,7 @@ first_10countryplot <- ggplot(first_10country, aes(x = date, y = ..count../(m*pa
         axis.text.x = element_text(angle = 90))
 first_10countryplot
 ggexport(first_10countryplot,
-         filename = paste0(params$output_figure, "07.png"),
+         filename = paste0(args$output_figure, "07.png"),
          width = 2000, height = 1200, res = 300)
 ```
 
@@ -555,11 +544,11 @@ h = df_traj %>%
   mutate(R = ifelse(R == Inf, NA, R)) %>%
   select(traj, deme, date, R) %>%
   arrange(date) #%>%
-  #pivot_wider(names_from = date, values_from = R) %>%
-  #arrange(traj)
+#pivot_wider(names_from = date, values_from = R) %>%
+#arrange(traj)
 
 inpop = df_traj %>% filter(var == "in_pop", date == "2020-03-07") %>% select(traj, cumvalue)
-                        
+
 hweek = df_traj %>%
   filter(var %in% c("B", "IM"), is.na(partner)) %>%
   select(-cumvalue) %>%
@@ -600,11 +589,11 @@ ratio_plots <- lapply(demes$deme, function(d){
 })
 
 ratiobm = ggarrange(plotlist = ratio_plots, nrow = 2, ncol = 3)
-  
+
 ratiobm
 ggexport(ratiobm,
-           filename = paste0(params$output_figure, "08.png"),
-           width = 2000, height = 1200, res = 300)
+         filename = paste0(args$output_figure, "08.png"),
+         width = 2000, height = 1200, res = 300)
 ```
 
 
@@ -703,7 +692,7 @@ plot_chord <- function(df, min_date, max_date) {
 # Period 1
 plot_chord(df_traj, ymd("2019-09-01"), ymd("2020-01-23")) 
 
-png(paste0(params$output_figure, "09a.png"), width = 1000, height = 1000, res = 200)
+png(paste0(args$output_figure, "09a.png"), width = 1000, height = 1000, res = 200)
 plot_chord(df_traj, ymd("2019-09-01"), ymd("2020-01-23")) 
 text(label = "A", x = -1, y = 1, cex = 1.5, font = 2)
 dev.off()
@@ -715,7 +704,7 @@ dev.off()
 # Period 2
 plot_chord(df_traj, ymd("2020-01-23"), ymd("2020-02-28"))
 
-png(paste0(params$output_figure, "09b.png"), width = 1000, height = 1000, res = 200)
+png(paste0(args$output_figure, "09b.png"), width = 1000, height = 1000, res = 200)
 plot_chord(df_traj, ymd("2020-01-23"), ymd("2020-02-28"))
 mtext(text = "B", at = -1, cex = 1.5, font = 2)
 text(label = "B", x = -1, y = 1, cex = 1.5, font = 2)
@@ -728,7 +717,7 @@ text(label = "B", x = -1, y = 1, cex = 1.5, font = 2)
 # Period 3
 plot_chord(df_traj, ymd("2020-02-28"), ymd("2020-03-08"))
 
-png(paste0(params$output_figure, "09c.png"), width = 1000, height = 1000, res = 200)
+png(paste0(args$output_figure, "09c.png"), width = 1000, height = 1000, res = 200)
 plot_chord(df_traj, ymd("2020-02-28"), ymd("2020-03-08"))
 text(label = "C", x = -1, y = 1, cex = 1.5, font = 2)
 dev.off()
@@ -752,7 +741,7 @@ flight_df_3e <- flight_df %>%
   rename(src = geo, dest = partner) %>%
   group_by(src, dest, epoch, pred) %>%
   summarise(N = n(),
-         values = sum(dvalues/N)) %>%
+            values = sum(dvalues/N)) %>%
   ungroup %>%
   select(epoch, src, dest, values) %>%
   mutate(src = demes2[src], dest = demes2[dest])
@@ -766,7 +755,7 @@ by_epoch = df_traj %>%
   rename(src = partner, dest = deme) %>%
   group_by(src, dest, epoch, traj) %>%
   summarise(N = n(),
-         evalues = sum(value)/N) %>%
+            evalues = sum(value)/N) %>%
   select(traj, epoch, src, dest, evalues) 
 
 df_f = left_join(by_epoch, flight_df_3e) %>%
@@ -787,7 +776,7 @@ imflights <- ggplot(df_f, aes(ev, v, group=interaction(src, dest))) +
   facet_grid(~dest) +
   scale_color_viridis_d(labels=c("period 1", "period 2", "period 3")) +
   scale_fill_viridis_d(labels=c("period 1", "period 2", "period 3")) +
-   ggrepel::geom_text_repel(
+  ggrepel::geom_text_repel(
     data = df_f %>% filter(epoch == 3),
     aes(ev, v, label = demes1[src]),
     segment.alpha = 0, point.padding = 0.25,
@@ -806,7 +795,7 @@ imflights <- ggplot(df_f, aes(ev, v, group=interaction(src, dest))) +
         #legend.position = c(0.8, 0.1),
         legend.position = "bottom",
         legend.background = element_rect(fill = "white", size=0.1, linetype="solid", 
-                                  colour ="white"),
+                                         colour ="white"),
         legend.title = element_blank(),
         legend.text = element_text(size = 8),
         legend.key.size = unit(0.4, "cm"),
@@ -817,7 +806,7 @@ imflights <- ggplot(df_f, aes(ev, v, group=interaction(src, dest))) +
         panel.background = element_rect(fill = "white", colour = "grey80"))
 imflights
 ggexport(imflights,
-         filename = paste0(params$output_figure, "10.png"),
+         filename = paste0(args$output_figure, "10.png"),
          width = 2000, height = 1200, res = 300)
 ```
 
@@ -848,12 +837,12 @@ report_plot <- ggplot(df_report) +
   #scale_x_date(limits = c(ymd("2019-10-01"), ymd(MRS)), date_breaks = "1 month", date_labels = "%b %y") +
   coord_cartesian(ylim = c(0,1)) +
   theme(#legend.position = "none", 
-        axis.title.x=element_blank()) #+
-  #facet_wrap(~deme, scales = "free")
+    axis.title.x=element_blank()) #+
+#facet_wrap(~deme, scales = "free")
 
 report_plot
 ggexport(report_plot,
-         filename = paste0(params$output_figure, "11.png"),
+         filename = paste0(args$output_figure, "11.png"),
          width = 2000, height = 1200, res = 300)
 ```
 
@@ -888,11 +877,11 @@ inc_plot <- ggplot(df_inc) +
   #scale_x_date(limits = c(ymd("2019-10-01"), ymd(MRS)), date_breaks = "1 month", date_labels = "%b %y") +
   #coord_cartesian(ylim = c(0,1)) +
   theme(#legend.position = "none", 
-        axis.title.x=element_blank()) #+
+    axis.title.x=element_blank()) #+
 inc_plot
 
 ggexport(inc_plot,
-         filename = paste0(params$output_figure, "12.png"),
+         filename = paste0(args$output_figure, "12.png"),
          width = 2000, height = 1200, res = 300)
 ```
 
@@ -904,11 +893,11 @@ df_eventsttiming <- df_traj_cases %>%
   group_by(traj, var, deme, partner) %>%
   mutate(var = ifelse(var == "O", "B", var)) %>%
   arrange(date) %>%
-   slice(1) #%>%
-  # ungroup(traj) %>%
-  # summarise(m = median(date),
-  #           l = quantile(date, 0.025, type = 1),
-  #           h = quantile(date, 0.925, type = 1)) 
+  slice(1) #%>%
+# ungroup(traj) %>%
+# summarise(m = median(date),
+#           l = quantile(date, 0.025, type = 1),
+#           h = quantile(date, 0.925, type = 1)) 
 
 events_timingplot <- ggplot(df_eventsttiming) +
   geom_density_ridges(aes(x = date, y = factor(var, level =  c("OM", "IM", "D", "B")), fill = var), color = "transparent", quantile_lines = TRUE, quantiles = c(0.025, 0.975), bandwidth=2, alpha = 0.7, size = 0.2) + 
@@ -924,7 +913,7 @@ events_timingplot <- ggplot(df_eventsttiming) +
 
 events_timingplot
 ggexport(events_timingplot,
-         filename = paste0(params$output_figure, "13.png"),
+         filename = paste0(args$output_figure, "13.png"),
          width = 2000, height = 1200, res = 300)
 
 ```

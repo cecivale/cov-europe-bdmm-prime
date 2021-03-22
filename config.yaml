@@ -39,9 +39,9 @@ builds:
   #   subsampling_scheme: ssprop_China
   #   beast_analysis: 
   #     - 201030_europe3
-  europeC:
-      subsampling_scheme: ssprop_China
-      beast_analysis: 
+  # europeC:
+  #     subsampling_scheme: ssprop_China
+  #     beast_analysis: 
   # #     #- 201030_europe3 # No GLM
   # #     #- 201102_europe4 # Flight data 1 epoch
   # #     #- 201106_europe5 # Flight data 3 epochs
@@ -50,8 +50,9 @@ builds:
   # #      - 201215_europe7i2 # GLM 4p 3e with indicators
   # #      - 210113_europe7p2 # GLM 2p 3e with indicators
   #        - 210113_europe9fp2 
-        - 210120_europe10a
-        - 210120_europe10b
+        
+        # - 210129_europe10c
+        # - 210129_europe10d
   # dsEurope:
   #     subsampling_scheme: dsprop_6demes
   #     beast_analysis: 
@@ -61,6 +62,15 @@ builds:
 #      beast_analysis: 
 #        - 201211_europe6 # GLM 4 predictors 3 epochs
 #        - 201215_europe7i2 # GLM 4p 3e indicators
+
+  # europeE:
+  #   subsampling_scheme: china_full
+  #   beast_analysis: 
+  #     - 210212_europe12
+  europeC:
+    subsampling_scheme: ssprop_China
+    beast_analysis: 
+      - 210205_europe10
 
 
 # Define files used for external configuration. Common examples consist of a
@@ -401,6 +411,50 @@ subsampling:
       seq_per_deme: 20
       prob: "cases"
 
+  china_full:
+    France:
+      country: "France"
+      region: "Europe"
+      min_date: "2020-01-23"
+      max_date: "2020-03-08"
+      seq_per_deme: 50
+      prob: "cases"
+    Germany:
+      country: "Germany"
+      region: "Europe"
+      min_date: "2020-01-28"
+      max_date: "2020-03-08"
+      seq_per_deme: 50
+      prob: "cases"
+    China:
+      country: "China"
+      region: "Asia"
+      min_date: "2019-12-24"
+      max_date: "2020-03-08"
+      seq_per_deme: 60
+      prob: "deaths"
+    Italy:
+      country: "Italy"
+      region: "Europe"
+      min_date: "2020-01-29"
+      max_date: "2020-03-08"
+      seq_per_deme: 60
+      prob: "cases"
+    OtherEuropean:
+      region: "Europe"
+      exclude_country: ["France","Germany","Italy","Spain"]
+      min_date: "2020-01-29"
+      max_date: "2020-03-08"
+      seq_per_deme: 50
+      prob: "cases"
+    Spain:
+      country: "Spain"
+      region: "Europe"
+      min_date: "2020-02-24"
+      max_date: "2020-03-08"
+      seq_per_deme: 50
+      prob: "cases"
+
 tree:
   tree-builder-args: "'-ninit 10 -n 4'"
 
@@ -422,7 +476,7 @@ beast:
   jar: "/Users/maceci/code/mt-beast-dev/BDMM-Prime/out/artifacts/BDMM_Prime_jar/BDMM-Prime.jar"
   cpus_mcmc: 2
   # List of parallel mcmc chains seeds to run 
-  n_mcmc: [1,2,3]
+  n_mcmc: [1,2,3,4,5]
   # Length of a mcmc chain, it has to be the same length than the one specified in the xml file
   l_mcmc: 10000000
   # Time for mcmc chains in cluster in minutes
@@ -436,4 +490,6 @@ beast:
   # Trajectories
   n_traj: 200
   resample: 10000
+  #n_particles: [300, 1000, 3000, 10000]
+  n_particles: [300]
 

@@ -39,12 +39,14 @@ def filter_combinator(combinator, combinations):
 
 combinations = list(chain.from_iterable([[frozenset(sett) for sett in product(frozenset({("build_name", build_name)}), frozenset(product(["analysis_name"], config["builds"][build_name]["beast_analysis"])))] for build_name in BUILD_NAMES]))
 filtered_product = filter_combinator(product, combinations)
+PARTICLES = config["beast"]["n_particles"]
 
 rule all:
     input:
         ml_tree = expand("results/{build_name}/tree.nwk", build_name=BUILD_NAMES),
-        summary_tree = expand("results/{build_name}/{analysis_name}.mcc.typed.node.tree", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
-        #figs_traj = expand("results/{build_name}/figs_{analysis_name}", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
+        summary_tree = expand(expand("results/{build_name}/{analysis_name}.{{particles}}.mcc.typed.node.tree", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME), particles=PARTICLES) ,
+        report_traj = expand(expand("results/{build_name}/{analysis_name}.{{particles}}.analyze_trajectories.pdf", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME), particles=PARTICLES),
+        #figs_traj = expand(expand("results/{build_name}/figs_{analysis_name}_{{particles}}", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME), particles=PARTICLES),
         #tables_traj = expand("results/{build_name}/tables_{analysis_name}", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
         summary_log =  expand("results/{build_name}/{analysis_name}_comb.summary.tsv", filtered_product, build_name=BUILD_NAMES, analysis_name=ANALYSIS_NAME),
         
@@ -782,14 +784,15 @@ rule trajectory_mapping:
         trace = rules.resample_trace.output.thinned_trace,
         trees = rules.resample_trees.output.thinned_trees
     output:
-        typed_trees = "results/{build_name}/{analysis_name}.typed.trees",
-        node_typed_trees = "results/{build_name}/{analysis_name}.typed.node.trees",
-        trajectories = "results/{build_name}/{analysis_name}.TL.traj"
+        typed_trees = "results/{build_name}/{analysis_name}.{particles}.typed.trees",
+        node_typed_trees = "results/{build_name}/{analysis_name}.{particles}.typed.node.trees",
+        trajectories = "results/{build_name}/{analysis_name}.{particles}.TL.traj"
     params:
-        log = "trajectory_mapping_{build_name}_{analysis_name}.txt",
-        jar = config["beast"]["jar"]
+        log = "trajectory_mapping_{build_name}_{analysis_name}_{particles}.txt",
+        jar = config["beast"]["jar"],
+        particles = config["beast"]["n_particles"]
     benchmark:
-        "benchmarks/trajectory_mapping_{build_name}_{analysis_name}.benchmark.txt"
+        "benchmarks/trajectory_mapping_{build_name}_{analysis_name}_{particles}.benchmark.txt"
     resources:
         runtime = config["beast"]["t_traj"],
         mem_mb = 4096,
@@ -798,7 +801,7 @@ rule trajectory_mapping:
         """
         scp {input.xml} results/{wildcards.build_name}/{wildcards.analysis_name}.xml
         cd results/{wildcards.build_name}/
-        java -Xmx3G -jar {params.jar} -overwrite {wildcards.analysis_name}.xml 2>&1 | tee {params.log}  || :
+        java -Xmx3G -jar {params.jar} -D "nParticles={wildcards.particles}" -overwrite {wildcards.analysis_name}.xml 2>&1 | tee {params.log}  || :
         cd ../../
         mv results/{wildcards.build_name}/{params.log} logs/
         touch {output.typed_trees} {output.node_typed_trees} {output.trajectories}
@@ -841,9 +844,9 @@ rule summarize_trees:
     input:
         combined_trees = rules.trajectory_mapping.output.node_typed_trees
     output:
-        summary_tree = "results/{build_name}/{analysis_name}.mcc.typed.node.tree"
+        summary_tree = "results/{build_name}/{analysis_name}.{particles}.mcc.typed.node.tree"
     log:
-        "logs/summarize_trees_{build_name}_{analysis_name}.txt"
+        "logs/summarize_trees_{build_name}_{analysis_name}_{particles}.txt"
     params:
         jar = config["beast"]["jar"],
         heights = config["beast"]["mcc_heights"]
@@ -862,27 +865,29 @@ rule analyze_trajectories:
         trajectories = rules.trajectory_mapping.output.trajectories,
         metadata = rules.adjust_names.output.metadata
     output:
-        figs = "results/{build_name}/figs_{analysis_name}",
-        tables = "results/{build_name}/tables_{analysis_name}"
+        report = "results/{build_name}/{analysis_name}.{particles}.analyze_trajectories.pdf"
     log:
-        "logs/analyze_trajectories_{build_name}_{analysis_name}.txt"
+        "logs/analyze_trajectories_{build_name}_{analysis_name}_{particles}.txt"
     benchmark:
-        "benchmarks/analyze_trajectories_{build_name}_{analysis_name}.benchmark.txt"
+        "benchmarks/analyze_trajectories_{build_name}_{analysis_name}_{particles}.benchmark.txt"
     params:
         burnin = 0, #config["beast"]["burnin"],
         demes = _get_subsampling_settings,
-        n_traj =  config["beast"]["n_traj"]
+        #n_traj =  config["beast"]["n_traj"]
+        n_traj =  10,
+        figs = "results/{build_name}/figs_{analysis_name}_{particles}",
+        tables = "results/{build_name}/tables_{analysis_name}_{particles}"
     shell:
         """
-        mkdir {output.figs} {output.tables}
-        Rscript scripts/analyze_trajectories.R \
-            --input {input.trajectories} \
-            --burnin {params.burnin} \
-            --metadata {input.metadata} \
-            --demes {params.demes} \
-            --n {params.n_traj} \
-            --output_fig {output.figs}/{wildcards.analysis_name}_figtraj \
-            --output_table {output.tables}/{wildcards.analysis_name}_table 2>&1 | tee -a {log}
+        mkdir -p {params.figs} {params.tables}
+        Rscript -e "rmarkdown::render('scripts/analyze_trajectories.Rmd', output_file='../{output.report}')" \
+            --args = {input.trajectories} \
+            --burnin = {params.burnin} \
+            --metadata = {input.metadata} \
+            --demes = {params.demes} \
+            --n = {params.n_traj} \
+            --output_figure = {params.figs}/{wildcards.analysis_name}_figtraj \
+            --output_table = {params.tables}/{wildcards.analysis_name}_table 2>&1 | tee -a {log}
         """
 
 

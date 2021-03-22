@@ -45,7 +45,7 @@ print(args)
 df <- loadTrajectories(args$input, burninFrac = args$burnin, subsample = args$n)
 cat("\nNumber of analyzed trajectories (subsampled):", length(unique(df$states$traj)))
 
-
+print(args$demes)
 # Load demes configuration and sequence metadata -------------------------------
 demes <- data.frame(deme = NA, region = NA, country = NA, division = NA, 
                     exclude_country = NA, exclude_division = NA,
