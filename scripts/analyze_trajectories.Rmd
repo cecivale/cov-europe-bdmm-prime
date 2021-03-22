@@ -1,0 +1,930 @@
+---
+title: "Trajectory Mapping Results"
+subtitle: "Analysis Europe10 300 particles"
+author: "Cecilia Valenzuela"
+date: '`r format(Sys.time(), "%d %B, %Y")`'
+output:
+  beamer_presentation:
+    theme: "Pittsburgh"
+    colortheme: "dove"
+    fonttheme: "structurebold"
+    highlight: pygments
+classoption: "aspectratio=169"
+fontsize: 8pt
+tables: yes
+params:
+  input: traj_file.traj
+  burnin: 0
+  metadata: metadata.csv
+  demes: demes_yaml
+  n: 1000
+  output_figure: path
+  output_table: path
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+options(knitr.kable.NA = '')
+```
+
+```{r libraries}
+# Load libraries ---------------------------------------------------------------
+library(argparse)
+library(yaml)
+library(tidyverse)
+library(lubridate)
+library(scales)
+library(ggpubr)
+library(ggsci)
+library(ggridges)
+library(patchwork)
+library(hrbrthemes)
+library(circlize)
+library(chorddiag) 
+library(ggforce)
+library(ComplexHeatmap)
+library(maps)
+library(sf)
+library(wpp2019)
+library(gridExtra)
+library(grid)
+# Source files -----------------------------------------------------------------
+source("./scripts/trajProcessing.R")
+source("./scripts/utils.R")
+source("./scripts/flight_data.R")
+```
+
+```{r parser}
+# Parser -----------------------------------------------------------------------
+# parser <- argparse::ArgumentParser()
+# parser$add_argument("--input", type = "character", help="trajectory file")
+# parser$add_argument("--burnin", type = "double", help = "Burning fraction for trajectory files")
+# parser$add_argument("--metadata", type = "character", help = "Alignment sequences metadata")
+# parser$add_argument("--demes", nargs = "+", help = "Demes configuration")
+# parser$add_argument("--n", type = "integer", help = "Number of trajectories to analyze")
+# parser$add_argument("--output_figure", type = "character", help = "Output path for the figures")
+# parser$add_argument("--output_table", type = "character", help = "Output path for the tables")
+# args <- parser$parse_args()
+```
+
+```{r debugging}
+# Debugging
+# args$burnin = 0.1
+# args$demes = read.csv("./files/demes_China.csv", stringsAsFactors = FALSE)
+# #params$input = "./results/europeC/201211_europe6p2.TL.traj"
+# params$input = "/Users/maceci/210205_europe10/results/europeC/210205_europe10.10000.TL.traj"
+# args$metadata =  "./results/europeC/final_metadata.tsv"
+# args$n = 100
+# demes = args$demes
+# demes$exclude_country[5] = "France,Germany,Italy,Spain"
+# demes <- demes %>% arrange(deme)
+```
+
+
+## Deme configuration
+\tiny
+```{r demeconfig}
+# Load demes configuration and sequence metadata -------------------------------
+demes <- data.frame(deme = NA, region = NA, country = NA, division = NA,
+                    exclude_country = NA, exclude_division = NA,
+                    min_date = NA, max_date = NA, seq_per_deme = NA) %>%
+  bind_rows(bind_rows(lapply(yaml::yaml.load(string = paste(params$demes, collapse = " ")),
+                          data.frame, stringsAsFactors = FALSE), .id = "deme")) %>%
+  group_by(deme) %>%
+  mutate(exclude_country = ifelse(is.na(exclude_country), NA, paste0(exclude_country, collapse = ","))) %>%
+  distinct() %>%
+  filter_all(any_vars(!is.na(.))) %>%
+  mutate(deme = str_to_title(deme)) %>%
+  mutate(deme = ifelse(deme %in% c("Othereuropean", "OtherEuropean"), "Other European", deme))
+
+print("DEME CONFIG")
+knitr::kable(demes)
+# 
+# china_deme <- demes$deme[demes$region == "Asia"]
+# if (china_deme == "Hubei-China") china_deme = "China"
+```
+
+
+```{r plotopts}
+# Plot options -----------------------------------------------------------------------
+set_plotopts()
+dcolors <- pal_npg("nrc")(10)[c(1:5,9)]
+dcolors <- c("#E64B35FF", "#4DBBD5FF", "#00A087FF", "#3C5488FF", "#ffaa4fFF", "#7E6148FF")
+#dcolors <- c("#E64B35FF", "#7E6148FF", "#00A087FF", "#3C5488FF", "#4DBBD5FF", "#ffc954")
+#dcolors <- dcolors[1:nrow(demes)]
+names(dcolors) <- sort(demes$deme)
+dark_dcolors <- rgb(t(col2rgb(dcolors)/2), maxColorValue=255)
+names(dark_dcolors) <- names(dcolors)
+ecolors <- c(B = "#1e3d59", M = "#f5f0e1", IM = "#ff6e40", OM = "#ffc13b")
+```
+
+
+```{r map, fig.height=2, fig.align="center"}
+plot_map(demes)
+knitr::kable(demes %>% select(-c("demeID", "exclude_division", "prob")), booktabs = TRUE)
+```
+
+
+## ECDC Case count data
+
+```{r ecdc-data, results='hide'}
+# Case data information from ECDC ----------------------------------------------
+# Most recent sample value
+metadata <- read_tsv(params$metadata)
+MRS <- max(metadata$date)
+mrs <- ymd_hms(paste(MRS, '23:59:00 UTC'))
+
+case_data <- get_cases(demes, from = ymd("2019-09-01"), to = MRS) 
+```
+
+::: {.columns}
+
+:::: {.column width="40%"}
+\small
+```{r ecdc-table, echo=FALSE}
+knitr::kable(case_data %>% filter(date == MRS) %>% select(deme, source, total_confirmed)%>% pivot_wider(names_from = "source", values_from = total_confirmed) %>% mutate_if(is.numeric, function (x) round(x,1)), booktabs = TRUE, caption = paste("Total number of cases reported to ECDC on March 8, 2020"))
+```
+::::
+
+:::: {.column width="60%"}
+```{r ecdc-plot, fig.height = 3, fig.width=4, fig.cap="ECDC case counts for each deme from the beginning of the pandemic to March 8, 2020"}
+
+ggplot(case_data %>% filter(source == "ecdc")) +
+  geom_line(aes(x = date, y = total_confirmed, color = deme)) +
+  geom_point(aes(x = date, y = total_confirmed, color = deme)) +
+  #facet_wrap(~source) +
+  scale_color_manual(values = dcolors, name = "") +
+  scale_x_date(limits = c(ymd("2019-12-30"), ymd("2020-03-18")), date_breaks = "1 month", date_labels = "%b %d") +
+  scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
+    ylab("Total confirmed cases") +
+    theme(axis.title.x=element_blank(),
+          legend.position = c(0.2, 0.7),
+          legend.box="horizontal",
+          panel.grid.major.y =  element_line(colour = "grey80", size = 0.3, linetype = 2),
+          panel.grid.minor.y =  element_line(colour = "grey80", size = 0.2,  linetype = 2),
+          panel.background =  element_blank())
+```
+
+::::
+
+:::
+
+## Epidemic trajectory data
+
+From the Stochastic Trajectory Mapping analysis, we sample with importance sampling one epidemic trajectory per set of parameters + typed node tree from the set of simulated trajectories.
+
+The processing of the trajectory data includes the generation of two different datasets:
+
+- `states`: We have the total number of inferred cases by trajectory, deme and time.
+- `events`: We have each event that happened in a epidemic trajectory, with its type (origin, birth, death or migration), the source/destination deme and time.
+
+## Epidemic trajectory data
+
+We use the events dataset to compute quantities of interest:
+
+- `B`: transmissions (births) events 
+- `D`: becoming unifectious (deaths) events
+- `IM`: migrations into the deme 
+- `OM`: migrations out of the deme
+- `S`: sampling events
+- `O`: origin
+- `in_pop`: origin + transmissions + incoming migrations 
+- `out_pop`: deaths + outgoing migration + sampling events
+- `active_pop`: origin + transmissions + incoming migrations - (deaths + outgoing migration + sampling events)
+
+```{r traj-data, warnings = FALSE, message = FALSE, cache = FALSE}
+# Load trajectory data ---------------------------------------------------------
+df <- loadTrajectories(params$input, burninFrac = params$burnin, subsample = params$n)
+
+# Data wrangling ---------------------------------------------------------------
+df_traj <- processEvents(df$events, demes, "China", mrs)
+```
+
+
+## Epidemic trajectory data
+
+```{r table-events}
+knitr::kable(head(df_traj %>% filter(value != 0), 5), booktabs = TRUE, caption = "Trajectories dataset")
+```
+
+\normalsize
+To have a feasible time of analysis of the epidemic trajectories we take a random subsample of 500 trajectories.
+
+To facilitate visualization and summarise the results, we take a grid time of 1 day and summarise the number of events that day as the sum of the events in the corresponding time interval; and the number of inferred cases as the maximum of the interval.
+
+
+```{r traj-processing}
+# Add reported case counts
+df_traj_cases <- df_traj %>%
+    mutate(traj = as.character(traj)) %>%
+    bind_rows(case_data %>%
+                mutate(var = source, value = new_confirmed, cumvalue = total_confirmed) %>%
+                select(deme, var, date, value, cumvalue))
+
+# Summarise trajectories, compute mean, median and 95% HPD interval for each variable
+traj_summary <- df_traj %>%
+  group_by(var, deme, partner, date) %>%
+  summarise(l95_value = HDInterval::hdi(value)[[1]],
+            h95_value = HDInterval::hdi(value)[[2]],
+            median_value = median(value),
+            mean_value = mean(value),
+            l95_cumvalue = HDInterval::hdi(cumvalue)[[1]],
+            h95_cumvalue = HDInterval::hdi(cumvalue)[[2]],
+            #l95_cumvalue = quantile(cumvalue, 0.025),
+            #h95_cumvalue = quantile(cumvalue, 0.975),
+            median_cumvalue = median(cumvalue),
+            mean_cumvalue = mean(cumvalue)) %>% ungroup
+
+```
+
+```{r}
+# 1. Total 
+# 1.1 Median and 95% CCI of Total cases on the full time period. Fraction median
+#    and 95% CCI (cases ecdc/inferred cases) wrt. ECDC reported cases
+
+# Total values March 8, 2020 join with reported cases
+traj_total <- traj_summary %>%
+  filter(date == MRS) %>%
+  select(var, date, deme, partner, matches("cumvalue"))  %>%
+  left_join(case_data %>% filter(source == "ecdc")) %>%
+  select(var, deme, matches("cumvalue"), total_confirmed) %>%
+  mutate(ltimes = l95_cumvalue/total_confirmed,
+         htimes = h95_cumvalue/total_confirmed,
+         mtimes = median_cumvalue/total_confirmed) %>%
+  mutate_if(is.numeric, function(x) round(x,2)) 
+
+#knitr::kable(t(traj_total %>% filter(var == "D"))[-1,])
+```
+
+## Summarised epidemic trajectories
+```{r trajs ribbon, fig.height = 4}
+# 1.1 Median and 95% CCI by deme in log scale
+gribbon <- ggplot(traj_summary %>% filter(var == "active_pop")) +
+  geom_ribbon(aes(date, ymin = l95_cumvalue, ymax = h95_cumvalue, fill = deme), alpha = 0.5) +
+  geom_line(aes(date, median_cumvalue, colour = deme)) +
+  ylab("Population size") +
+  xlab("Date") +
+  #labs(title = "SARS-CoV-2 early epidemics in Europe and Hubei",
+       #subtitle = "Case trajectories Median and 95% CCI by deme") +
+  scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
+  scale_x_date(limits = c(ymd("2019-10-01"), ymd(MRS)), date_breaks = "1 month", date_labels = "%b %d") +
+  scale_fill_manual(name = "", values = dcolors) +
+  scale_color_manual(name = "", values = dcolors) +
+  theme(legend.position = c(0.2, 0.7),
+        legend.box="horizontal",
+        axis.title.x=element_blank())
+
+gribbon
+
+ggexport(gribbon,
+         filename = paste0(params$output_figure, "01.png"),
+         width = 1500, height = 1000, res = 300)
+```
+
+```{r trajs}
+# 1.2 All trajectories single deme in log scale with reported cases date
+trajs <- lapply(demes$deme, function(d) {
+df_traj_cases%>%
+  # 1. Prepare data
+  filter(deme == d, 
+         var %in% c("D", "ecdc"), 
+         is.na(partner)) %>%
+  # 2. Plot
+  ggplot() +
+  geom_line(aes(date, cumvalue, group = traj,
+                color = var == "ecdc",
+                alpha = var == "ecdc",
+                linetype = var == "ecdc",
+                size = var == "ecdc")) +
+  scale_color_manual(name = "",
+                     labels = c(paste0(d, " inferred\n population trajectories"),
+                                paste0(ifelse(d == china_deme, "China", as.character(d)),
+                                       " total reported cases")),
+                     values = c(dcolors[[d]], dark_dcolors[[d]])) +
+  scale_alpha_manual(name = "", values = c(0.2, 1), guide = FALSE) +
+  scale_linetype_manual(name = "", values = c(1, 5),
+                        labels = c(paste0(d, " inferred\n population trajectories"),
+                                   paste0(ifelse(d == china_deme, "China", as.character(d)),
+                                          " total reported cases"))) +
+  scale_size_manual(name = "", values = c(0.5, 1.5),
+                    labels = c(paste0(d, " inferred\n population trajectories"),
+                               paste0(ifelse(d == china_deme, "China", as.character(d)),
+                                      " total reported cases"))) +
+  scale_x_date(limits = c(ymd("2019-10-01"), ymd(MRS)), date_breaks = "1 month",
+               date_labels = "%b %y") +
+  scale_y_log10(limits= c(1,10^7.5), expand = c(0, 0),labels = trans_format("log10", math_format(10^.x))) +
+  labs(title = d) +
+  ylab("COVID-19 cases") +
+  theme(axis.title.x=element_blank(),
+        legend.position = "none",
+        legend.box="horizontal",
+        panel.grid.major.y =  element_line(colour = "grey80", size = 0.3, linetype = 2),
+        panel.grid.minor.y =  element_line(colour = "grey80", size = 0.2,  linetype = 3),
+        panel.background =  element_blank(),
+        axis.text.x = element_text(size = 8),
+        axis.text.y = element_text(size = 10)) 
+  })
+
+names(trajs) <- demes$deme
+ggexport(ggarrange(plotlist = trajs, labels = chartr("123456789", "ABCDEFGHI", 1:length(trajs)), nrow = 3, ncol = 2),
+         filename = paste0(params$output_figure, "02.png"),
+         width = 2300, height = 3000, res = 300)
+```
+
+
+\tiny
+```{r trajs-plotv2, results='asis', fig.height = 4}
+for (d in demes$deme) {
+  cat("\n## Inferred case counts - ", d, "\n")
+  grid.arrange(trajs[[d]], tableGrob(traj_total %>% filter(deme == d, var == "D") %>% t, theme = ttheme_minimal()), ncol = 2, widths = c(2,1))
+  cat("\n")
+}
+```
+
+## First introduction
+
+```{r first, fig.height=4}
+# 2. First introduction distribution density by deme and time of first official reported case to ECDC
+first_ecdc <- case_data %>% 
+  filter(source == "ecdc", total_confirmed != 0) %>% 
+  group_by(deme) %>% 
+  arrange(date) %>% 
+  slice(1)
+#first_reported$min_date[first_reported$dest == china_deme] <- ymd("2019-12-12")
+
+first_times <- df_traj_cases %>%
+  # 1. Prepare data
+  filter(var == "IM" | var == "O", value != 0) %>%
+  group_by(deme, traj) %>%
+  arrange(date) %>%
+  slice(1) %>%
+  ungroup %>%
+  bind_rows(df_traj_cases %>%
+              filter(var == "IM", value != 0) %>%
+              group_by(traj) %>%
+              arrange(date) %>%
+              slice(1)  %>%
+              mutate(deme = "Europe")) %>%
+  mutate(deme = fct_rev(deme)) %>%
+  # 2. Plot
+  ggplot() +
+  geom_density_ridges(aes(x = date, y = deme, fill = deme), quantile_lines = TRUE, quantiles = c(0.025, 0.975), bandwidth=2, alpha = 0.7, size = 0.2) +
+  #stat_density_ridges(, alpha = 0.7)
+  #geom_histogram(aes(x = date, fill = deme), bandwidth=5, alpha = 0.7, size = 0.2) +
+  #geom_vline(aes(xintercept = min_date, color = dest), linetype = 2) +
+  geom_point(data = first_ecdc, 
+             aes(date, deme, fill = deme), shape = 23, size = 4) +
+  scale_fill_manual(values = c(dcolors, "Europe" = "grey")) +
+  scale_color_manual(values = c(dcolors, "Europe" = "grey")) +
+  scale_x_date(limits = c(ymd("2019-09-01"), ymd("2020-03-08")), date_breaks = "1 month", date_labels = "%b %Y", expand = c(0,0)) +
+  scale_y_discrete(expand = c(0.05,0), "probability") +
+  #theme_ridges() +
+  theme(legend.position = "none",
+        axis.title.x=element_blank(),
+        panel.grid.major.x =  element_line(colour = "grey80", size = 0.3, linetype = 2),
+        #panel.grid.minor.x =  element_line(colour = "grey80", size = 0.2,  linetype = 3),
+        #axis.title.y=element_blank(),
+        panel.background = element_rect(fill = "white", colour = "white"))
+
+first_times
+
+ggexport(first_times,
+         filename = paste0(params$output_figure, "03.png"),
+         width = 2000, height = 800, res = 300)
+```
+
+## First introduction into Europe, location
+```{r first-eu, fig.height=4}
+# 2.2b First introduction into Europe, distribution density destination
+m = 1
+first_df1 <- df_traj %>%
+  # 1. Prepare data
+  filter(var == "IM", !is.na(partner),  value != 0) %>%
+  group_by(traj) %>%
+  arrange(date, partner) %>%
+  slice(1:m)
+
+first_eu <- ggplot(first_df1, aes(x = date, y = ..count../(m*params$n))) +
+  geom_density_line(
+    data = select(first_df1, -deme), aes(fill = NA),
+    color = "transparent", alpha = 0.8, bw = 2) + 
+  geom_density_line(aes(fill = deme), bw = 2, color = "transparent", alpha = 0.8) +
+  facet_wrap(~deme, nrow = 1) +
+  scale_fill_manual(name = "", values = dcolors, na.value = "grey") +
+  scale_x_date(date_breaks = "1 week", date_labels = "%b %d", expand = c(0,0)) +
+  ylab("Destination country\nprobability") +
+  labs(title = "First imported case into Europe") +
+  theme(legend.position = "none",
+        axis.title.x=element_blank(),
+        axis.text.x = element_text(angle = 90))
+first_eu
+ggexport(first_eu,
+         filename = paste0(params$output_figure, "04.png"),
+         width = 2100, height = 600, res = 300)
+```
+
+## First 10 introductions into Europe, location
+```{r first-eu10, fig.height=4}
+# 2.2b First 10 introduction into Europe, distribution density destination
+m = 10
+first_df10 <- df_traj %>%
+  # 1. Prepare data
+  filter(var == "IM", !is.na(partner),  value != 0) %>%
+  group_by(traj) %>%
+  arrange(date, partner) %>%
+  slice(1:m)
+
+first_dest <- ggplot(first_df10, aes(x = date, y = ..count../(m*params$n))) +
+  geom_density_line(
+    data = select(first_df10, -deme), aes(fill = NA),
+    color = "transparent", alpha = 0.8, bw = 2
+  ) + 
+  geom_density_line(aes(fill = deme), bw = 2, color = "transparent", alpha = 0.8) +
+  facet_wrap(~deme, nrow = 1) +
+  scale_fill_manual(name = "", values = dcolors, na.value = "grey") +
+  scale_x_date(date_breaks = "1 week", date_labels = "%b %d", expand = c(0,0)) +
+  ylab("Destination country\nprobability") +
+  labs(title = "First 10 imported cases into Europe") +
+  theme(legend.position = "none",
+        axis.title.x=element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank())
+
+first_source <- ggplot(first_df10, aes(x = date, y = ..count../(m*params$n))) +
+  geom_density_line(
+    data = select(first_df10, -deme), aes(fill = NA),
+    color = "transparent", alpha = 0.8, bw = 2
+  ) + 
+  geom_density_line(aes(fill = partner), bw = 2, color = "transparent", alpha = 0.8) +
+  facet_wrap(~deme, nrow = 1) +
+  scale_fill_manual(name = "", values = dcolors, na.value = "grey") +
+  scale_x_date(date_breaks = "1 week", date_labels = "%b %d", expand = c(0,0)) +
+  ylab("Source country\nprobability") +
+  theme(legend.position = "none",
+        axis.title.x=element_blank(),
+        strip.background = element_blank(),
+        strip.text = element_blank(),
+        axis.text.x = element_text(angle = 90))
+
+first_10eu <- ggarrange(first_dest, first_source, labels = chartr("123456789", "ABCDEFGHI", 1:3), nrow = 2, ncol = 1)
+first_10eu
+ggexport(first_10eu,
+         filename = paste0(params$output_figure, "05.png"),
+         width = 2000, height = 1200, res = 300)
+```
+
+## First introductions into each country, source
+```{r first-bycountry, fig.height=4}
+# 2.2b First introduction into each country, distribution density destination
+m = 1
+first_country <- df_traj %>%
+  # 1. Prepare data
+  filter(var == "IM", !is.na(partner),  value != 0, deme != "China") %>%
+  group_by(traj, deme) %>%
+  arrange(date, partner) %>%
+  slice(1:m)
+
+first_countryplot <- ggplot(first_country, aes(x = date, y = ..count../(m*params$n))) +
+  geom_density_line(
+    data = select(first_country, -deme), aes(fill = NA),
+    color = "transparent", alpha = 0.8, bw = 3
+  ) + 
+  geom_density_line(aes(fill = partner), bw = 3, color = "transparent", alpha = 0.6) +
+  geom_density_line(aes(fill = partner, color = partner), bw = 3, alpha = 0.6) +
+  labs(title = "First imported case into each country") +
+  facet_wrap(~deme, nrow = 1) +
+  scale_fill_manual(name = "", values = dcolors, na.value = "grey") +
+  scale_color_manual(name = "", values = dcolors, na.value = "grey") +
+  scale_x_date(date_breaks = "1 week", date_labels = "%b %d", expand = c(0,0)) +
+  ylab("Source country\nprobability") +
+  theme(legend.position = "none",
+        axis.title.x=element_blank(),
+        axis.text.x = element_text(angle = 90))
+first_countryplot
+ggexport(first_countryplot,
+         filename = paste0(params$output_figure, "06.png"),
+         width = 2000, height = 1200, res = 300)
+```
+
+## First 10 introductions into each country, source
+
+```{r first-10bycountry, fig.height=4}
+# 2.2b First 10 introductions into each country, distribution density destination
+m = 10
+first_10country <- df_traj %>%
+  # 1. Prepare data
+  filter(var == "IM", !is.na(partner),  value != 0, deme != "China") %>%
+  group_by(traj, deme) %>%
+  arrange(date, partner) %>%
+  slice(1:m)
+
+first_10countryplot <- ggplot(first_10country, aes(x = date, y = ..count../(m*params$n))) +
+  geom_density_line(
+    data = select(first_10country, -deme), aes(fill = NA),
+    color = "transparent", alpha = 0.8, bw = 3
+  ) + 
+  geom_density_line(aes(fill = partner), bw = 3, color = "transparent", alpha = 0.6) +
+  geom_density_line(aes(fill = partner, color = partner), bw = 3, alpha = 0.6) +
+  labs(title = "First 10 imported cases into each country") +
+  facet_wrap(~deme, nrow = 1) +
+  scale_fill_manual(name = "", values = dcolors, na.value = "grey") +
+  scale_color_manual(name = "", values = dcolors, na.value = "grey") +
+  scale_x_date(date_breaks = "1 week", date_labels = "%b %d", expand = c(0,0)) +
+  ylab("Source country\nprobability") +
+  theme(legend.position = "none",
+        axis.title.x=element_blank(),
+        axis.text.x = element_text(angle = 90))
+first_10countryplot
+ggexport(first_10countryplot,
+         filename = paste0(params$output_figure, "07.png"),
+         width = 2000, height = 1200, res = 300)
+```
+
+## Local transmission vs imported cases
+
+```{r bvsm, fig.height=4}
+h = df_traj %>%
+  filter(var %in% c("B", "IM"), is.na(partner)) %>%
+  select(-cumvalue) %>%
+  group_by(deme, traj) %>%
+  pivot_wider(names_from = "var", values_from = "value") %>%
+  filter(IM != 0) %>%
+  #na_if(0) %>% replace_na(list(B = 1e-8)) %>%
+  mutate(R = B/IM) %>%
+  mutate(R = ifelse(R == Inf, NA, R)) %>%
+  select(traj, deme, date, R) %>%
+  arrange(date) #%>%
+  #pivot_wider(names_from = date, values_from = R) %>%
+  #arrange(traj)
+
+inpop = df_traj %>% filter(var == "in_pop", date == "2020-03-07") %>% select(traj, cumvalue)
+                        
+hweek = df_traj %>%
+  filter(var %in% c("B", "IM"), is.na(partner)) %>%
+  select(-cumvalue) %>%
+  group_by(deme, traj, var, year_week = ceiling_date(date, "1 week")) %>%
+  summarize(value = sum(value)) %>%
+  pivot_wider(names_from = "var", values_from = "value") %>%
+  filter(IM != 0) %>%
+  #na_if(0) %>% replace_na(list(B = 1e-8)) %>%
+  mutate(R = B/IM) %>%
+  mutate(R = ifelse(R == Inf, NA, R)) %>%
+  select(traj, deme, year_week, R) %>%
+  arrange(year_week) 
+
+
+hsummary = hweek %>% group_by(deme, year_week) %>% 
+  summarise(mR = median(R),
+            lR  = HDInterval::hdi(R)[[1]],
+            hR  = HDInterval::hdi(R)[[2]])
+
+
+ratio_plots <- lapply(demes$deme, function(d){
+  hweek %>% left_join(inpop) %>% filter(deme == d) %>%
+    ggplot() +
+    geom_line(aes(year_week, R, group=traj, color = log(cumvalue)), alpha = 0.5) +
+    geom_line(data = hsummary %>% filter(deme == d),aes(year_week, mR), size = 1) +
+    geom_vline(aes(xintercept=ymd("2020-01-23")), linetype = "dashed") +
+    geom_vline(aes(xintercept=ymd("2020-03-01")), linetype = "dashed") +
+    #facet_wrap(~deme, scales = "free") +
+    coord_cartesian(ylim = c(0,200)) +
+    xlab("") +
+    ylab(ifelse(d %in% c("China", "Italy"), "local/imported cases\n by week", "")) +
+    labs(title = d) +
+    #scale_colour_gradient(low = "yellow", high = "red", na.value = NA)
+    scale_colour_viridis_c(name = "log cases", direction = -1) +
+    theme(legend.position = c(0.2, 0.8),
+          legend.key.size = unit(0.2, "cm"),
+          title = element_text(size = 10))
+})
+
+ratiobm = ggarrange(plotlist = ratio_plots, nrow = 2, ncol = 3)
+  
+ratiobm
+ggexport(ratiobm,
+           filename = paste0(params$output_figure, "08.png"),
+           width = 2000, height = 1200, res = 300)
+```
+
+
+
+
+
+```{r circoplot}
+plot_chord <- function(df, min_date, max_date) {
+  # df <- df %>%
+  #   filter(date > min_date, date <= max_date, var == "IM") %>%
+  #   group_by(partner, deme, date) %>%
+  #   # Take mean value over all trajectories
+  #   summarise(Nmean = mean(value), .groups = "drop_last") %>%
+  #   # Sum mean values of each day over all the time period
+  #   summarise(N = sum(Nmean), .groups = "drop") %>%
+  #   drop_na()
+  
+  df <- df %>%
+    filter(date > min_date, date <= max_date, var == "IM") %>%
+    group_by(partner, deme, traj) %>%
+    # Take mean value over all trajectories
+    summarise(N = sum(value), .groups = "drop_last") %>%
+    #summarise(Nm = median(N)/as.numeric(max_date - min_date), .groups = "drop") %>%
+    summarise(Nm = median(N), .groups = "drop") %>%
+    drop_na()
+  
+  # parameters
+  cplot <- circos.clear()
+  cplot <- circos.par(start.degree = 90, gap.degree = 4, track.margin = c(-0.1, 0.1), 
+                      points.overflow.warning = FALSE)
+  par(mar = rep(0, 4))
+  # Base plot
+  chordDiagram(
+    x = df, 
+    grid.col = dcolors,
+    transparency = 0.25,
+    directional = 1,
+    direction.type = c("arrows", "diffHeight"), 
+    diffHeight  = -0.04,
+    annotationTrack = "grid", 
+    #annotationTrackHeight = c(0.05, 0.1),
+    link.arr.type = "big.arrow", 
+    link.sort = TRUE, 
+    link.largest.ontop = TRUE)
+  # Add text and axis
+  circos.trackPlotRegion(
+    track.index = 1, 
+    bg.border = NA, 
+    panel.fun = function(x, y) {
+      xlim = get.cell.meta.data("xlim")
+      sector.index = get.cell.meta.data("sector.index")
+      # Add names to the sector. 
+      circos.text(
+        x = mean(xlim), 
+        y = 3.2, 
+        labels = sector.index, 
+        facing = "bending", 
+        cex = 0.9
+      )
+      # Add graduation on axis
+      circos.axis(
+        h = "top", 
+        major.at = seq(from = 0, to = xlim[2], by = case_when(
+          xlim[2] > 50500 ~ 20000,
+          xlim[2] > 20500 ~ 20000,
+          xlim[2] > 10500 ~ 5000,
+          xlim[2] > 5500 ~ 5000,
+          xlim[2] > 2500 ~ 2000,
+          xlim[2] > 2000 ~ 2000,
+          xlim[2] > 1500 ~ 1000,
+          xlim[2] > 800 ~ 500,
+          xlim[2] > 500 ~ 500,
+          xlim[2] > 200 ~ 100,
+          xlim[2] > 100 ~ 50,
+          xlim[2] > 50 ~ 25,
+          xlim[2] > 20 ~ 15,
+          xlim[2] > 10 ~ 10,
+          xlim[2] > 1 ~ 1,
+          TRUE ~ 0.01)), 
+        minor.ticks = 1, 
+        major.tick.length = 0.5,
+        labels.niceFacing = FALSE,
+        labels.cex = 0.6)
+    }
+  )
+  return(cplot)
+}
+
+
+
+```
+
+## Migrations - Period 1
+
+```{r, fig.height=2.5, fig.align='center'}
+# Period 1
+plot_chord(df_traj, ymd("2019-09-01"), ymd("2020-01-23")) 
+
+png(paste0(params$output_figure, "09a.png"), width = 1000, height = 1000, res = 200)
+plot_chord(df_traj, ymd("2019-09-01"), ymd("2020-01-23")) 
+text(label = "A", x = -1, y = 1, cex = 1.5, font = 2)
+dev.off()
+```
+
+## Migrations - Period 2
+
+```{r, fig.height=2.5, fig.align='center'}
+# Period 2
+plot_chord(df_traj, ymd("2020-01-23"), ymd("2020-02-28"))
+
+png(paste0(params$output_figure, "09b.png"), width = 1000, height = 1000, res = 200)
+plot_chord(df_traj, ymd("2020-01-23"), ymd("2020-02-28"))
+mtext(text = "B", at = -1, cex = 1.5, font = 2)
+text(label = "B", x = -1, y = 1, cex = 1.5, font = 2)
+#dev.off()
+```
+
+## Migrations - Period 3
+
+```{r, fig.height=2.5, fig.align='center'}
+# Period 3
+plot_chord(df_traj, ymd("2020-02-28"), ymd("2020-03-08"))
+
+png(paste0(params$output_figure, "09c.png"), width = 1000, height = 1000, res = 200)
+plot_chord(df_traj, ymd("2020-02-28"), ymd("2020-03-08"))
+text(label = "C", x = -1, y = 1, cex = 1.5, font = 2)
+dev.off()
+```
+
+
+## Daily flight passengers vs daily imported cases
+
+```{r flight-pass, fig.height=4}
+demes1 <- c(China = "CN", France = "FR", Germany = "DE", Italy = "IT", OtherEuropean = "OE", Spain = "ES")
+flight_df <- get_flightData(countries = demes1) 
+
+demes2 <- setNames(names(demes1), demes1)
+flight_df_3e <- flight_df %>%
+  filter((month(time) %in% 1:3 & year(time) == 2020) | (month(time) == 12 & year(time) == 2019)) %>%
+  mutate(epoch = case_when(
+    month(time) == 2 ~ 2,
+    month(time) == 3 ~ 3,
+    TRUE ~ 1),
+    pred = 1) %>%
+  rename(src = geo, dest = partner) %>%
+  group_by(src, dest, epoch, pred) %>%
+  summarise(N = n(),
+         values = sum(dvalues/N)) %>%
+  ungroup %>%
+  select(epoch, src, dest, values) %>%
+  mutate(src = demes2[src], dest = demes2[dest])
+
+by_epoch = df_traj %>%
+  filter(var == "IM", cumvalue != 0, !is.na(partner)) %>%
+  mutate(epoch = case_when(
+    month(date) == 2 ~ 2,
+    month(date) == 3 ~ 3,
+    TRUE ~ 1)) %>%
+  rename(src = partner, dest = deme) %>%
+  group_by(src, dest, epoch, traj) %>%
+  summarise(N = n(),
+         evalues = sum(value)/N) %>%
+  select(traj, epoch, src, dest, evalues) 
+
+df_f = left_join(by_epoch, flight_df_3e) %>%
+  group_by(src, dest, epoch) %>%
+  summarise(v = median(values),
+            ev = median(evalues),
+            lev = HDInterval::hdi(evalues)[[1]],
+            hev = HDInterval::hdi(evalues)[[2]])
+
+imflights <- ggplot(df_f, aes(ev, v, group=interaction(src, dest))) +
+  #geom_line(aes(color = src)) + 
+  geom_line(color = "grey80", size = 1) +
+  geom_pointrange(shape = 21, size = 0.4, linetype = 1, alpha = 0.7, aes(x = ev, y = v, xmin = lev, xmax = hev, fill=factor(epoch), color=factor(epoch))) +
+  scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
+  scale_x_log10(labels = trans_format("log10", math_format(10^.x))) +
+  ylab("daily flight passengers") +
+  xlab("daily imported cases") +
+  facet_grid(~dest) +
+  scale_color_viridis_d(labels=c("period 1", "period 2", "period 3")) +
+  scale_fill_viridis_d(labels=c("period 1", "period 2", "period 3")) +
+   ggrepel::geom_text_repel(
+    data = df_f %>% filter(epoch == 3),
+    aes(ev, v, label = demes1[src]),
+    segment.alpha = 0, point.padding = 0.25,
+    #segment.size = 5,
+    #box.padding = .5,
+    force = 1,
+    size = 8/.pt,
+    nudge_x = 1,
+    #nudge_y = 0.5,
+    color = "grey30"
+  ) +
+  theme(panel.grid.major.y =  element_line(colour = "grey80", size = 0.2, linetype = 3),
+        panel.grid.minor.y = element_blank(),
+        axis.text.y = element_text(size = 8),
+        panel.grid.major.x =  element_line(colour = "grey80", size = 0.2,  linetype = 3),
+        #legend.position = c(0.8, 0.1),
+        legend.position = "bottom",
+        legend.background = element_rect(fill = "white", size=0.1, linetype="solid", 
+                                  colour ="white"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 8),
+        legend.key.size = unit(0.4, "cm"),
+        legend.spacing = unit(0.4, "mm"),
+        legend.direction = "horizontal",
+        legend.box.margin = margin(c(0,0,0,0)),
+        legend.margin = margin(c(0,0,0,0)),
+        panel.background = element_rect(fill = "white", colour = "grey80"))
+imflights
+ggexport(imflights,
+         filename = paste0(params$output_figure, "10.png"),
+         width = 2000, height = 1200, res = 300)
+```
+
+## Weekly confirmed cases proportion
+
+```{r report-prop, fig.height=4}
+df_report <- traj_summary %>%
+  filter(var %in% c("D"), deme != "China") %>%
+  left_join(case_data %>% filter(source == "ecdc")) %>%
+  select(deme, date, l95_value, h95_value, median_value, new_confirmed) %>%
+  group_by(deme, year_week = ceiling_date(date, "1 week")) %>%
+  summarise(l95_value = sum(l95_value),
+            h95_value = sum(h95_value),
+            median_value = sum(median_value),
+            new_confirmed = sum(new_confirmed)) %>%
+  mutate(median_report = new_confirmed/median_value,
+         h95_report = new_confirmed/l95_value,
+         l95_report = new_confirmed/h95_value)
+
+report_plot <- ggplot(df_report) +
+  geom_line(aes(x = year_week, y = median_report, color = deme), stat="identity") +
+  geom_point(aes(x = year_week, y = median_report, color = deme), stat="identity") +
+  geom_ribbon(aes(year_week, ymin = l95_report, ymax = h95_report,fill = deme), alpha = 0.1) +
+  ylab("Reporting rate") +
+  scale_color_manual(values = dcolors, name = "") +
+  scale_fill_manual(values = dcolors, name = "") +
+  scale_x_date(date_breaks = "5 days", date_labels = "%b %d", limits=c(ymd("2020-01-30"), ymd("2020-03-08"))) +
+  #scale_x_date(limits = c(ymd("2019-10-01"), ymd(MRS)), date_breaks = "1 month", date_labels = "%b %y") +
+  coord_cartesian(ylim = c(0,1)) +
+  theme(#legend.position = "none", 
+        axis.title.x=element_blank()) #+
+  #facet_wrap(~deme, scales = "free")
+
+report_plot
+ggexport(report_plot,
+         filename = paste0(params$output_figure, "11.png"),
+         width = 2000, height = 1200, res = 300)
+```
+
+
+## Weekly incidence population
+
+```{r incidence, fig.height=4}
+library(wpp2019)
+data(pop)
+pop <- pop %>% filter(name %in% demes$deme) %>% rename(deme = name) %>% mutate(population = `2020` * 1000) %>% select(deme, population)
+
+df_inc <- traj_summary %>%
+  filter(var %in% c("D")) %>%
+  left_join(pop) %>%
+  select(deme, date, l95_cumvalue, h95_cumvalue, median_cumvalue, population) %>%
+  group_by(deme, population, date) %>%
+  summarise(l95_cumvalue = sum(l95_cumvalue),
+            h95_cumvalue = sum(h95_cumvalue),
+            median_cumvalue = sum(median_cumvalue)) %>%
+  mutate(median_inc = median_cumvalue/population  * 100,
+         h95_inc = l95_cumvalue/population  * 100,
+         l95_inc = h95_cumvalue/population  * 100)
+
+inc_plot <- ggplot(df_inc) +
+  geom_line(aes(x = date, y = median_inc, color = deme), stat="identity") +
+  geom_point(aes(x = date, y = median_inc, color = deme), stat="identity") +
+  geom_ribbon(aes(date, ymin = l95_inc, ymax = h95_inc,fill = deme), alpha = 0.1) +
+  ylab("Reporting rate") +
+  scale_color_manual(values = dcolors, name = "") +
+  scale_fill_manual(values = dcolors, name = "") +
+  scale_x_date(date_breaks = "5 days", date_labels = "%b %d", limits=c(ymd("2020-01-30"), ymd("2020-03-08"))) +
+  #scale_x_date(limits = c(ymd("2019-10-01"), ymd(MRS)), date_breaks = "1 month", date_labels = "%b %y") +
+  #coord_cartesian(ylim = c(0,1)) +
+  theme(#legend.position = "none", 
+        axis.title.x=element_blank()) #+
+inc_plot
+
+ggexport(inc_plot,
+         filename = paste0(params$output_figure, "12.png"),
+         width = 2000, height = 1200, res = 300)
+```
+
+## Events timing
+
+```{r events-timing, fig.height=4}
+df_eventsttiming <- df_traj_cases %>%
+  filter(var %in% c("O", "B", "D", "IM", "OM"), value != 0, is.na(partner)) %>%
+  group_by(traj, var, deme, partner) %>%
+  mutate(var = ifelse(var == "O", "B", var)) %>%
+  arrange(date) %>%
+   slice(1) #%>%
+  # ungroup(traj) %>%
+  # summarise(m = median(date),
+  #           l = quantile(date, 0.025, type = 1),
+  #           h = quantile(date, 0.925, type = 1)) 
+
+events_timingplot <- ggplot(df_eventsttiming) +
+  geom_density_ridges(aes(x = date, y = factor(var, level =  c("OM", "IM", "D", "B")), fill = var), color = "transparent", quantile_lines = TRUE, quantiles = c(0.025, 0.975), bandwidth=2, alpha = 0.7, size = 0.2) + 
+  geom_vline(data = first_ecdc, aes(xintercept = date, linetype = "first confirmed case to ECDC")) +
+  scale_linetype_manual(values = 3, name = "") +
+  facet_wrap(~deme) +
+  scale_fill_viridis_d(guide = FALSE) +
+  scale_y_discrete(breaks = c("B", "D", "IM", "OM"), labels = c("first local case", "first uninfectious", "first imported case", "first exported case")) + 
+  ylab("") +
+  xlab("") +
+  theme(legend.position = "top")
+
+
+events_timingplot
+ggexport(events_timingplot,
+         filename = paste0(params$output_figure, "13.png"),
+         width = 2000, height = 1200, res = 300)
+
+```

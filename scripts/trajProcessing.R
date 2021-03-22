@@ -134,3 +134,75 @@ gridEventsByAge <- function(trajEvents, ages) {
   
   return(df_grid)
 }
+
+processEvents <- function(events, demes, source = NA, mrs) {
+  events <- events %>%
+    mutate(src = factor(src,
+                        levels = 0:(nrow(demes) - 1),
+                        labels = sort(demes$deme)),
+           dest = (factor(dest,
+                          levels = 0:(nrow(demes) - 1),
+                          labels = sort(demes$deme))))
+  events[events$event == "O", "src"] = source
+  events[events$event == "O", "mult"] =  1
+  
+  df_traj0 <- events %>%
+    mutate(date = date(date_decimal(decimal_date(mrs) - age))) %>%
+    select(-time, -age) %>%
+    group_by_at(vars(-mult)) %>%
+    summarise(N = sum(mult), .groups = "drop") %>%
+    mutate(srctmp = src, destmp = dest) %>%
+    pivot_longer(src:dest, names_to = "role", values_to = "deme") %>%
+    mutate(event = ifelse(event == "M" & role == "src", "OM",
+                          ifelse(event == "M" & role == "dest", "IM", event)),
+           partner = ifelse(event == "OM", as.character(destmp),
+                            ifelse(event == "IM", as.character(srctmp), NA))) %>% 
+    select(-c("role", "srctmp", "destmp")) %>%
+    filter(!is.na(deme)) %>%
+    group_by_at(vars(-N)) %>%
+    summarise(value = sum(N), .groups = "drop") %>%
+    group_by(traj, deme, partner, event) %>%
+    arrange(traj, date, deme) %>%
+    mutate(cumvalue = cumsum(value)) %>%
+    rename(var = event) 
+  
+  mig_cum = df_traj0 %>%
+    filter(var %in% c("IM", "OM")) %>%
+    group_by(traj, var, date, deme) %>%
+    summarise(value = sum(value), .groups = "drop") %>%
+    group_by(traj, var, deme) %>%
+    arrange(traj, date, deme) %>%
+    mutate(cumvalue = cumsum(value),
+           partner = NA) 
+  
+  inout_pop = df_traj0 %>% 
+    mutate(var = ifelse(var %in% c("O", "B", "IM"), "in_pop", "out_pop")) %>%
+    group_by(traj, deme, var, date) %>%
+    summarise(value = sum(value), .groups = "drop_last") %>%
+    arrange(traj, date, deme) %>%
+    mutate(cumvalue = cumsum(value)) 
+  
+  active_pop = inout_pop %>%
+    select(-cumvalue) %>%
+    pivot_wider(names_from = var, values_from = value, values_fill = list(value = 0)) %>%
+    mutate(active_pop = in_pop - out_pop) %>%
+    pivot_longer(active_pop, names_to = "var", values_to = "value") %>%
+    group_by(traj, deme, var) %>%
+    arrange(traj, date, deme) %>%
+    mutate(cumvalue = cumsum(value)) %>%
+    select(-c("in_pop", "out_pop"))
+  
+  df_traj <- bind_rows(df_traj0, mig_cum) %>%
+    bind_rows(inout_pop) %>%
+    bind_rows(active_pop) 
+  
+  min_date <- min(df_traj$date)
+  df_traj_complete <- df_traj%>%
+    group_by(traj, var, deme, partner) %>%
+    complete(date = seq.Date(min_date, MRS, by = "day")) %>%
+    replace_na(list(value = 0)) %>%
+    arrange(traj, date, deme) %>%
+    mutate(cumvalue = cumsum(value))
+  
+  return(df_traj_complete)
+}

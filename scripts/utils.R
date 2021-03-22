@@ -7,22 +7,42 @@
 library(countrycode)
 library(ggpubr)
 library(lubridate)
+library(maps)
+library(sf)
+library(wpp2019)
 
 set_plotopts <- function() {
   theme_set(theme_minimal())
   theme_update(#strip.background = element_rect(fill = "grey95", color = "grey95", size = 1),
                panel.grid = element_blank(),
-               panel.background = element_rect(fill = "white", colour = "grey80"),
+               #panel.background = element_rect(fill = "white", colour = "grey80"),
                axis.ticks = element_line(),
                legend.position = "bottom",
                legend.box="vertical",
-               strip.background = element_rect(fill = "grey80", colour = "grey80"),
-               strip.text = element_text(color = "grey30"),
+               legend.text=element_text(size = 8),
+               legend.title=element_text(size = 8),
+               strip.background = element_rect(fill = "white", colour = "grey80"),
+               strip.text = element_text(color = "grey30", face = "bold"),
                #legend.title = element_text(size = 9, face = "bold"),
-               axis.text.x = element_text(size = 8),
-               axis.text.y = element_text(size = 8),
                axis.title.y = element_text(size = 9, face = "bold", margin = margin(r = 10)),
-               axis.title.x = element_text(size = 9, face = "bold", margin = margin(t = 10)))
+               axis.title.x = element_text(size = 9, face = "bold", margin = margin(t = 10)),
+               #axis.line.x = element_line(color = "grey30"),
+               # axis.text.x.bottom = element_text(hjust = 0, vjust = .5,
+               #                            margin = margin(0, 0, 0, 0),
+               #                            color = "grey30",
+               #                            lineheight = 0.8),
+               #axis.ticks.x = element_blank(),
+               #axis.line.y.left = element_line(color = "grey30"),
+               # axis.text.y.right = element_text(hjust = 0, vjust = .5,
+               #                           margin = margin(0, 0, 0, 0),
+               #                           color = "grey30",
+               #                           lineheight = 0.8),
+               panel.grid.major.y =  element_line(colour = "grey80", size = 0.3, linetype = 2),
+               panel.grid.minor.y =  element_line(colour = "grey80", size = 0.2,  linetype = 3),
+               panel.background =  element_blank(),
+               axis.text.x = element_text(size = 8),
+               axis.text.y = element_text(size = 10))
+               #plot.margin = margin(3, 7, 3, 1.5))
 }
 
 
@@ -30,10 +50,10 @@ set_plotopts <- function() {
 get_cases <- function(demes, from = NA, to = NA) {
   # Get case data information from ECDC for specific demes (countries and regions)
   # Set from and to dates with values from the function call instead of the ones from the demes info
-  #cat("\nLoading case data counts from ECDC...\n")
+  #cat("\nLoading confirmed case counts from ECDC...\n")
   #if (!is.na(division_name)) case_data <- get_dataJH() Hubei specific data, but only from 22 Jan
   #else case_data <- get_dataECDC()
-  case_data <- get_dataECDC()
+  case_data <- bind_rows(get_dataECDC(), get_dataOWID(), get_dataC19OD())
   
   if (!is.na(from)) demes$min_date <- from
   if (!is.na(to)) demes$max_date <- to
@@ -63,13 +83,15 @@ get_cases_deme <- function(case_data, deme_name, region_name = NA, country_name 
            date >= as.Date(from),
            date <= as.Date(to)) %>%
     mutate(deme = deme_name) %>%
-    arrange(date) %>%
-    mutate(cumulative_cases = cumsum(new_cases),
-          cumulative_deaths = cumsum(new_deaths),
-          population_deme = sum(unique(population))) %>%
-    group_by(date) %>%
-    mutate(cumulative_cases = max(cumulative_cases),
-           cumulative_deaths = max(cumulative_deaths))
+    #arrange(date) %>%
+    group_by(source, deme, date) %>%
+    replace_na(list(new_confirmed = 0)) %>%
+    summarise(new_confirmed = sum(new_confirmed), .groups = "drop_last") %>%
+    mutate(total_confirmed = cumsum(new_confirmed)) %>%
+          #population_deme = sum(unique(population))) %>%
+    #group_by(date) %>%
+    #mutate(total_confirmed = max(total_confirmed))
+    ungroup
   
   return(df_cases)
 }  
@@ -77,26 +99,30 @@ get_cases_deme <- function(case_data, deme_name, region_name = NA, country_name 
 get_dataECDC <- function() {
   # case_data <-  read.csv("https://opendata.ecdc.europa.eu/covid19/casedistribution/csv", 
   #                        na.strings = "", fileEncoding = "UTF-8-BOM") # From 14 Dec, it is weekly counts
-  cat("\n Loading case data counts from ECDC...")
+  cat("\n Loading confirmed case counts from ECDC...")
   case_data <-  readxl::read_excel("data/ECDC_covidcases.xlsx")
   case_data1 <- case_data %>%
     rename(country = countriesAndTerritories,
            region = continentExp,
            date = dateRep,
-           population = popData2019,
-           new_cases = cases,
+           #population = popData2019,
+           new_confirmed = cases,
            new_deaths = deaths,
-           cases14days = 12,
+           country_code = geoId
            ) %>%
+    group_by(country) %>%
+    arrange(date) %>%
     mutate(source = "ecdc",
            date = ymd(date),
            country = ifelse(country == "Czechia", "Czech Republic", gsub("_", " ", country))) %>%
-    select(region, country, geoId, date, new_cases, new_deaths, cases14days, population, source) 
+           #total_confirmed = cumsum(new_confirmed)) %>%
+    select(region, country, country_code, date, new_confirmed, source) 
+  cat("done\n")
   return(case_data1)
 }
 
 get_dataJH <- function() {
-  cat("\nLoading case data counts from JH...")
+  cat("\nLoading confirmed case counts from JH...")
   case_data <- read_csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv", col_types = cols())
 
   case_data1 <- case_data %>%
@@ -112,15 +138,18 @@ get_dataJH <- function() {
                                              destination = "continent", warn = FALSE)) %>%
     arrange(date) %>%
     group_by(source, country, date) %>%
-    summarise(cumulative_cases = sum(cumulative_cases), .groups = "drop_last") %>%
-    mutate(new_cases = diff(c(0, cumulative_cases))) %>%
-    ungroup()
+    summarise(total_confirmed = sum(cumulative_cases), .groups = "drop_last") %>%
+    #group_by(country) %>%
+    mutate(new_confirmed = diff(c(0, total_confirmed))) %>%
+    ungroup() %>%
+    select(region, country, date, new_confirmed, source) 
+  cat("done\n")
   
   return(case_data2)
 }
 
 get_dataWHO <- function() {
-  cat("\nLoading case data counts from WHO...")
+  cat("\nLoading confirmed case counts from WHO...")
   case_data <-  read.csv("https://covid19.who.int/WHO-COVID-19-global-data.csv")
   case_data1 <- case_data %>%
     mutate(source = "who",
@@ -129,23 +158,45 @@ get_dataWHO <- function() {
                                              origin = "iso2c",
                                              destination = "continent", warn = FALSE)) %>%
     select(-Date_reported) %>%
-    rename_all(tolower)
-
+    rename_all(tolower) %>%
+    rename(new_confirmed = new_cases) %>%
+    select(region, country, country_code, date, new_confirmed, source) 
+  cat("done\n")
   return(case_data1)
 }
 
 get_dataOWID <- function() {
-  cat("\nLoading case data counts from Our World in Data...")
+  cat("\nLoading confirmed case counts from Our World in Data...")
   case_data <-  read.csv("https://covid.ourworldindata.org/data/owid-covid-data.csv")
   case_data1 <- case_data %>%
     rename(country = location,
-           cumulative_cases = total_cases) %>%
+           region = continent,
+           #total_confirmed = total_cases,
+           new_confirmed = new_cases) %>%
     mutate(source = "owid",
-           date = ymd(date))
-  
+           date = ymd(date)) %>%
+    select(region, country, date, new_confirmed, source) 
+  cat("done\n")
   return(case_data1)
 }
 
+get_dataC19OD <- function() {
+  cat("\nLoading confirmed case counts from Covid-19 Open Data...")
+  case_data <-  read.csv("https://storage.googleapis.com/covid19-open-data/v2/epidemiology.csv")
+  index <- read.csv("https://storage.googleapis.com/covid19-open-data/v2/index.csv")
+  case_data1 <- case_data %>%
+    left_join(index, by = "key") %>%
+    filter(aggregation_level == 0) %>%
+    select(-country_code) %>%
+    rename(country = country_name,
+           country_code = key) %>%
+    mutate(source = "c19od",
+           date = ymd(date),
+           region = countrycode(sourcevar = country, origin = "country.name", destination = "continent"))%>%
+    select(region, country, date, new_confirmed, total_confirmed, source) 
+  cat("done\n")
+  return(case_data1)
+}
 
 get_GISAIDseqs <- function(metadata, 
                            from="2019-12-01", to=Sys.Date(), 
@@ -212,3 +263,78 @@ to_date <- function(x, mrs = "2020-03-07") {
 to_num <- function(x, mrs = "2020-03-07") {
   decimal_date(ymd(mrs)) - decimal_date(ymd(x))
 }
+
+read_trace <- function(traceFile, burninFrac){
+  df <- read_table2(traceFile, comment = "#")
+  
+  if (burninFrac > 0) {
+    n <- dim(df)[1]
+    df <- df[-(1:ceiling(burninFrac * n)), ]
+  }
+  
+  return(df)
+}
+
+#   
+# dt <- read.csv("https://raw.githubusercontent.com/covid-19-Re/dailyRe-Data/master/CHN-estimates.csv")
+# dt %>% 
+#   mutate(date = ymd(date)) %>%
+#   filter(data_type == "Confirmed cases", estimate_type == "Cori_slidingWindow") %>%
+#   mutate(epoch = case_when(
+#     date >= "2020-02-10" & date < "2020-03-08" ~ 3,
+#     date >= "2020-01-23" & date < "2020-02-10" ~ 2,
+#     date < "2020-01-23" ~ 1)) %>%
+#   group_by(epoch) %>%
+#   summarise(med = median(median_R_mean),
+#             mean = mean(median_R_mean))
+# 
+# 
+
+
+plot_map <- function(demes) {
+  # https://www.r-bloggers.com/2019/04/zooming-in-on-maps-with-sf-and-ggplot2/
+  worldmap <- st_as_sf(map("world", plot = FALSE, fill = TRUE)) %>%
+    mutate(country = ifelse(ID == "UK", "United Kingdom", as.character(ID)),
+           continent = countrycode(sourcevar = country,
+                                   origin = "country.name",
+                                   destination = "continent")) %>%
+    #filter(country %in% demes$country | continent == "Europe") %>%
+    mutate(deme = case_when(
+      country %in% demes$country ~ country,
+      continent == "Europe" ~ "OtherEuropean"))
+  
+  zoom_to <- c(20, 50) 
+  zoom_level <- 2.5
+  target_crs <- sprintf('+proj=aeqd +lon_0=%f +lat_0=%f',
+                        zoom_to[1], zoom_to[2])
+  C <- 40075016.686   # ~ circumference of Earth in meters
+  x_span <- C / 2^zoom_level
+  y_span <- C / 2^(zoom_level+1)
+  
+  zoom_to_xy <- st_transform(st_sfc(st_point(zoom_to), crs = 4326),
+                             crs = target_crs)
+  disp_window <- st_sfc(
+    st_point(st_coordinates(zoom_to_xy - c(x_span/2, y_span/2))),
+    st_point(st_coordinates(zoom_to_xy + c(x_span *1.2, y_span *1.25))),
+    crs = target_crs
+  )
+  
+  map <- ggplot() + geom_sf(data = worldmap, aes(fill = deme), alpha = 0.9, size = 0) +
+    scale_x_continuous(breaks = seq(-100, 200, by = 10)) +
+    scale_y_continuous(breaks = seq(0, 100, by = 10)) +
+    #geom_sf(data = zoom_to_xy, color = 'red') +
+    coord_sf(xlim = st_coordinates(disp_window)[,'X'],
+             ylim = st_coordinates(disp_window)[,'Y'],
+             crs = target_crs, expand = FALSE) +
+    scale_fill_manual(values = dcolors, na.value = "grey90") +
+    #scale_fill_manual(values = c("#E64B35FF", "grey50", "grey50", "grey50", "grey50", "grey50"), na.value = "grey90") +
+    #ggsci::scale_fill_tron()
+    theme_void() +
+    theme(panel.grid.major = element_line(colour = "grey", size = 0.1),
+          legend.position = "none")
+  # panel.ontop = TRUE,
+  # panel.background = element_blank())
+  
+  return(map)
+}
+  

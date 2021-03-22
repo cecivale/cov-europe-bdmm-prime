@@ -3,9 +3,20 @@ library(tidyverse)
 
 ecdc <- get_dataECDC()
 who <- get_dataWHO()
-jh <- get_dataJH()
+# jh <- get_dataJH() Same than owid
 owid <- get_dataOWID() #%>% select(-new_cases) %>% rename(new_cases = new_cases_smoothed)
+covid19od <- get_dataC19OD()
 
+case_data <- bind_rows(ecdc, owid, covid19od, who) %>%
+  filter(country %in% c("China", "France", "Germany", "Italy", "Spain"),
+         date <= "2020-03-07")
+
+ggplot(case_data) +
+  geom_line(aes(date, total_confirmed, color = source)) +
+  facet_wrap(~country, scales = "free")
+  
+  
+  
 ecdc2 <- ecdc %>%
   mutate(new_cases = zoo::rollmean(new_cases, k = 7, fill = NA, align = "center"),
          source = "ecdc2")
@@ -37,11 +48,11 @@ sp <- case_data %>%
   left_join(samples) %>%
   mutate(sp = s/cases)
 
-spain <- read.csv("https://cnecovid.isciii.es/covid19/resources/casos_tecnica_ccaa.csv") %>%
+spain <- read.csv("https://cnecovid.isciii.es/covid19/resources/casos_diag_ccaadecl.csv") %>%
   group_by(fecha) %>%
   summarise(new_cases = sum(num_casos)) %>%
   mutate(country = "Spain",
-         date = ymd(fecha) + 6,
+         date = ymd(fecha),
          source = "RENAVE")
 
 italy <- read.csv("https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-andamento-nazionale/dpc-covid19-ita-andamento-nazionale.csv") %>%

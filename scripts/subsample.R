@@ -50,26 +50,38 @@ subsample <- function(alignment, metadata, include = NA, exclude = NA,
   if (prob == "deaths") to <- ymd(to) + 14
   
   # Get case counts for deme
-  case_data <- get_dataECDC()
+  case_data <- get_dataOWID()
+  death_data <- get_dataECDC()
   cases_deme <- get_cases_deme(case_data, "deme", region_name, country_name, division_name, 
                                exclude_country, exclude_division, 
-                               from, to)  
+                               from, to) 
+  deaths_deme <- get_cases_deme(death_data, "deme", region_name, country_name, division_name, 
+                               exclude_country, exclude_division, 
+                               from, to)
   
   # Account for lag cases - deaths
-  if (prob == "deaths") cases_deme <- cases_deme %>% mutate(date = date - 14)
+  if (prob == "deaths") {
+    deaths_deme <- deaths_deme %>% mutate(date = date - 14)
+    by_date <- metadata_deme %>%
+      count(date, country) %>%
+      left_join(deaths_deme, by = c("date", "country")) %>%
+      replace_na(list(new_deaths = 0)) %>%
+      mutate(p_death = (deaths + 1)/sum(deaths),
+             w_date = sum(n)/n,
+             p_date_deaths = (p_death * w_date)/sum(p_death * w_date)) %>%
+      select(date, country, p_death, w_date,  p_date_deaths)
+  }
   
-  if (prob %in% c("cases", "cases_and_location", "deaths")){
+  if (prob %in% c("cases", "cases_and_location")){
     # Compute weights and probabilities for each date
     by_date <- metadata_deme %>%
       count(date, country) %>%
       left_join(cases_deme, by = c("date", "country")) %>%
-      replace_na(list(cases = 0, cumcases = 0, deaths = 0, cumdeaths = 0)) %>%
+      replace_na(list(new_confirmed = 0)) %>%
       mutate(p_case = (cases + 1)/sum(cases),
-             p_death = (deaths + 1)/sum(deaths),
              w_date = sum(n)/n,
-             p_date_cases = (p_case * w_date)/sum(p_case * w_date),
-             p_date_deaths = (p_death * w_date)/sum(p_death * w_date)) %>%
-      select(date, country, p_case, p_death, w_date, p_date_cases, p_date_deaths) 
+             p_date_cases = (p_case * w_date)/sum(p_case * w_date)) %>%
+      select(date, country, p_case, w_date, p_date_cases) 
   }
   
   if (prob %in% c("location", "cases_and_location")) {
