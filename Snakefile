@@ -873,8 +873,7 @@ rule analyze_trajectories:
     params:
         burnin = 0, #config["beast"]["burnin"],
         demes = _get_subsampling_settings,
-        #n_traj =  config["beast"]["n_traj"]
-        n_traj =  10,
+        n_traj =  config["beast"]["n_traj"],
         figs = "results/{build_name}/figs_{analysis_name}_{particles}",
         tables = "results/{build_name}/tables_{analysis_name}_{particles}"
     shell:
