@@ -115,6 +115,14 @@
 \newcommand{\REMARK}[1]
 {\todo[prepend, color=green, caption={\textbf{Remark}}, size=\footnotesize]{\renewcommand{\baselinestretch}{0.85} \selectfont#1\par}}
 }
+
+\usepackage{graphicx}
+\graphicspath{{../../results/europeC/traj-figs/}{../../results/europeC/figs_210205_europe10_10000/}{./figures/}}
+% \usepackage{import} 
+% \usepackage{subfig}
+
+\usepackage[footnotesize, bf]{caption}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -193,9 +201,9 @@
       }%
    \renewcommand\newblock{\par}}%
 }
-%kai \ExecuteOptions{letterpaper,10pt,twoside,onecolumn,final,openright}
-%\ExecuteOptions{a4paper,11pt,oneside,onecolumn,final,openany,reqno}
-\ExecuteOptions{a4paper,11pt,twoside,onecolumn,final,openright}%,reqno}	%kai
+% \ExecuteOptions{letterpaper,10pt,twoside,onecolumn,final,openright}
+\ExecuteOptions{a4paper,11pt,oneside,onecolumn,final,openany,reqno}
+% \ExecuteOptions{a4paper,11pt,twoside,onecolumn,final,openright}%,reqno}	%kai
 \ProcessOptions
 
 \newcommand\keywords[1]{\gdef\@keywords{#1}}	   %kai
@@ -470,6 +478,11 @@
 % \@addtoreset {theorem}{chapter}                 %kai
 % \renewcommand \thetheorem                       %kai
 %      {\ifnum \c@chapter>\z@ \thechapter.\fi \@arabic\c@theorem} %kai
+
+% \usepackage{anysize}
+% \marginsize{4cm}{4cm}{4cm}{4cm}
+
+
 
 \newcommand*\chaptermark[1]{}
 \setcounter{secnumdepth}{2}
@@ -830,20 +843,21 @@
 \newenvironment{table*}
                {\@dblfloat{table}}
                {\end@dblfloat}
-\newlength\abovecaptionskip
-\newlength\belowcaptionskip
-\setlength\abovecaptionskip{10\p@}
-\setlength\belowcaptionskip{0\p@}
-\long\def\@makecaption#1#2{%
-  \vskip\abovecaptionskip
-  \sbox\@tempboxa{#1: #2}%
-  \ifdim \wd\@tempboxa >\hsize
-    #1: #2\par
-  \else
-    \global \@minipagefalse
-    \hb@xt@\hsize{\hfil\box\@tempboxa\hfil}%
-  \fi
-  \vskip\belowcaptionskip}
+% \newlength\abovecaptionskip
+% \newlength\belowcaptionskip
+% \setlength\abovecaptionskip{10\p@}
+% \setlength\belowcaptionskip{0\p@}
+% \long\def\@makecaption#1#2{%
+%   \vskip\abovecaptionskip
+%   \sbox\@tempboxa{#1: #2}%
+%   \ifdim \wd\@tempboxa >\hsize
+%     #1: #2\par
+%   \else
+%     \global \@minipagefalse
+%     \hb@xt@\hsize{\hfil\box\@tempboxa\hfil}%
+%   \fi
+%   \vskip\belowcaptionskip}
+
 \DeclareOldFontCommand{\rm}{\normalfont\rmfamily}{\mathrm}
 \DeclareOldFontCommand{\sf}{\normalfont\sffamily}{\mathsf}
 \DeclareOldFontCommand{\tt}{\normalfont\ttfamily}{\mathtt}
@@ -1011,6 +1025,7 @@
 \else
   \onecolumn
 \fi
+
 
 \addtolength{\textwidth}{21.4pt}	%kai
 \endinput
