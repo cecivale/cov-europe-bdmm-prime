@@ -4,10 +4,14 @@ library(tidyverse)
 source("./scripts/trajProcessing.R")
 source("./scripts/utils.R")
 
+set_plotopts()
+
 particles <-  c(300, 1000, 3000, 10000)
 file_path <- "/Users/maceci/Documents/CBB Master/HS20/Master Thesis/sars-cov-2-eu-phylodynamics/results/europeC/210205_europe10."
 file_list <- paste0(file_path, particles, ".TL.traj")
-n = 1000
+n <- 500
+demes <- read.csv("./files/demes_China.csv", stringsAsFactors = FALSE)
+mrs <- ymd("2020-03-07")
 
 df_trajs <- lapply(file_list, function(file) {
   df <- loadTrajectories(file, burninFrac = 0, subsample = n)
@@ -44,6 +48,6 @@ plot_particles <- ggplot(df) +
 
 ggexport(plot_particles,
          filename = "reports/mt-thesis/figures/particles_comparison.png",
-         width = 2500, height = 1000, res = 300)
+         width = 3000, height = 1000, res = 300)
 
 

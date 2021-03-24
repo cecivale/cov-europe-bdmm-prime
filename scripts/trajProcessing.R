@@ -147,7 +147,7 @@ processEvents <- function(events, demes, source = NA, mrs) {
   events[events$event == "O", "mult"] =  1
   
   df_traj0 <- events %>%
-    mutate(date = date(date_decimal(decimal_date(mrs) - age))) %>%
+    mutate(date = date(date_decimal(decimal_date(ymd(mrs)) - age))) %>%
     select(-time, -age) %>%
     group_by_at(vars(-mult)) %>%
     summarise(N = sum(mult), .groups = "drop") %>%
@@ -199,7 +199,7 @@ processEvents <- function(events, demes, source = NA, mrs) {
   min_date <- min(df_traj$date)
   df_traj_complete <- df_traj%>%
     group_by(traj, var, deme, partner) %>%
-    complete(date = seq.Date(min_date, MRS, by = "day")) %>%
+    complete(date = seq.Date(min_date, ymd(mrs), by = "day")) %>%
     replace_na(list(value = 0)) %>%
     arrange(traj, date, deme) %>%
     mutate(cumvalue = cumsum(value))

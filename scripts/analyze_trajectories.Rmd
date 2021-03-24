@@ -16,20 +16,21 @@ tables: yes
 ```{r parser, echo = FALSE}
 library(tidyverse)
 # Parser -----------------------------------------------------------------------
-argsR <- commandArgs(TRUE)
-args_list <- str_split(paste(argsR, collapse=""), pattern="--")
-args_llist <- lapply(args_list, function(x) str_split(x, pattern="="))
-argsDF <- as.data.frame(do.call("rbind", args_llist[[1]]))
-args <- as.list(as.character(argsDF$V2))
-names(args) <- argsDF$V1
-args$burnin <- as.integer(args$burnin)
-args$n <- as.integer(args$n)
-title <- paste("Analysis", gsub("\\.", " ", gsub(".TL.traj", " particles", str_split(args$args, "/")[[1]][3])))
+# argsR <- commandArgs(TRUE)
+# args_list <- str_split(paste(argsR, collapse=""), pattern="--")
+# args_llist <- lapply(args_list, function(x) str_split(x, pattern="="))
+# argsDF <- as.data.frame(do.call("rbind", args_llist[[1]]))
+# args <- as.list(as.character(argsDF$V2))
+# names(args) <- argsDF$V1
+# args$burnin <- as.integer(args$burnin)
+# args$n <- as.integer(args$n)
+# title <- paste("Analysis", gsub("\\.", " ", gsub(".TL.traj", " particles", str_split(args$args, "/")[[1]][3])))
+# ---
+# subtitle: "`r title`"
+# ---
 ```
 
----
-subtitle: "`r title`"
----
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
@@ -70,7 +71,7 @@ args$burnin = 0.1
 args$demes = read.csv("./files/demes_China.csv", stringsAsFactors = FALSE)
 args$args = "/Users/maceci/europe10last/210205_europe10.10000.TL.traj"
 args$metadata =  "./results/europeC/final_metadata.tsv"
-args$n = 100
+args$n = 10
 demes = args$demes
 demes$exclude_country[5] = "France,Germany,Italy,Spain"
 demes <- demes %>% arrange(deme)
@@ -81,18 +82,18 @@ demes <- demes %>% arrange(deme)
 \tiny
 ```{r demeconfig}
 # Load demes configuration and sequence metadata -------------------------------
-demes <- data.frame(deme = NA, region = NA, country = NA, division = NA,
-                    exclude_country = NA, exclude_division = NA,
-                    min_date = NA, max_date = NA, seq_per_deme = NA) %>%
-  bind_rows(bind_rows(lapply(yaml::yaml.load(string = gsub(",", ", ", gsub(":", ": ", args$demes))),
-                          data.frame, stringsAsFactors = FALSE), .id = "deme")) %>%
-  group_by(deme) %>%
-  mutate(exclude_country = ifelse(is.na(exclude_country), NA, paste0(exclude_country, collapse = ","))) %>%
-  distinct() %>%
-  filter_all(any_vars(!is.na(.))) %>%
-  mutate(deme = str_to_title(deme)) %>%
-  mutate(deme = ifelse(deme %in% c("Othereuropean", "OtherEuropean"), "Other European", deme)) %>%
-  arrange(deme)
+# demes <- data.frame(deme = NA, region = NA, country = NA, division = NA,
+#                     exclude_country = NA, exclude_division = NA,
+#                     min_date = NA, max_date = NA, seq_per_deme = NA) %>%
+#   bind_rows(bind_rows(lapply(yaml::yaml.load(string = gsub(",", ", ", gsub(":", ": ", args$demes))),
+#                           data.frame, stringsAsFactors = FALSE), .id = "deme")) %>%
+#   group_by(deme) %>%
+#   mutate(exclude_country = ifelse(is.na(exclude_country), NA, paste0(exclude_country, collapse = ","))) %>%
+#   distinct() %>%
+#   filter_all(any_vars(!is.na(.))) %>%
+#   mutate(deme = str_to_title(deme)) %>%
+#   mutate(deme = ifelse(deme %in% c("Othereuropean", "OtherEuropean"), "Other European", deme)) %>%
+#   arrange(deme)
 
 china_deme <- demes$deme[demes$region == "Asia"]
 if (china_deme == "Hubei-China") china_deme = "China"
@@ -192,7 +193,7 @@ We use the events dataset to compute quantities of interest:
 df <- loadTrajectories(args$args, burninFrac = args$burnin, subsample = args$n)
 
 # Data wrangling ---------------------------------------------------------------
-df_traj <- processEvents(df$events, demes, "China", mrs)
+df_traj <- processEvents(df$events, demes, "China", MRS)
 ```
 
 
@@ -207,6 +208,48 @@ To have a feasible time of analysis of the epidemic trajectories we take a rando
 
 To facilitate visualization and summarise the results, we take a grid time of 1 day and summarise the number of events that day as the sum of the events in the corresponding time interval; and the number of inferred cases as the maximum of the interval.
 
+```{r traj-processing}
+# Add reported case counts
+df_traj_cases <- df_traj %>%
+  mutate(traj = as.character(traj)) %>%
+  bind_rows(case_data %>%
+              mutate(var = source, value = new_confirmed, cumvalue = total_confirmed) %>%
+              select(deme, var, date, value, cumvalue))
+
+# Summarise trajectories, compute mean, median and 95% HPD interval for each variable
+traj_summary <- df_traj %>%
+  group_by(var, deme, partner, date) %>%
+  summarise(l95_value = HDInterval::hdi(value)[[1]],
+            h95_value = HDInterval::hdi(value)[[2]],
+            median_value = median(value),
+            mean_value = mean(value),
+            l95_cumvalue = HDInterval::hdi(cumvalue)[[1]],
+            h95_cumvalue = HDInterval::hdi(cumvalue)[[2]],
+            #l95_cumvalue = quantile(cumvalue, 0.025),
+            #h95_cumvalue = quantile(cumvalue, 0.975),
+            median_cumvalue = median(cumvalue),
+            mean_cumvalue = mean(cumvalue)) %>% ungroup
+
+```
+
+```{r}
+# 1. Total 
+# 1.1 Median and 95% CCI of Total cases on the full time period. Fraction median
+#    and 95% CCI (cases ecdc/inferred cases) wrt. ECDC reported cases
+
+# Total values March 8, 2020 join with reported cases
+traj_total <- traj_summary %>%
+  filter(date == MRS) %>%
+  select(var, date, deme, partner, matches("cumvalue"))  %>%
+  left_join(case_data %>% filter(source == "ecdc")) %>%
+  select(var, deme, matches("cumvalue"), total_confirmed) %>%
+  mutate(ltimes = l95_cumvalue/total_confirmed,
+         htimes = h95_cumvalue/total_confirmed,
+         mtimes = median_cumvalue/total_confirmed) %>%
+  mutate_if(is.numeric, function(x) round(x,2)) 
+
+#knitr::kable(t(traj_total %>% filter(var == "D"))[-1,])
+```
 
 ## Origin of SARS-CoV-2 in Europe
 
@@ -222,11 +265,12 @@ first_ecdc <- case_data %>%
   filter(source == "ecdc", total_confirmed != 0) %>% 
   group_by(deme) %>% 
   arrange(date) %>% 
-  slice(1)
+  slice(1) %>%
+  ungroup()
  
 first_eui <- first_df1 %>% 
   ggplot(aes(date)) +
-  geom_density(aes(y = ..count..), fill = "grey", alpha = .5, col = NA) + 
+  geom_density(aes(y = ..count..), fill = "grey", alpha = .5, col = NA, bw = 2) + 
   geom_histogram(binwidth = 1, alpha = .5, fill = "#21908CFF", color = "#21908CFF") +
   geom_vline(aes(xintercept = median(first_df1$date), linetype = "first case median infered date")) +
   geom_vline(aes(xintercept = min((first_ecdc %>% filter(deme != "China"))$date), linetype = "first confirmed case to ECDC")) +
@@ -237,7 +281,7 @@ first_eui <- first_df1 %>%
 
 first_euii <- first_df1 %>% 
   ggplot(aes(date)) +
-  geom_density(fill = "grey", alpha = .5, col = NA) + 
+  geom_density(fill = "grey", alpha = .5, col = NA, bw = 2) + 
   geom_histogram(binwidth = 1, alpha = .5, fill = "#21908CFF", color = "#21908CFF", aes( y = ..density..)) +
   geom_vline(aes(xintercept = median(first_df1$date), linetype = "first case median infered date")) +
   geom_vline(aes(xintercept = min((first_ecdc %>% filter(deme != "China"))$date), linetype = "first confirmed case to ECDC")) +
@@ -247,18 +291,23 @@ first_euii <- first_df1 %>%
   scale_linetype_manual(name = "", values = c(1,2)) +
   theme(axis.title.x = element_blank())
 
+first_eui
+
 ggexport(first_eui,
-         filename = paste0(args$output_figure, "03i.png"),
+         filename = paste0(args$output_figure, "01i.png"),
          width = 2100, height = 800, res = 300)
 ggexport(first_euii,
-         filename = paste0(args$output_figure, "03ii.png"),
+         filename = paste0(args$output_figure, "01ii.png"),
          width = 2100, height = 800, res = 300)
 ```
 
+*Median date:* `r median(first_df1$date)`\
+*95% CCI:* (`r quantile(first_df1$date, 0.025, type = 1)`, `r quantile(first_df1$date, 0.975, type = 1)`)\
+*ECDC first confirmed case:* `r min((first_ecdc %>% filter(deme != "China"))$date)`\
 
-## First imported cases into Europe, time and location
+## First imported cases to Europe, time and location
 ```{r first-eu-destsrc, fig.height=4}
-# 2.2b First introduction into Europe, distribution density destination
+# 2.2b First introduction to Europe, distribution density destination
 facet_names <- demes$deme
 names(facet_names) <- demes$deme
 facet_names["OtherEuropean"] <- "Other EU"
@@ -274,11 +323,11 @@ first_eu1d <- ggplot(first_df1, aes(x = date, y = ..count../(args$n))) +
   scale_x_date(limits = c(ymd("2020-01-01"), ymd("2020-02-15")), date_breaks = "1 week", date_labels = "%b %d, %Y", expand = c(0,0)) +
   ylab("probability density by destination country") +
   xlab("date") +
-  labs(title = "First imported case into Europe, \ndestination") +
+  labs(title = "First imported case to Europe, \ndestination") +
   theme(legend.position = "none",
         axis.title.x=element_blank())
 
-# 2.2b First 10 introduction into Europe, distribution density destination
+# 2.2b First 10 introduction to Europe, distribution density destination
 m = 10
 first_df10 <- df_traj %>%
   # 1. Prepare data
@@ -297,7 +346,7 @@ first_eu10d <- ggplot(first_df10, aes(x = date, y = ..count../(m*args$n))) +
   scale_x_date(limits = c(ymd("2020-01-01"), ymd("2020-02-15")), date_breaks = "1 week", date_labels = "%b %d, %Y", expand = c(0,0)) +
   ylab("probability density by destination country") +
   xlab("date") +
-  labs(title = "First 10 imported cases into Europe, \ndestination") +
+  labs(title = "First 10 imported cases to Europe, \ndestination") +
   theme(legend.position = "none",
         axis.title.x=element_blank())
 
@@ -311,20 +360,36 @@ first_eu10s <- ggplot(first_df10, aes(x = date, y = ..count../(m*args$n))) +
   scale_x_date(limits = c(ymd("2020-01-01"), ymd("2020-02-15")), date_breaks = "1 week", date_labels = "%b %d, %Y", expand = c(0,0)) +
   ylab("probability density by source country") +
   xlab("date") +
-  labs(title = "First 10 imported cases into Europe, \nsource") +
+  labs(title = "First 10 imported cases to Europe, \nsource") +
   theme(legend.position = "none",
         axis.title.x=element_blank())
 
 first_eu_ds <- ggarrange(first_eu1d, first_eu10d, first_eu10s, labels = chartr("123456789", "ABCDEFGHI", 1:3), font.label = list(size = 9), nrow = 1, ncol = 3, hjust = -6, vjust = 2)
 first_eu_ds
 ggexport(first_eu_ds,
-         filename = paste0(args$output_figure, "04.png"),
+         filename = paste0(args$output_figure, "02.png"),
          width = 2500, height = 1500, res = 300)
 
 ```
 
+## First imported cases to Europe, time and location
+```{r first-eu-table}
+knitr::kable(first_df1 %>%
+               ungroup %>%
+               count(deme, name = "n_1d") %>%
+               mutate(p_1d = n_1d/args$n) %>%
+               left_join(first_df10 %>%
+                           ungroup %>%
+                           count(deme,  name = "n_10d") %>%
+                           mutate(p_10d = n_10d/(10*args$n)) %>%
+                           left_join(first_df10 %>%
+                                       ungroup %>%
+                                       select(-deme) %>% rename(deme = partner) %>%
+                                       count(deme,  name = "n_10s") %>%
+                                       mutate(p_10s = n_10s/(10*args$n)))))
+```
 
-## First introductions into each country, source
+## First introductions to each country, source
 ```{r first-bycountry, fig.height=4}
 # 2.2b First introduction into each country, distribution density destination
 m = 1
@@ -353,8 +418,8 @@ first_countryplot <- ggplot(first_country, aes(x = date, y = ..count../(m*args$n
   xlab("date") +
   labs(title = "First SARS-CoV-2 case in the country") +
   theme(#legend.position = "none",
-        legend.key.size = unit(0.5, "cm"),
-        axis.title.x=element_blank()) +
+    legend.key.size = unit(0.5, "cm"),
+    axis.title.x=element_blank()) +
   guides(fill = guide_legend(nrow = 1))
 
 # 2.2b First 10 introductions into each country, distribution density destination
@@ -381,21 +446,79 @@ first_10countryplot <- ggplot(first_10country, aes(x = date, y = ..count../(m*ar
   scale_linetype_manual(name = "", values = 2) +
   ylab("probability density by destination country") +
   xlab("date") +
-  labs(title = "First 10 imported cases into the country") +
+  labs(title = "First 10 imported cases to the country") +
   theme(#legend.position = "none",
-        legend.key.size = unit(0.5, "cm"),
-        axis.title.x=element_blank()) +
+    legend.key.size = unit(0.5, "cm"),
+    axis.title.x=element_blank()) +
   guides(fill = guide_legend(nrow = 1))
 
 first_countryds <- ggarrange(first_countryplot, first_10countryplot, labels = chartr("123456789", "ABCDEFGHI", 1:2), font.label = list(size = 9), nrow = 1, ncol = 2, hjust = -6, vjust = 2, common.legend = TRUE, legend = "bottom")
 first_countryds
 
 ggexport(first_countryds,
-         filename = paste0(args$output_figure, "05.png"),
+         filename = paste0(args$output_figure, "03.png"),
          width = 2500, height = 1700, res = 300)
 ```
 
+## First introductions to each country, source
 
+::: {.columns}
+
+:::: {.column width="50%"}
+\small
+```{r first-country-table1}
+knitr::kable(first_country %>%
+               group_by(deme) %>%
+               summarise(m = median(date),
+                         l = quantile(date, 0.025, type = 1),
+                         h = quantile(date, 0.925, type = 1)))
+```
+::::
+  
+:::: {.column width="50%"}
+\small
+```{r first-country-table2}
+
+knitr::kable(first_country %>%
+               ungroup %>%
+               group_by(deme) %>%
+               count(partner, name = "n_1s") %>%
+               mutate(p_1s = n_1s/args$n))
+```
+
+::::
+
+:::
+
+## First introductions to each country, source
+
+::: {.columns}
+
+:::: {.column width="50%"}
+\small
+```{r first-country-table3}
+knitr::kable((first_10country %>%
+                ungroup %>%
+                group_by(deme) %>%
+                count(partner, name = "n_10s") %>%
+                mutate(p_10s = n_10s/(10 * args$n)))[1:15,])
+```
+::::
+  
+:::: {.column width="50%"}
+\small
+```{r first-country-table4}
+knitr::kable((first_10country %>%
+                ungroup %>%
+                group_by(deme) %>%
+                count(partner, name = "n_10s") %>%
+                mutate(p_10s = n_10s/(10 * args$n)))[16:30,])
+```
+
+::::
+  
+:::
+  
 ```{r first-times, fig.height=4}
 # 2. First introduction distribution density by deme and time of first official reported case to ECDC
 first_times <- df_traj_cases %>%
@@ -458,60 +581,50 @@ events_timingplot <- ggplot(df_eventsttiming) +
   facet_wrap(~deme) +
   scale_fill_viridis_d(guide = FALSE) +
   scale_y_discrete(breaks = c("B", "D", "IM", "OM"), labels = c("first local case", "first death/recovered/isolated", "first imported case", "first exported case")) + 
+  scale_x_date(#limits = c(ymd("2020-01-01"), ymd("2020-02-15")), 
+    date_breaks = "1 month", date_labels = "%b, %Y", expand = c(0,0)) +
   ylab("") +
   xlab("")
 
 events_timingplot
 ggexport(events_timingplot,
-         filename = paste0(args$output_figure, "13.png"),
+         filename = paste0(args$output_figure, "04.png"),
          width = 2000, height = 1200, res = 300)
 
 ```
 
-```{r traj-processing}
-# Add reported case counts
-df_traj_cases <- df_traj %>%
-  mutate(traj = as.character(traj)) %>%
-  bind_rows(case_data %>%
-              mutate(var = source, value = new_confirmed, cumvalue = total_confirmed) %>%
-              select(deme, var, date, value, cumvalue))
 
-# Summarise trajectories, compute mean, median and 95% HPD interval for each variable
-traj_summary <- df_traj %>%
-  group_by(var, deme, partner, date) %>%
-  summarise(l95_value = HDInterval::hdi(value)[[1]],
-            h95_value = HDInterval::hdi(value)[[2]],
-            median_value = median(value),
-            mean_value = mean(value),
-            l95_cumvalue = HDInterval::hdi(cumvalue)[[1]],
-            h95_cumvalue = HDInterval::hdi(cumvalue)[[2]],
-            #l95_cumvalue = quantile(cumvalue, 0.025),
-            #h95_cumvalue = quantile(cumvalue, 0.975),
-            median_cumvalue = median(cumvalue),
-            mean_cumvalue = mean(cumvalue)) %>% ungroup
+## Events timing
 
+::: {.columns}
+
+:::: {.column width="50%"}
+\small
+```{r events-timing-table1}
+knitr::kable((df_eventsttiming %>%
+                group_by(deme, var) %>%
+                summarise(m = median(date),
+                          l = quantile(date, 0.025, type = 1),
+                          h = quantile(date, 0.925, type = 1)))[1:12,])
+```
+::::
+  
+:::: {.column width="50%"}
+\small
+```{r events-timing-table2}
+knitr::kable((df_eventsttiming %>%
+                group_by(deme, var) %>%
+                summarise(m = median(date),
+                          l = quantile(date, 0.025, type = 1),
+                          h = quantile(date, 0.925, type = 1)))[12:24,])
 ```
 
-```{r}
-# 1. Total 
-# 1.1 Median and 95% CCI of Total cases on the full time period. Fraction median
-#    and 95% CCI (cases ecdc/inferred cases) wrt. ECDC reported cases
-
-# Total values March 8, 2020 join with reported cases
-traj_total <- traj_summary %>%
-  filter(date == MRS) %>%
-  select(var, date, deme, partner, matches("cumvalue"))  %>%
-  left_join(case_data %>% filter(source == "ecdc")) %>%
-  select(var, deme, matches("cumvalue"), total_confirmed) %>%
-  mutate(ltimes = l95_cumvalue/total_confirmed,
-         htimes = h95_cumvalue/total_confirmed,
-         mtimes = median_cumvalue/total_confirmed) %>%
-  mutate_if(is.numeric, function(x) round(x,2)) 
-
-#knitr::kable(t(traj_total %>% filter(var == "D"))[-1,])
-```
-
+::::
+  
+:::
+  
 ## Summarised epidemic trajectories
+
 ```{r trajs ribbon, fig.height = 4}
 # 1.1 Median and 95% CCI by deme in log scale
 gribbon <- ggplot(traj_summary %>% filter(var == "active_pop")) +
@@ -522,7 +635,7 @@ gribbon <- ggplot(traj_summary %>% filter(var == "active_pop")) +
   #labs(title = "SARS-CoV-2 early epidemics in Europe and Hubei",
   #subtitle = "Case trajectories Median and 95% CCI by deme") +
   scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
-  scale_x_date(limits = c(ymd("2019-10-01"), ymd(MRS)), date_breaks = "1 month", date_labels = "%b %d") +
+  scale_x_date(limits = c(ymd("2019-10-01"), ymd(MRS)), date_breaks = "1 month", date_labels = "%b, %Y", expand = c(0,0)) +
   scale_fill_manual(name = "", values = dcolors) +
   scale_color_manual(name = "", values = dcolors) +
   theme(legend.position = c(0.2, 0.7),
@@ -532,9 +645,10 @@ gribbon <- ggplot(traj_summary %>% filter(var == "active_pop")) +
 gribbon
 
 ggexport(gribbon,
-         filename = paste0(args$output_figure, "01.png"),
+         filename = paste0(args$output_figure, "05.png"),
          width = 1500, height = 1000, res = 300)
 ```
+
 
 ```{r trajs}
 # 1.2 All trajectories single deme in log scale with reported cases date
@@ -565,8 +679,7 @@ trajs <- lapply(demes$deme, function(d) {
                       labels = c(paste0(d, " inferred\n population trajectories"),
                                  paste0(ifelse(d == china_deme, "China", as.character(d)),
                                         " total reported cases"))) +
-    scale_x_date(limits = c(ymd("2019-10-01"), ymd(MRS)), date_breaks = "1 month",
-                 date_labels = "%b %y") +
+    scale_x_date(limits = c(ymd("2019-10-01"), ymd(MRS)), date_breaks = "1 month", date_labels = "%b, %Y", expand = c(0,0)) +
     scale_y_log10(limits= c(1,10^7.5), expand = c(0, 0),labels = trans_format("log10", math_format(10^.x))) +
     labs(title = d) +
     ylab(ifelse(d %in% c("China", "Germany", "Other European"), "SARS-CoV-2 cases", "")) +
@@ -582,7 +695,7 @@ trajs <- lapply(demes$deme, function(d) {
 
 names(trajs) <- demes$deme
 ggexport(ggarrange(plotlist = trajs, labels = chartr("123456789", "ABCDEFGHI", 1:length(trajs)), nrow = 3, ncol = 2),
-         filename = paste0(args$output_figure, "02.png"),
+         filename = paste0(args$output_figure, "06.png"),
          width = 2300, height = 3000, res = 300)
 ```
 
@@ -595,6 +708,57 @@ for (d in demes$deme) {
   cat("\n")
 }
 ```
+
+
+## Weekly confirmed cases proportion
+
+```{r report-prop, fig.height=4}
+df_report <- traj_summary %>%
+  filter(var %in% c("D"), deme != "China") %>%
+  left_join(case_data %>% filter(source == "ecdc")) %>%
+  select(deme, date, l95_value, h95_value, median_value, new_confirmed) %>%
+  group_by(deme, year_week = ceiling_date(date, "1 week")) %>%
+  summarise(l95_value = sum(l95_value),
+            h95_value = sum(h95_value),
+            median_value = sum(median_value),
+            new_confirmed = sum(new_confirmed)) %>%
+  mutate(median_report = new_confirmed/median_value,
+         h95_report = new_confirmed/l95_value,
+         l95_report = new_confirmed/h95_value)
+
+report_plot <- ggplot(df_report) +
+  geom_line(aes(x = year_week, y = median_report, color = deme), stat="identity") +
+  geom_point(aes(x = year_week, y = median_report, color = deme), stat="identity") +
+  geom_ribbon(aes(year_week, ymin = l95_report, ymax = h95_report,fill = deme), alpha = 0.1) +
+  ylab("weekly reporting proportion") +
+  scale_color_manual(values = dcolors, name = "") +
+  scale_fill_manual(values = dcolors, name = "") +
+  scale_x_date(date_breaks = "5 days", date_labels = "%b %d", limits=c(ymd("2020-01-30"), ymd("2020-03-08"))) +
+  #scale_x_date(limits = c(ymd("2019-10-01"), ymd(MRS)), date_breaks = "1 month", date_labels = "%b %y") +
+  coord_cartesian(ylim = c(0,1)) +
+  theme(#legend.position = "none", 
+    axis.title.x=element_blank()) #+
+#facet_wrap(~deme, scales = "free")
+
+report_plot
+ggexport(report_plot,
+         filename = paste0(args$output_figure, "07.png"),
+         width = 2000, height = 1200, res = 300)
+```
+
+\small
+```{r report-prop-table}
+knitr::kable(traj_summary %>%
+               filter(var %in% c("D")) %>%
+               left_join(case_data %>% filter(source == "ecdc")) %>%
+               select(deme, date, l95_cumvalue, h95_cumvalue, median_cumvalue, total_confirmed) %>%
+               group_by(deme) %>%
+               filter(date == max(date)) %>%
+               mutate(median_report = total_confirmed/median_cumvalue,
+                      h95_report = total_confirmed/l95_cumvalue,
+                      l95_report = total_confirmed/h95_cumvalue))
+```
+
 
 ## Local transmission vs imported cases
 
@@ -645,9 +809,10 @@ ratio_plots <- lapply(demes$deme, function(d){
     #facet_wrap(~deme, scales = "free") +
     coord_cartesian(ylim = c(0,200)) +
     xlab("") +
-    ylab(ifelse(d %in% c("China", "Italy"), "local/imported cases\n by week", "")) +
+    ylab(ifelse(d %in% c("China", "Italy"), "ratio local/imported\nnew cases by week", "")) +
     labs(title = d) +
     #scale_colour_gradient(low = "yellow", high = "red", na.value = NA)
+    scale_x_date(date_labels = "%b %d, %Y") +
     scale_colour_viridis_c(name = "log cases", direction = -1) +
     theme(legend.position = c(0.2, 0.8),
           legend.key.size = unit(0.2, "cm"),
@@ -663,22 +828,19 @@ ggexport(ratiobm,
 ```
 
 
-
+```{r bvsm-table, results = 'asis'}
+for (d in demes$deme) {
+  cat("\n## Local transmission vs imported cases - ", d, "\n")
+  knitr::kable(hsummary %>% filter(deme == d))
+  cat("\n")
+}
+```
 
 
 ```{r circoplot}
 plot_chord <- function(df, min_date, max_date) {
-  # df <- df %>%
-  #   filter(date > min_date, date <= max_date, var == "IM") %>%
-  #   group_by(partner, deme, date) %>%
-  #   # Take mean value over all trajectories
-  #   summarise(Nmean = mean(value), .groups = "drop_last") %>%
-  #   # Sum mean values of each day over all the time period
-  #   summarise(N = sum(Nmean), .groups = "drop") %>%
-  #   drop_na()
-  
   df <- df %>%
-    filter(date > min_date, date <= max_date, var == "IM") %>%
+    filter(date > min_date, date <= max_date, var == "IM", !is.na(partner)) %>%
     group_by(partner, deme, traj) %>%
     # Take mean value over all trajectories
     summarise(N = sum(value), .groups = "drop_last") %>%
@@ -688,9 +850,9 @@ plot_chord <- function(df, min_date, max_date) {
   
   # parameters
   cplot <- circos.clear()
-  cplot <- circos.par(start.degree = 90, gap.degree = 4, track.margin = c(-0.1, 0.1), 
+  cplot <- circos.par(start.degree = 90, gap.degree = 4, track.margin = c(-0.3, 0.3), 
                       points.overflow.warning = FALSE)
-  par(mar = rep(0, 4))
+  par(mar = rep(0.5, 4))
   # Base plot
   chordDiagram(
     x = df, 
@@ -717,37 +879,37 @@ plot_chord <- function(df, min_date, max_date) {
         y = 3.2, 
         labels = sector.index, 
         facing = "bending", 
-        cex = 0.9
+        cex = 0.8
       )
       # Add graduation on axis
       circos.axis(
         h = "top", 
         major.at = seq(from = 0, to = xlim[2], by =
-        case_when(
-          xlim[2] > 50500 ~ 20000,
-          xlim[2] > 20500 ~ 20000,
-          xlim[2] > 10500 ~ 5000,
-          #xlim[2] > 5500 ~ 5000,
-          xlim[2] > 2500 ~ 2000,
-          xlim[2] > 2000 ~ 2000,
-          xlim[2] > 1500 ~ 1000,
-          xlim[2] > 800 ~ 500,
-          xlim[2] > 500 ~ 250,
-          xlim[2] > 200 ~ 100,
-          xlim[2] > 100 ~ 50,
-          xlim[2] > 50 ~ 25,
-          xlim[2] > 20 ~ 15,
-          xlim[2] > 10 ~ 10,
-          xlim[2] > 1 ~ 1,
-          round(xlim[2]) == 0 ~ 0.25,
-          TRUE ~ round(xlim[2])/4)),
+                         case_when(
+                           xlim[2] > 50500 ~ 20000,
+                           xlim[2] > 20500 ~ 20000,
+                           xlim[2] > 10500 ~ 5000,
+                           #xlim[2] > 5500 ~ 5000,
+                           xlim[2] > 2500 ~ 2000,
+                           xlim[2] > 2000 ~ 2000,
+                           xlim[2] > 1500 ~ 1000,
+                           xlim[2] > 800 ~ 500,
+                           xlim[2] > 500 ~ 250,
+                           xlim[2] > 200 ~ 100,
+                           xlim[2] > 100 ~ 50,
+                           xlim[2] > 50 ~ 25,
+                           xlim[2] > 20 ~ 15,
+                           xlim[2] > 10 ~ 10,
+                           xlim[2] > 1 ~ 1,
+                           round(xlim[2]) == 0 ~ 0.25,
+                           TRUE ~ round(xlim[2])/4)),
         minor.ticks = 1, 
         major.tick.length = 0.5,
         labels.niceFacing = FALSE,
-        labels.cex = 0.6)
+        labels.cex = 0.7)
     }
   )
-  return(cplot)
+  return(list(df = df, cplot = cplot))
 }
 
 
@@ -756,45 +918,86 @@ plot_chord <- function(df, min_date, max_date) {
 
 ## Migrations - Period 1
 
-```{r, fig.height=2.5, fig.align='center'}
+::: {.columns}
+
+:::: {.column width="50%"}
+```{r mig1, fig.height=2.5, fig.align='center'}
 # Period 1
-plot_chord(df_traj, ymd("2019-09-01"), ymd("2020-01-23")) 
+mig1 <- plot_chord(df_traj, ymd("2019-09-01"), ymd("2020-01-23")) 
 
 png(paste0(args$output_figure, "09a.png"), width = 1000, height = 1000, res = 200)
 plot_chord(df_traj, ymd("2019-09-01"), ymd("2020-01-23")) 
 text(label = "A", x = -1, y = 1, cex = 1.5, font = 2)
+text("Period 1: origin - January 22, 2020", x = 0, y = 1, cex = 0.8, font = 2)
 dev.off()
 ```
+::::
+  
+:::: {.column width="50%"}
+\small
+```{r mig1-table1}
+knitr::kable(mig1$df %>% filter(Nm != 0))
+```
+
+::::
+  
+:::
 
 ## Migrations - Period 2
 
-```{r, fig.height=2.5, fig.align='center'}
+::: {.columns}
+
+:::: {.column width="50%"}
+```{r mig2, fig.height=2.5, fig.align='center'}
 # Period 2
-plot_chord(df_traj, ymd("2020-01-23"), ymd("2020-02-28"))
+mig2 <- plot_chord(df_traj, ymd("2020-01-23"), ymd("2020-02-28"))
 
 png(paste0(args$output_figure, "09b.png"), width = 1000, height = 1000, res = 200)
 plot_chord(df_traj, ymd("2020-01-23"), ymd("2020-02-28"))
-mtext(text = "B", at = -1, cex = 1.5, font = 2)
 text(label = "B", x = -1, y = 1, cex = 1.5, font = 2)
+text("Period 2: January 23, 2020 - February 29, 2020", x = 0, y = 1, cex = 0.8, font = 2)
 #dev.off()
 ```
+::::
+  
+:::: {.column width="50%"}
+\tiny
+```{r mig2-table1}
+knitr::kable(mig2$df %>% filter(Nm != 0))
+```
+
+::::
+
+:::
 
 ## Migrations - Period 3
-
-```{r, fig.height=2.5, fig.align='center'}
+  
+```{r mig3, fig.height=2.5, fig.align='center'}
 # Period 3
-plot_chord(df_traj, ymd("2020-02-28"), ymd("2020-03-08"))
+mig3 <- plot_chord(df_traj, ymd("2020-02-28"), ymd("2020-03-08"))
 
 png(paste0(args$output_figure, "09c.png"), width = 1000, height = 1000, res = 200)
 plot_chord(df_traj, ymd("2020-02-28"), ymd("2020-03-08"))
 text(label = "C", x = -1, y = 1, cex = 1.5, font = 2)
+text("Period 3: March 1, 2020 - March 8, 2020", x = 0, y = 1, cex = 0.8, font = 2)
+text("total number of exported-imported cases", x = 0.3, y = -1, cex = 0.8, font = 1)
 dev.off()
 ```
+::::
+  
+:::: {.column width="50%"}
+\tiny
+```{r mig3-table1}
+knitr::kable(mig3$df %>% filter(Nm != 0))
+```
 
-
+::::
+  
+:::
+  
 ## Daily flight passengers vs daily imported cases
-
-```{r flight-pass, fig.height=4}
+  
+```{r flight-cases, fig.height=4}
 demes1 <- c(China = "CN", France = "FR", Germany = "DE", Italy = "IT", OtherEuropean = "OE", Spain = "ES")
 flight_df <- get_flightData(countries = demes1) 
 
@@ -879,40 +1082,20 @@ ggexport(imflights,
          width = 2000, height = 1200, res = 300)
 ```
 
-## Weekly confirmed cases proportion
 
-```{r report-prop, fig.height=4}
-df_report <- traj_summary %>%
-  filter(var %in% c("D"), deme != "China") %>%
-  left_join(case_data %>% filter(source == "ecdc")) %>%
-  select(deme, date, l95_value, h95_value, median_value, new_confirmed) %>%
-  group_by(deme, year_week = ceiling_date(date, "1 week")) %>%
-  summarise(l95_value = sum(l95_value),
-            h95_value = sum(h95_value),
-            median_value = sum(median_value),
-            new_confirmed = sum(new_confirmed)) %>%
-  mutate(median_report = new_confirmed/median_value,
-         h95_report = new_confirmed/l95_value,
-         l95_report = new_confirmed/h95_value)
-
-report_plot <- ggplot(df_report) +
-  geom_line(aes(x = year_week, y = median_report, color = deme), stat="identity") +
-  geom_point(aes(x = year_week, y = median_report, color = deme), stat="identity") +
-  geom_ribbon(aes(year_week, ymin = l95_report, ymax = h95_report,fill = deme), alpha = 0.1) +
-  ylab("weekly reporting proportion") +
-  scale_color_manual(values = dcolors, name = "") +
-  scale_fill_manual(values = dcolors, name = "") +
-  scale_x_date(date_breaks = "5 days", date_labels = "%b %d", limits=c(ymd("2020-01-30"), ymd("2020-03-08"))) +
-  #scale_x_date(limits = c(ymd("2019-10-01"), ymd(MRS)), date_breaks = "1 month", date_labels = "%b %y") +
-  coord_cartesian(ylim = c(0,1)) +
-  theme(#legend.position = "none", 
-    axis.title.x=element_blank()) #+
-#facet_wrap(~deme, scales = "free")
-
-report_plot
-ggexport(report_plot,
-         filename = paste0(args$output_figure, "11.png"),
-         width = 2000, height = 1200, res = 300)
+## Daily flight passengers vs daily imported cases
+\tiny
+```{r flight-cases-table}
+knitr::kable(left_join(by_epoch, flight_df_3e) %>%
+               group_by(dest, epoch, src) %>%
+               summarise(v = median(values),
+                         ev = median(evalues),
+                         lev = HDInterval::hdi(evalues)[[1]],
+                         hev = HDInterval::hdi(evalues)[[2]], .groups = "drop_last") %>%
+               summarise(v = sum(v),
+                         ev = sum(ev),
+                         lev = sum(lev),
+                         hev = sum(hev)))
 ```
 
 
@@ -950,8 +1133,14 @@ inc_plot <- ggplot(df_inc) +
 inc_plot
 
 ggexport(inc_plot,
-         filename = paste0(args$output_figure, "12.png"),
+         filename = paste0(args$output_figure, "11.png"),
          width = 2000, height = 1200, res = 300)
 ```
 
+## Weekly incidence population %
+
+\small
+```{r incidence-table}
+knitr::kable(df_inc %>% filter(date == max(date)))
+```
 
