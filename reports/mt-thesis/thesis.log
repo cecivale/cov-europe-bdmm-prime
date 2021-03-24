@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2021.2.2)  24 MAR 2021 13:46
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2021.2.2)  24 MAR 2021 18:48
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -690,20 +690,7 @@ File: l3backend-pdftex.def 2020-01-29 L3 backend support: PDF output (pdfTeX)
 
 LaTeX Warning: Label `fig:epitrajs' multiply defined.
 
-) (./results.aux
-
-LaTeX Warning: Label `fig:firstEUcountry' multiply defined.
-
-
-LaTeX Warning: Label `fig:first' multiply defined.
-
-
-LaTeX Warning: Label `fig:first' multiply defined.
-
-
-LaTeX Warning: Label `fig:first' multiply defined.
-
-) (./discussion.aux) (./conclusion.aux))
+) (./results.aux) (./discussion.aux) (./conclusion.aux))
 \openout1 = `thesis.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 33.
@@ -952,33 +939,33 @@ LaTeX Warning: Reference `table:cases' on page 9 undefined on input line 162.
 
  (./results.tex
 Chapter 3.
-<../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj03.pn
+<../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj01.pn
 g, id=265, 2107.875pt x 803.0pt>
 File: ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj
-03.png Graphic file (type png)
+01.png Graphic file (type png)
 <use ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj0
-3.png>
+1.png>
 Package pdftex.def Info: ../../results/europeC/figs_210205_europe10_10000//2102
-05_europe10_figtraj03.png  used on input line 8.
+05_europe10_figtraj01.png  used on input line 8.
 (pdftex.def)             Requested size: 381.4pt x 145.29343pt.
 [11
 
 
 
 
- <../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj03.p
+ <../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj01.p
 ng>]
-<../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj04.pn
+<../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj02.pn
 g, id=276, 2509.375pt x 1505.625pt>
 File: ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj
-04.png Graphic file (type png)
+02.png Graphic file (type png)
 <use ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj0
-4.png>
+2.png>
 Package pdftex.def Info: ../../results/europeC/figs_210205_europe10_10000//2102
-05_europe10_figtraj04.png  used on input line 18.
+05_europe10_figtraj02.png  used on input line 17.
 (pdftex.def)             Requested size: 381.4pt x 228.82062pt.
  [12 <../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj
-04.png>]
+02.png>]
 Underfull \hbox (badness 10000) in paragraph at lines 30--31
 
  []
@@ -988,205 +975,206 @@ Underfull \hbox (badness 10000) in paragraph at lines 32--33
 
  []
 
-<../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj05.pn
-g, id=286, 2509.375pt x 1505.625pt>
-File: ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj
-05.png Graphic file (type png)
-<use ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj0
-5.png>
-Package pdftex.def Info: ../../results/europeC/figs_210205_europe10_10000//2102
-05_europe10_figtraj05.png  used on input line 36.
-(pdftex.def)             Requested size: 381.4pt x 228.82062pt.
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 44--45
-
- []
-
-<../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj06.pn
-g, id=288, 2007.5pt x 803.0pt>
-File: ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj
-06.png Graphic file (type png)
-<use ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj0
-6.png>
-Package pdftex.def Info: ../../results/europeC/figs_210205_europe10_10000//2102
-05_europe10_figtraj06.png  used on input line 48.
-(pdftex.def)             Requested size: 381.4pt x 152.55933pt.
-
-Underfull \hbox (badness 10000) in paragraph at lines 53--54
-
- []
-
-<../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj07.pn
-g, id=290, 2007.5pt x 1204.5pt>
-File: ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj
-07.png Graphic file (type png)
-<use ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj0
-7.png>
-Package pdftex.def Info: ../../results/europeC/figs_210205_europe10_10000//2102
-05_europe10_figtraj07.png  used on input line 57.
-(pdftex.def)             Requested size: 381.4pt x 228.839pt.
+<../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj03.pn
+g, id=285, 2509.375pt x 1505.625pt>
 File: ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj
 03.png Graphic file (type png)
 <use ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj0
 3.png>
 Package pdftex.def Info: ../../results/europeC/figs_210205_europe10_10000//2102
-05_europe10_figtraj03.png  used on input line 68.
-(pdftex.def)             Requested size: 381.4pt x 145.29343pt.
-[13]
-Underfull \hbox (badness 10000) in paragraph at lines 75--76
+05_europe10_figtraj03.png  used on input line 36.
+(pdftex.def)             Requested size: 381.4pt x 228.82062pt.
+[13 <../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj0
+3.png>]
+
+LaTeX Warning: Reference `fig:first_imig' on page 14 undefined on input line 43
+.
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 43--44
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 77--78
+LaTeX Warning: Reference `fig:first_omig' on page 14 undefined on input line 45
+.
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 45--46
 
  []
 
-[14 <../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj0
-5.png>]
+<../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj04.pn
+g, id=293, 2007.5pt x 1204.5pt>
+File: ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj
+04.png Graphic file (type png)
+<use ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj0
+4.png>
+Package pdftex.def Info: ../../results/europeC/figs_210205_europe10_10000//2102
+05_europe10_figtraj04.png  used on input line 53.
+(pdftex.def)             Requested size: 381.4pt x 228.839pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 59--60
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 61--62
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 64--65
+
+ []
+
+[14] [15 <../../results/europeC/figs_210205_europe10_10000//210205_europe10_fig
+traj04.png>]
+
+LaTeX Warning: Citation `Li2020' on page 16 undefined on input line 68.
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 67--69
+
+ []
+
+<../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj05.pn
+g, id=306, 1505.625pt x 1003.75pt>
+File: ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj
+05.png Graphic file (type png)
+<use ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj0
+5.png>
+Package pdftex.def Info: ../../results/europeC/figs_210205_europe10_10000//2102
+05_europe10_figtraj05.png  used on input line 73.
+(pdftex.def)             Requested size: 305.12115pt x 203.41142pt.
+<../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj06.pn
+g, id=307, 2308.625pt x 3011.25pt>
+File: ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj
+06.png Graphic file (type png)
+<use ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj0
+6.png>
+Package pdftex.def Info: ../../results/europeC/figs_210205_europe10_10000//2102
+05_europe10_figtraj06.png  used on input line 81.
+(pdftex.def)             Requested size: 343.25766pt x 447.71649pt.
+
+! Package xkeyval Error: `figure' undefined in families `todonotes'.
+
+See the xkeyval package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.83     \todo[figure]{Why is till March 20?}
+                                             
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 88--89
+
+ []
+
+<../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj07.pn
+g, id=310, 2007.5pt x 1204.5pt>
 File: ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj
 07.png Graphic file (type png)
 <use ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj0
 7.png>
 Package pdftex.def Info: ../../results/europeC/figs_210205_europe10_10000//2102
-05_europe10_figtraj07.png  used on input line 82.
-(pdftex.def)             Requested size: 381.4pt x 228.839pt.
-
-Underfull \hbox (badness 10000) in paragraph at lines 89--90
-
- []
-
-
-LaTeX Warning: Citation `Li2020' on page 15 undefined on input line 93.
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 92--94
-
- []
-
-<../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj01.pn
-g, id=305, 1505.625pt x 1003.75pt>
-File: ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj
-01.png Graphic file (type png)
-<use ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj0
-1.png>
-Package pdftex.def Info: ../../results/europeC/figs_210205_europe10_10000//2102
-05_europe10_figtraj01.png  used on input line 98.
-(pdftex.def)             Requested size: 305.12115pt x 203.41142pt.
-<../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj02.pn
-g, id=306, 2308.625pt x 3011.25pt>
-File: ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj
-02.png Graphic file (type png)
-<use ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj0
-2.png>
-Package pdftex.def Info: ../../results/europeC/figs_210205_europe10_10000//2102
-05_europe10_figtraj02.png  used on input line 107.
-(pdftex.def)             Requested size: 343.25766pt x 447.71649pt.
-
-Underfull \hbox (badness 10000) in paragraph at lines 113--114
-
- []
-
-[15 <../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj0
-6.png>]
-<../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj11.pn
-g, id=319, 2007.5pt x 1204.5pt>
-File: ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj
-11.png Graphic file (type png)
-<use ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj1
-1.png>
-Package pdftex.def Info: ../../results/europeC/figs_210205_europe10_10000//2102
-05_europe10_figtraj11.png  used on input line 118.
+05_europe10_figtraj07.png  used on input line 93.
 (pdftex.def)             Requested size: 343.25766pt x 205.95694pt.
-<../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj12.pn
-g, id=320, 2007.5pt x 1204.5pt>
-File: ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj
-12.png Graphic file (type png)
-<use ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj1
-2.png>
-Package pdftex.def Info: ../../results/europeC/figs_210205_europe10_10000//2102
-05_europe10_figtraj12.png  used on input line 126.
-(pdftex.def)             Requested size: 381.4pt x 228.839pt.
+[16 <../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj0
+5.png>] [17 <../../results/europeC/figs_210205_europe10_10000//210205_europe10_
+figtraj06.png>]
 <../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj08.pn
-g, id=322, 2007.5pt x 1204.5pt>
+g, id=327, 2007.5pt x 1204.5pt>
 File: ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj
 08.png Graphic file (type png)
 <use ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj0
 8.png>
 Package pdftex.def Info: ../../results/europeC/figs_210205_europe10_10000//2102
-05_europe10_figtraj08.png  used on input line 142.
+05_europe10_figtraj08.png  used on input line 108.
 (pdftex.def)             Requested size: 381.4pt x 228.839pt.
- [16 <../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj
-07.png>]
-
-LaTeX Warning: Reference `fig:migs_srcdest' on page 17 undefined on input line 
-158.
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 161--162
+LaTeX Warning: Reference `fig:migs_srcdest' on page 18 undefined on input line 
+124.
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 127--128
 
  []
 
-
-Underfull \hbox (badness 10000) in paragraph at lines 163--164
+[18 <../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj0
+7.png>]
+Underfull \hbox (badness 10000) in paragraph at lines 129--130
 
  []
 
 <../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj09a.p
-ng, id=334, 1003.75pt x 1003.75pt>
+ng, id=342, 1003.75pt x 1003.75pt>
 File: ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj
 09a.png Graphic file (type png)
 <use ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj0
 9a.png>
 Package pdftex.def Info: ../../results/europeC/figs_210205_europe10_10000//2102
-05_europe10_figtraj09a.png  used on input line 170.
+05_europe10_figtraj09a.png  used on input line 136.
 (pdftex.def)             Requested size: 152.55766pt x 152.54707pt.
 <../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj09b.p
-ng, id=335, 1003.75pt x 1003.75pt>
+ng, id=343, 1003.75pt x 1003.75pt>
 File: ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj
 09b.png Graphic file (type png)
 <use ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj0
 9b.png>
 Package pdftex.def Info: ../../results/europeC/figs_210205_europe10_10000//2102
-05_europe10_figtraj09b.png  used on input line 174.
+05_europe10_figtraj09b.png  used on input line 140.
 (pdftex.def)             Requested size: 152.55766pt x 152.54707pt.
 <../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj09c.p
-ng, id=336, 1003.75pt x 1003.75pt>
+ng, id=344, 1003.75pt x 1003.75pt>
 File: ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj
 09c.png Graphic file (type png)
 <use ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj0
 9c.png>
 Package pdftex.def Info: ../../results/europeC/figs_210205_europe10_10000//2102
-05_europe10_figtraj09c.png  used on input line 178.
+05_europe10_figtraj09c.png  used on input line 144.
 (pdftex.def)             Requested size: 152.55766pt x 152.54707pt.
 <../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj10.pn
-g, id=337, 2007.5pt x 1204.5pt>
+g, id=345, 2007.5pt x 1204.5pt>
 File: ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj
 10.png Graphic file (type png)
 <use ../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj1
 0.png>
 Package pdftex.def Info: ../../results/europeC/figs_210205_europe10_10000//2102
-05_europe10_figtraj10.png  used on input line 189.
+05_europe10_figtraj10.png  used on input line 155.
 (pdftex.def)             Requested size: 381.4pt x 228.839pt.
-) [17] [18] [19] [20 <../../results/europeC/figs_210205_europe10_10000//210205_
-europe10_figtraj01.png>] [21 <../../results/europeC/figs_210205_europe10_10000/
-/210205_europe10_figtraj02.png>] [22 <../../results/europeC/figs_210205_europe1
-0_10000//210205_europe10_figtraj11.png>] [23 <../../results/europeC/figs_210205
-_europe10_10000//210205_europe10_figtraj12.png>] [24 <../../results/europeC/fig
-s_210205_europe10_10000//210205_europe10_figtraj08.png>] [25 <../../results/eur
-opeC/figs_210205_europe10_10000//210205_europe10_figtraj09a.png> <../../results
-/europeC/figs_210205_europe10_10000//210205_europe10_figtraj09b.png> <../../res
-ults/europeC/figs_210205_europe10_10000//210205_europe10_figtraj09c.png>]
-[26 <../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtraj1
-0.png>]
+<./figures//particles_comparison.png, id=346, 3011.25pt x 1003.75pt>
+File: ./figures//particles_comparison.png Graphic file (type png)
+<use ./figures//particles_comparison.png>
+Package pdftex.def Info: ./figures//particles_comparison.png  used on input lin
+e 173.
+(pdftex.def)             Requested size: 381.4pt x 127.12256pt.
+) [19 <../../results/europeC/figs_210205_europe10_10000//210205_europe10_figtra
+j08.png>] [20 <../../results/europeC/figs_210205_europe10_10000//210205_europe1
+0_figtraj09a.png> <../../results/europeC/figs_210205_europe10_10000//210205_eur
+ope10_figtraj09b.png> <../../results/europeC/figs_210205_europe10_10000//210205
+_europe10_figtraj09c.png>] [21 <../../results/europeC/figs_210205_europe10_1000
+0//210205_europe10_figtraj10.png>]
+
+! LaTeX Error: Float(s) lost.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.61 \include{results}
+                      
+You've lost some text.  Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
 \openout2 = `discussion.aux'.
 
- (./discussion.tex
+(./discussion.tex
 Chapter 4.
-) [27
+) [22
 
 
 
@@ -1196,12 +1184,12 @@ Chapter 4.
 
  (./conclusion.tex
 Chapter 5.
-) [28
+) [23
 
 
 
 
-] (./thesis.bbl [29
+] (./thesis.bbl [24
 
 
 
@@ -1225,12 +1213,12 @@ Underfull \hbox (badness 1286) in paragraph at lines 101--104
 LaTeX Font Warning: Font shape `T1/cmr/m/scsl' undefined
 (Font)              using `T1/cmr/m/sc' instead on input line 130.
 
-[30])
+[25])
 
 LaTeX Font Warning: Font shape `T1/cmr/m/scsl' undefined
 (Font)              using `T1/cmr/m/sc' instead on input line 97.
 
-[31] [1
+[26] [1
 
 
 ] [1
@@ -1250,16 +1238,16 @@ LaTeX Warning: There were undefined references.
 LaTeX Warning: There were multiply-defined labels.
 
 Package rerunfilecheck Info: File `thesis.out' has not changed.
-(rerunfilecheck)             Checksum: 46BD567CC2C0603A72F9CDB1DCAC68C5;525.
+(rerunfilecheck)             Checksum: B7111214DB7F3DFC796A560BBE371777;525.
  ) 
 Here is how much of TeX's memory you used:
- 19301 strings out of 481252
- 372877 string characters out of 5914905
- 691823 words of memory out of 5000000
- 35631 multiletter control sequences out of 15000+600000
+ 19273 strings out of 481252
+ 371906 string characters out of 5914905
+ 673714 words of memory out of 5000000
+ 35620 multiletter control sequences out of 15000+600000
  422600 words of font info for 72 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 113i,14n,113p,1307b,1258s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 113i,14n,113p,1302b,1258s stack positions out of 5000i,500n,10000p,200000b,80000s
  </Users/maceci/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/ecti109
 5.600pk> </Users/maceci/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/e
 crm0900.600pk> </Users/maceci/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappe
@@ -1284,10 +1272,10 @@ blic/amsfonts/cm/cmr8.pfb></Users/maceci/Library/TinyTeX/texmf-dist/fonts/type1
 /public/amsfonts/cm/cmsy10.pfb></Users/maceci/Library/TinyTeX/texmf-dist/fonts/
 type1/public/amsfonts/cm/cmsy8.pfb></Users/maceci/Library/TinyTeX/texmf-dist/fo
 nts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on thesis.pdf (38 pages, 3938627 bytes).
+Output written on thesis.pdf (33 pages, 3773313 bytes).
 PDF statistics:
- 967 PDF objects out of 1000 (max. 8388607)
- 448 compressed objects within 5 object streams
- 139 named destinations out of 1000 (max. 500000)
- 282 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 938 PDF objects out of 1000 (max. 8388607)
+ 414 compressed objects within 5 object streams
+ 122 named destinations out of 1000 (max. 500000)
+ 277 words of extra memory for PDF output out of 10000 (max. 10000000)
 
