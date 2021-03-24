@@ -65,15 +65,15 @@ source("./scripts/flight_data.R")
 
 ```{r debugging}
 # Debugging
-# args = list()
-# args$burnin = 0.1
-# args$demes = read.csv("./files/demes_China.csv", stringsAsFactors = FALSE)
-# args$args = "/Users/maceci/europe10last/210205_europe10.10000.TL.traj"
-# args$metadata =  "./results/europeC/final_metadata.tsv"
-# args$n = 100
-# demes = args$demes
-# demes$exclude_country[5] = "France,Germany,Italy,Spain"
-# demes <- demes %>% arrange(deme)
+args = list()
+args$burnin = 0.1
+args$demes = read.csv("./files/demes_China.csv", stringsAsFactors = FALSE)
+args$args = "/Users/maceci/europe10last/210205_europe10.10000.TL.traj"
+args$metadata =  "./results/europeC/final_metadata.tsv"
+args$n = 100
+demes = args$demes
+demes$exclude_country[5] = "France,Germany,Italy,Spain"
+demes <- demes %>% arrange(deme)
 ```
 
 
@@ -208,6 +208,266 @@ To have a feasible time of analysis of the epidemic trajectories we take a rando
 To facilitate visualization and summarise the results, we take a grid time of 1 day and summarise the number of events that day as the sum of the events in the corresponding time interval; and the number of inferred cases as the maximum of the interval.
 
 
+## Origin of SARS-CoV-2 in Europe
+
+```{r first-eu, fig.height=4}
+first_df1 <- df_traj %>%
+  # 1. Prepare data
+  filter(var == "IM", !is.na(partner),  value != 0) %>%
+  group_by(traj) %>%
+  arrange(date, partner) %>%
+  slice(1)
+
+first_ecdc <- case_data %>% 
+  filter(source == "ecdc", total_confirmed != 0) %>% 
+  group_by(deme) %>% 
+  arrange(date) %>% 
+  slice(1)
+ 
+first_eui <- first_df1 %>% 
+  ggplot(aes(date)) +
+  geom_density(aes(y = ..count..), fill = "grey", alpha = .5, col = NA) + 
+  geom_histogram(binwidth = 1, alpha = .5, fill = "#21908CFF", color = "#21908CFF") +
+  geom_vline(aes(xintercept = median(first_df1$date), linetype = "first case median infered date")) +
+  geom_vline(aes(xintercept = min((first_ecdc %>% filter(deme != "China"))$date), linetype = "first confirmed case to ECDC")) +
+  ylab("epidemic trajectory count") +
+  scale_x_date(limits = c(ymd("2019-12-15"), ymd("2020-02-01")), date_breaks = "1 week", date_labels = "%b %d, %Y", expand = c(0,0)) +
+  scale_linetype_manual(name = "", values = c(1,2)) +
+  theme(axis.title.x = element_blank()) 
+
+first_euii <- first_df1 %>% 
+  ggplot(aes(date)) +
+  geom_density(fill = "grey", alpha = .5, col = NA) + 
+  geom_histogram(binwidth = 1, alpha = .5, fill = "#21908CFF", color = "#21908CFF", aes( y = ..density..)) +
+  geom_vline(aes(xintercept = median(first_df1$date), linetype = "first case median infered date")) +
+  geom_vline(aes(xintercept = min((first_ecdc %>% filter(deme != "China"))$date), linetype = "first confirmed case to ECDC")) +
+  ylab("probability density") +
+  scale_y_continuous(position = "right") +
+  scale_x_date(limits = c(ymd("2019-12-15"), ymd("2020-02-01")), date_breaks = "1 week", date_labels = "%b %d, %Y", expand = c(0,0)) +
+  scale_linetype_manual(name = "", values = c(1,2)) +
+  theme(axis.title.x = element_blank())
+
+ggexport(first_eui,
+         filename = paste0(args$output_figure, "03i.png"),
+         width = 2100, height = 800, res = 300)
+ggexport(first_euii,
+         filename = paste0(args$output_figure, "03ii.png"),
+         width = 2100, height = 800, res = 300)
+```
+
+
+## First imported cases into Europe, time and location
+```{r first-eu-destsrc, fig.height=4}
+# 2.2b First introduction into Europe, distribution density destination
+facet_names <- demes$deme
+names(facet_names) <- demes$deme
+facet_names["OtherEuropean"] <- "Other EU"
+
+first_eu1d <- ggplot(first_df1, aes(x = date, y = ..count../(args$n))) +
+  geom_density_line(
+    data = select(first_df1, -deme), aes(fill = NA),
+    color = "transparent", alpha = 0.8, bw = 2) + 
+  geom_density_line(aes(fill = deme), bw = 2, color = "transparent", alpha = 0.8) +
+  facet_grid(rows = vars(deme), switch = "y", drop = FALSE,
+             labeller = labeller(deme = facet_names)) +
+  scale_fill_manual(name = "", values = dcolors, na.value = "grey") +
+  scale_x_date(limits = c(ymd("2020-01-01"), ymd("2020-02-15")), date_breaks = "1 week", date_labels = "%b %d, %Y", expand = c(0,0)) +
+  ylab("probability density by destination country") +
+  xlab("date") +
+  labs(title = "First imported case into Europe, \ndestination") +
+  theme(legend.position = "none",
+        axis.title.x=element_blank())
+
+# 2.2b First 10 introduction into Europe, distribution density destination
+m = 10
+first_df10 <- df_traj %>%
+  # 1. Prepare data
+  filter(var == "IM", !is.na(partner),  value != 0) %>%
+  group_by(traj) %>%
+  arrange(date, partner) %>%
+  slice(1:m)
+
+first_eu10d <- ggplot(first_df10, aes(x = date, y = ..count../(m*args$n))) +
+  geom_density_line(
+    data = select(first_df10, -deme), aes(fill = NA),
+    color = "transparent", alpha = 0.8, bw = 2) + 
+  geom_density_line(aes(fill = deme), bw = 2, color = "transparent", alpha = 0.8) +
+  facet_grid(rows = vars(deme), switch = "y", drop = FALSE, labeller = labeller(deme = facet_names)) +
+  scale_fill_manual(name = "", values = dcolors, na.value = "grey") +
+  scale_x_date(limits = c(ymd("2020-01-01"), ymd("2020-02-15")), date_breaks = "1 week", date_labels = "%b %d, %Y", expand = c(0,0)) +
+  ylab("probability density by destination country") +
+  xlab("date") +
+  labs(title = "First 10 imported cases into Europe, \ndestination") +
+  theme(legend.position = "none",
+        axis.title.x=element_blank())
+
+first_eu10s <- ggplot(first_df10, aes(x = date, y = ..count../(m*args$n))) +
+  geom_density_line(
+    data = select(first_df10, -partner), aes(fill = NA),
+    color = "transparent", alpha = 0.8, bw = 2) + 
+  geom_density_line(aes(fill = partner), bw = 2, color = "transparent", alpha = 0.8) +
+  facet_grid(rows = vars(partner), switch = "y", drop = FALSE, labeller = labeller(partner = facet_names)) +
+  scale_fill_manual(name = "", values = dcolors, na.value = "grey") +
+  scale_x_date(limits = c(ymd("2020-01-01"), ymd("2020-02-15")), date_breaks = "1 week", date_labels = "%b %d, %Y", expand = c(0,0)) +
+  ylab("probability density by source country") +
+  xlab("date") +
+  labs(title = "First 10 imported cases into Europe, \nsource") +
+  theme(legend.position = "none",
+        axis.title.x=element_blank())
+
+first_eu_ds <- ggarrange(first_eu1d, first_eu10d, first_eu10s, labels = chartr("123456789", "ABCDEFGHI", 1:3), font.label = list(size = 9), nrow = 1, ncol = 3, hjust = -6, vjust = 2)
+first_eu_ds
+ggexport(first_eu_ds,
+         filename = paste0(args$output_figure, "04.png"),
+         width = 2500, height = 1500, res = 300)
+
+```
+
+
+## First introductions into each country, source
+```{r first-bycountry, fig.height=4}
+# 2.2b First introduction into each country, distribution density destination
+m = 1
+first_country <- df_traj %>%
+  mutate(partner = ifelse(var == "O", "China", partner)) %>%
+  # 1. Prepare data
+  filter(var == "IM" & deme != "China"| var == "O" & deme == "China", !is.na(partner), value != 0) %>%
+  group_by(traj, deme) %>%
+  arrange(date, partner) %>%
+  slice(1:m)
+
+first_countryplot <- ggplot(first_country, aes(x = date, y = ..count../(m*args$n))) +
+  geom_density_line(
+    data = select(first_country, -deme), aes(fill = NA),
+    color = "transparent", alpha = 0.8, bw = 3
+  ) + 
+  geom_density_line(aes(fill = partner), color = "transparent", bw = 3, alpha = 0.6) +
+  geom_vline(data = first_ecdc, aes(xintercept = date, linetype = "first confirmed case to ECDC")) +
+  geom_vline(data = first_country %>% group_by(deme) %>% summarise(median = median(date)), aes(xintercept = median, linetype = "first case median infered date")) +
+  facet_grid(rows = vars(deme), switch = "y", drop = FALSE, labeller = labeller(deme = facet_names)) +
+  scale_fill_manual(name = "source country", values = dcolors, na.value = "grey") +
+  scale_x_date(#limits = c(ymd("2020-01-01"), ymd("2020-02-15")), 
+    date_breaks = "1 week", date_labels = "%b %d, %Y", expand = c(0,0)) +
+  scale_linetype_manual(name = "", values = c(1,2)) +
+  ylab("probability density by destination country") +
+  xlab("date") +
+  labs(title = "First SARS-CoV-2 case in the country") +
+  theme(#legend.position = "none",
+        legend.key.size = unit(0.5, "cm"),
+        axis.title.x=element_blank()) +
+  guides(fill = guide_legend(nrow = 1))
+
+# 2.2b First 10 introductions into each country, distribution density destination
+m = 10
+first_10country <- df_traj %>%
+  # 1. Prepare data
+  filter(var == "IM", !is.na(partner),  value != 0) %>%
+  group_by(traj, deme) %>%
+  arrange(date, partner) %>%
+  slice(1:m)
+
+first_10countryplot <- ggplot(first_10country, aes(x = date, y = ..count../(m*args$n))) +
+  geom_density_line(
+    data = select(first_10country, -deme), aes(fill = NA),
+    color = "transparent", alpha = 0.8, bw = 3
+  ) + 
+  geom_density_line(aes(fill = partner), color = "transparent", bw = 3, alpha = 0.6) +
+  geom_vline(data = first_ecdc, aes(xintercept = date, linetype = "first confirmed case to ECDC")) +
+  #geom_vline(data = first_10country %>% group_by(deme) %>% summarise(median = median(date)), aes(xintercept = median, linetype = "first 10 imported cases median date")) +
+  facet_grid(rows = vars(deme), switch = "y", drop = FALSE, labeller = labeller(deme = facet_names)) +
+  scale_fill_manual(name = "source country", values = dcolors, na.value = "grey") +
+  scale_x_date(#limits = c(ymd("2020-01-01"), ymd("2020-02-15")), 
+    date_breaks = "1 week", date_labels = "%b %d, %Y", expand = c(0,0)) +
+  scale_linetype_manual(name = "", values = 2) +
+  ylab("probability density by destination country") +
+  xlab("date") +
+  labs(title = "First 10 imported cases into the country") +
+  theme(#legend.position = "none",
+        legend.key.size = unit(0.5, "cm"),
+        axis.title.x=element_blank()) +
+  guides(fill = guide_legend(nrow = 1))
+
+first_countryds <- ggarrange(first_countryplot, first_10countryplot, labels = chartr("123456789", "ABCDEFGHI", 1:2), font.label = list(size = 9), nrow = 1, ncol = 2, hjust = -6, vjust = 2, common.legend = TRUE, legend = "bottom")
+first_countryds
+
+ggexport(first_countryds,
+         filename = paste0(args$output_figure, "05.png"),
+         width = 2500, height = 1700, res = 300)
+```
+
+
+```{r first-times, fig.height=4}
+# 2. First introduction distribution density by deme and time of first official reported case to ECDC
+first_times <- df_traj_cases %>%
+  # 1. Prepare data
+  filter(var == "IM" | var == "O", value != 0) %>%
+  group_by(deme, traj) %>%
+  arrange(date) %>%
+  slice(1) %>%
+  ungroup %>%
+  bind_rows(df_traj_cases %>%
+              filter(var == "IM", value != 0) %>%
+              group_by(traj) %>%
+              arrange(date) %>%
+              slice(1)  %>%
+              mutate(deme = "Europe")) %>%
+  mutate(deme = fct_rev(deme)) %>%
+  # 2. Plot
+  ggplot() +
+  geom_density_ridges(aes(x = date, y = deme, fill = deme), color = "grey50", quantile_lines = TRUE, quantiles = c(0.025, 0.5, 0.975), bandwidth=2, alpha = 0.7, size = 0.2) +
+  #stat_density_ridges(, alpha = 0.7)
+  #geom_histogram(aes(x = date, fill = deme), bandwidth=5, alpha = 0.7, size = 0.2) +
+  #geom_vline(aes(xintercept = min_date, color = dest), linetype = 2) +
+  geom_point(data = first_ecdc, 
+             aes(date, deme, fill = deme), color = "grey50", shape = 23, size = 3) +
+  scale_fill_manual(values = c(dcolors, "Europe" = "grey")) +
+  scale_color_manual(values = c(dcolors, "Europe" = "grey")) +
+  scale_x_date(limits = c(ymd("2019-10-01"), ymd("2020-03-08")), date_breaks = "1 month", date_labels = "%b %Y", expand = c(0,0)) +
+  scale_y_discrete(expand = c(0.05,0), "probability") +
+  #theme_ridges() +
+  theme(legend.position = "none",
+        axis.title.x=element_blank(),
+        panel.grid.major.x =  element_line(colour = "grey80", size = 0.3, linetype = 2),
+        panel.grid.major.y =  element_line(colour = "grey80", size = 0.3, linetype = 1),
+        #panel.grid.minor.x =  element_line(colour = "grey80", size = 0.2,  linetype = 3),
+        #axis.title.y=element_blank(),
+        panel.background = element_rect(fill = "white", colour = "white"))
+
+first_times
+
+```
+
+## Events timing
+
+```{r events-timing, fig.height=4}
+df_eventsttiming <- df_traj_cases %>%
+  filter(var %in% c("O", "B", "D", "IM", "OM"), value != 0, is.na(partner)) %>%
+  group_by(traj, var, deme, partner) %>%
+  mutate(var = ifelse(var == "O", "B", var)) %>%
+  arrange(date) %>%
+  slice(1) #%>%
+# ungroup(traj) %>%
+# summarise(m = median(date),
+#           l = quantile(date, 0.025, type = 1),
+#           h = quantile(date, 0.925, type = 1)) 
+
+events_timingplot <- ggplot(df_eventsttiming) +
+  geom_density_ridges(aes(x = date, y = factor(var, level =  c("OM", "IM", "D", "B")), fill = var), color = "transparent", quantile_lines = TRUE, quantiles = c(0.025, 0.975), bandwidth=2, alpha = 0.7, size = 0.2) + 
+  geom_vline(data = first_ecdc, aes(xintercept = date, linetype = "first confirmed case to ECDC")) +
+  scale_linetype_manual(values = 2, name = "") +
+  facet_wrap(~deme) +
+  scale_fill_viridis_d(guide = FALSE) +
+  scale_y_discrete(breaks = c("B", "D", "IM", "OM"), labels = c("first local case", "first death/recovered/isolated", "first imported case", "first exported case")) + 
+  ylab("") +
+  xlab("")
+
+events_timingplot
+ggexport(events_timingplot,
+         filename = paste0(args$output_figure, "13.png"),
+         width = 2000, height = 1200, res = 300)
+
+```
+
 ```{r traj-processing}
 # Add reported case counts
 df_traj_cases <- df_traj %>%
@@ -334,230 +594,6 @@ for (d in demes$deme) {
   grid.arrange(trajs[[d]], tableGrob(traj_total %>% filter(deme == d, var == "D") %>% t, theme = ttheme_minimal()), ncol = 2, widths = c(2,1))
   cat("\n")
 }
-```
-
-## Origin of SARS-CoV-2 in Europe
-
-```{r first-eu, fig.height=4}
-first_df1 <- df_traj %>%
-  # 1. Prepare data
-  filter(var == "IM", !is.na(partner),  value != 0) %>%
-  group_by(traj) %>%
-  arrange(date, partner) %>%
-  slice(1)
-
-first_ecdc <- case_data %>% 
-  filter(source == "ecdc", total_confirmed != 0) %>% 
-  group_by(deme) %>% 
-  arrange(date) %>% 
-  slice(1)
- 
-first_eui <- first_df1 %>% 
-  ggplot(aes(date)) +
-  geom_density(aes(y = ..count..), fill = "#21908CFF", alpha = .5, col = NA) + 
-  geom_histogram(binwidth = 1, alpha = .5, color = "grey60") +
-  geom_vline(aes(xintercept = median(first_df1$date)), linetype = 1) +
-  geom_vline(aes(xintercept = min((first_ecdc %>% filter(deme != "China"))$date)), linetype = 2) +
-  ylab("epidemic trajectory count") +
-  scale_x_date(limits = c(ymd("2019-12-15"), ymd("2020-02-01")), date_breaks = "1 week", date_labels = "%b %d, %Y", expand = c(0,0)) +
-  theme(axis.title.x = element_blank())
-  
-first_euii <- first_df1 %>% 
-  ggplot(aes(date)) +
-  geom_density(fill = "#21908CFF", alpha = .5, col = NA) + 
-  geom_histogram(binwidth = 1, alpha = .5, color = "grey60", aes( y = ..density..)) +
-  geom_vline(aes(xintercept = median(first_df1$date)), linetype = 1) +
-  geom_vline(aes(xintercept = min((first_ecdc %>% filter(deme != "China"))$date)), linetype = 2) +
-  ylab("probability density") +
-  scale_y_continuous(position = "right") +
-  scale_x_date(limits = c(ymd("2019-12-15"), ymd("2020-02-01")), date_breaks = "1 week", date_labels = "%b %d, %Y", expand = c(0,0)) +
-  theme(axis.title.x = element_blank())
-
-ggexport(first_eui,
-         filename = paste0(args$output_figure, "03i.png"),
-         width = 2100, height = 600, res = 300)
-ggexport(first_euii,
-         filename = paste0(args$output_figure, "03ii.png"),
-         width = 2100, height = 600, res = 300)
-```
-
-
-## First imported cases into Europe, time and location
-```{r first-eu-destsrc, fig.height=4}
-# 2.2b First introduction into Europe, distribution density destination
-facet_names <- demes$deme
-names(facet_names) <- demes$deme
-facet_names["OtherEuropean"] <- "Other EU"
-
-first_eu1d <- ggplot(first_df1, aes(x = date, y = ..count../(args$n))) +
-  geom_density_line(
-    data = select(first_df1, -deme), aes(fill = NA),
-    color = "transparent", alpha = 0.8, bw = 2) + 
-  geom_density_line(aes(fill = deme), bw = 2, color = "transparent", alpha = 0.8) +
-  facet_grid(rows = vars(deme), switch = "y", drop = FALSE,
-             labeller = labeller(deme = facet_names)) +
-  scale_fill_manual(name = "", values = dcolors, na.value = "grey") +
-  scale_x_date(limits = c(ymd("2020-01-01"), ymd("2020-02-15")), date_breaks = "1 week", date_labels = "%b %d, %Y", expand = c(0,0)) +
-  ylab("probability density by destination country") +
-  xlab("date") +
-  labs(title = "First imported case into Europe, \ndestination") +
-  theme(legend.position = "none",
-        axis.title.x=element_blank())
-
-# 2.2b First 10 introduction into Europe, distribution density destination
-m = 10
-first_df10 <- df_traj %>%
-  # 1. Prepare data
-  filter(var == "IM", !is.na(partner),  value != 0) %>%
-  group_by(traj) %>%
-  arrange(date, partner) %>%
-  slice(1:m)
-
-first_eu10d <- ggplot(first_df10, aes(x = date, y = ..count../(m*args$n))) +
-  geom_density_line(
-    data = select(first_df10, -deme), aes(fill = NA),
-    color = "transparent", alpha = 0.8, bw = 2) + 
-  geom_density_line(aes(fill = deme), bw = 2, color = "transparent", alpha = 0.8) +
-  facet_grid(rows = vars(deme), switch = "y", drop = FALSE, labeller = labeller(deme = facet_names)) +
-  scale_fill_manual(name = "", values = dcolors, na.value = "grey") +
-  scale_x_date(limits = c(ymd("2020-01-01"), ymd("2020-02-15")), date_breaks = "1 week", date_labels = "%b %d, %Y", expand = c(0,0)) +
-  ylab("probability density by destination country") +
-  xlab("date") +
-  labs(title = "First 10 imported cases into Europe, \ndestination") +
-  theme(legend.position = "none",
-        axis.title.x=element_blank())
-
-first_eu10s <- ggplot(first_df10, aes(x = date, y = ..count../(m*args$n))) +
-  geom_density_line(
-    data = select(first_df10, -partner), aes(fill = NA),
-    color = "transparent", alpha = 0.8, bw = 2) + 
-  geom_density_line(aes(fill = partner), bw = 2, color = "transparent", alpha = 0.8) +
-  facet_grid(rows = vars(partner), switch = "y", drop = FALSE, labeller = labeller(partner = facet_names)) +
-  scale_fill_manual(name = "", values = dcolors, na.value = "grey") +
-  scale_x_date(limits = c(ymd("2020-01-01"), ymd("2020-02-15")), date_breaks = "1 week", date_labels = "%b %d, %Y", expand = c(0,0)) +
-  ylab("probability density by source country") +
-  xlab("date") +
-  labs(title = "First 10 imported cases into Europe, \nsource") +
-  theme(legend.position = "none",
-        axis.title.x=element_blank())
-
-first_eu_ds <- ggarrange(first_eu1d, first_eu10d, first_eu10s, labels = chartr("123456789", "ABCDEFGHI", 1:3), font.label = list(size = 9), nrow = 1, ncol = 3, hjust = -6, vjust = 2)
-first_eu_ds
-ggexport(first_eu_ds,
-         filename = paste0(args$output_figure, "04.png"),
-         width = 2500, height = 1500, res = 300)
-
-```
-
-
-## First introductions into each country, source
-```{r first-bycountry, fig.height=4}
-# 2.2b First introduction into each country, distribution density destination
-m = 1
-first_country <- df_traj %>%
-  # 1. Prepare data
-  filter(var == "IM", !is.na(partner),  value != 0) %>%
-  group_by(traj, deme) %>%
-  arrange(date, partner) %>%
-  slice(1:m)
-
-first_countryplot <- ggplot(first_country, aes(x = date, y = ..count../(m*args$n))) +
-  geom_density_line(
-    data = select(first_country, -deme), aes(fill = NA),
-    color = "transparent", alpha = 0.8, bw = 3
-  ) + 
-  geom_density_line(aes(fill = partner), color = "transparent", bw = 3, alpha = 0.6) +
-  facet_grid(rows = vars(deme), switch = "y", drop = FALSE, labeller = labeller(deme = facet_names)) +
-  scale_fill_manual(name = "", values = dcolors, na.value = "grey") +
-  scale_x_date(#limits = c(ymd("2020-01-01"), ymd("2020-02-15")), 
-    date_breaks = "1 week", date_labels = "%b %d, %Y", expand = c(0,0)) +
-  ylab("probability density by destination country") +
-  xlab("date") +
-  labs(title = "First imported case into the country, \nsource") +
-  theme(#legend.position = "none",
-        legend.key.size = unit(0.5, "cm"),
-        axis.title.x=element_blank()) +
-  guides(fill = guide_legend(nrow = 1))
-
-# 2.2b First 10 introductions into each country, distribution density destination
-m = 10
-first_10country <- df_traj %>%
-  # 1. Prepare data
-  filter(var == "IM", !is.na(partner),  value != 0) %>%
-  group_by(traj, deme) %>%
-  arrange(date, partner) %>%
-  slice(1:m)
-
-first_10countryplot <- ggplot(first_10country, aes(x = date, y = ..count../(m*args$n))) +
-  geom_density_line(
-    data = select(first_10country, -deme), aes(fill = NA),
-    color = "transparent", alpha = 0.8, bw = 3
-  ) + 
-  geom_density_line(aes(fill = partner), color = "transparent", bw = 3, alpha = 0.6) +
-  facet_grid(rows = vars(deme), switch = "y", drop = FALSE, labeller = labeller(deme = facet_names)) +
-  scale_fill_manual(name = "", values = dcolors, na.value = "grey") +
-  scale_x_date(#limits = c(ymd("2020-01-01"), ymd("2020-02-15")), 
-    date_breaks = "1 week", date_labels = "%b %d, %Y", expand = c(0,0)) +
-  ylab("probability density by destination country") +
-  xlab("date") +
-  labs(title = "First 10 imported cases into the country, \nsource") +
-  theme(#legend.position = "none",
-        legend.key.size = unit(0.5, "cm"),
-        axis.title.x=element_blank()) +
-  guides(fill = guide_legend(nrow = 1))
-
-
-first_countryds <- ggarrange(first_countryplot, first_10countryplot, labels = chartr("123456789", "ABCDEFGHI", 1:2), font.label = list(size = 9), nrow = 1, ncol = 2, hjust = -6, vjust = 2, common.legend = TRUE, legend = "bottom")
-first_countryds
-
-ggexport(first_countryds,
-         filename = paste0(args$output_figure, "05.png"),
-         width = 2000, height = 1200, res = 300)
-```
-
-
-```{r first-times, fig.height=4}
-# 2. First introduction distribution density by deme and time of first official reported case to ECDC
-first_times <- df_traj_cases %>%
-  # 1. Prepare data
-  filter(var == "IM" | var == "O", value != 0) %>%
-  group_by(deme, traj) %>%
-  arrange(date) %>%
-  slice(1) %>%
-  ungroup %>%
-  bind_rows(df_traj_cases %>%
-              filter(var == "IM", value != 0) %>%
-              group_by(traj) %>%
-              arrange(date) %>%
-              slice(1)  %>%
-              mutate(deme = "Europe")) %>%
-  mutate(deme = fct_rev(deme)) %>%
-  # 2. Plot
-  ggplot() +
-  geom_density_ridges(aes(x = date, y = deme, fill = deme), color = "grey50", quantile_lines = TRUE, quantiles = c(0.025, 0.5, 0.975), bandwidth=2, alpha = 0.7, size = 0.2) +
-  #stat_density_ridges(, alpha = 0.7)
-  #geom_histogram(aes(x = date, fill = deme), bandwidth=5, alpha = 0.7, size = 0.2) +
-  #geom_vline(aes(xintercept = min_date, color = dest), linetype = 2) +
-  geom_point(data = first_ecdc, 
-             aes(date, deme, fill = deme), color = "grey50", shape = 23, size = 3) +
-  scale_fill_manual(values = c(dcolors, "Europe" = "grey")) +
-  scale_color_manual(values = c(dcolors, "Europe" = "grey")) +
-  scale_x_date(limits = c(ymd("2019-10-01"), ymd("2020-03-08")), date_breaks = "1 month", date_labels = "%b %Y", expand = c(0,0)) +
-  scale_y_discrete(expand = c(0.05,0), "probability") +
-  #theme_ridges() +
-  theme(legend.position = "none",
-        axis.title.x=element_blank(),
-        panel.grid.major.x =  element_line(colour = "grey80", size = 0.3, linetype = 2),
-        panel.grid.major.y =  element_line(colour = "grey80", size = 0.3, linetype = 1),
-        #panel.grid.minor.x =  element_line(colour = "grey80", size = 0.2,  linetype = 3),
-        #axis.title.y=element_blank(),
-        panel.background = element_rect(fill = "white", colour = "white"))
-
-first_times
-
-ggexport(first_times,
-         filename = paste0(args$output_figure, "03.png"),
-         width = 2000, height = 800, res = 300)
 ```
 
 ## Local transmission vs imported cases
@@ -918,35 +954,4 @@ ggexport(inc_plot,
          width = 2000, height = 1200, res = 300)
 ```
 
-## Events timing
 
-```{r events-timing, fig.height=4}
-df_eventsttiming <- df_traj_cases %>%
-  filter(var %in% c("O", "B", "D", "IM", "OM"), value != 0, is.na(partner)) %>%
-  group_by(traj, var, deme, partner) %>%
-  mutate(var = ifelse(var == "O", "B", var)) %>%
-  arrange(date) %>%
-  slice(1) #%>%
-# ungroup(traj) %>%
-# summarise(m = median(date),
-#           l = quantile(date, 0.025, type = 1),
-#           h = quantile(date, 0.925, type = 1)) 
-
-events_timingplot <- ggplot(df_eventsttiming) +
-  geom_density_ridges(aes(x = date, y = factor(var, level =  c("OM", "IM", "D", "B")), fill = var), color = "transparent", quantile_lines = TRUE, quantiles = c(0.025, 0.975), bandwidth=2, alpha = 0.7, size = 0.2) + 
-  geom_vline(data = first_ecdc, aes(xintercept = date, linetype = "first confirmed case to ECDC")) +
-  scale_linetype_manual(values = 3, name = "") +
-  facet_wrap(~deme) +
-  scale_fill_viridis_d(guide = FALSE) +
-  scale_y_discrete(breaks = c("B", "D", "IM", "OM"), labels = c("first local case", "first uninfectious", "first imported case", "first exported case")) + 
-  ylab("") +
-  xlab("") +
-  theme(legend.position = "top")
-
-
-events_timingplot
-ggexport(events_timingplot,
-         filename = paste0(args$output_figure, "13.png"),
-         width = 2000, height = 1200, res = 300)
-
-```

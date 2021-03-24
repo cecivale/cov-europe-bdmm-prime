@@ -1,15 +1,23 @@
 \chapter{Results}
 
 \textbf{The origin of SARS-CoV-2 in Europe} 
-While the first cases in Europe were reported end of January, the first European wave is suspected to have started earlier but been undetected, mistaken for other common repiratory diseases in winter. In our model, we assume the origin of SARS-CoV-2 in Europe to be an imported case from China into any of the European countries. We analyze the time and destination of the first imported case in the infered epidemic trajectories and estimate the origin of the European epidemic on January 2020 ($95\%$ CCI)  \todo{with final results}. As shown in Figure \ref{fig:firstEUcase} A, we place the destination country of this first imported case in Italy or France, with x of probability each.  
+While the first case in Europe was reported to ECDC by France authorities on January 25, 2020, the first European wave is suspected to have started earlier but been undetected, mistaken for other common repiratory diseases in winter. In our model, we assume the origin of SARS-CoV-2 in Europe to be an imported case from China into any of the European countries. We analyze the time and destination of the first imported case in the infered epidemic trajectories and estimate the origin of the European epidemic on January 2020 ($95\%$ CCI), Figure \ref{fig:firstEU} \todo{with final results}. The actual reported date to ECDC is in the tail of the $95\%$ credible interval. As shown in Figure \ref{fig:firstEUcountry} A, we place the destination country of this first imported case in Italy or France, with x of probability each.  
 
-Likewise, we analyze the first ten imported cases into Europe and obtain the probability distribution of the source and destination country, Figure \ref{fig:firstEUcase} B and C.  The role of Italy as the receptor of these first cases is highlighted even more looking at several cases. Early introductions in Spain have a very low probabilty, looking like Spain was not a key player in the origin of SARS-CoV-2 in Europe. China is the main source of these first introductions, supporting the hypothesis of the European epidemic seeded by several and not just one imported cases from China. \todo{with final results}
-
-\begin{figure}[p]
+\begin{figure}[h]
     \centering
-    \includegraphics[width=\textwidth]{210205_europe10_figtraj0405.png}
+    \includegraphics[width=\textwidth]{210205_europe10_figtraj03.png}
     \caption{First introductions of SARS-CoV-2. From the set of random subsampled trajectories, the first introduction time for each epidemic trajectory is recorded and the probability distribution over all these times is plotted. \textbf{A} Probability density of the time of first introduction for each deme. Each dotted line represents the first date when cases where reported to ECDC by deme color. In the case of China, the distribution of the origin time is plotted, since in the analysis we defined Chine as the origin of the epidemic with probability 1. For the other five demes, the distribution of the time of first migration into the deme is shown. \textbf{B} Stacked probability density of the destination of first introduction into Europe coloured by the destination deme. This first case corresponds to the first migration event from China to any of the European countries. \textbf{C} Stacked probability density of the source of the first introduction for each deme coloured by the source deme of the introduction.}
-    \label{fig:firstEUcase}
+    \label{fig:firstEU}
+    \todo[inline]{ticks for every month}
+\end{figure}
+
+Likewise, we analyze the first ten imported cases into Europe and obtain the probability distribution of the source and destination country, Figure \ref{fig:firstEUcountry} B and C.  The role of Italy as the receptor of these first cases is highlighted even more looking at several cases. Early introductions in Spain have a very low probabilty, looking like Spain was not a key player in the origin of SARS-CoV-2 in Europe. China is the main source of these first introductions, supporting the hypothesis of the European epidemic seeded by several and not just one imported cases from China. \todo{with final results}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{210205_europe10_figtraj04.png}
+    \caption{First introductions of SARS-CoV-2. From the set of random subsampled trajectories, the first introduction time for each epidemic trajectory is recorded and the probability distribution over all these times is plotted. \textbf{A} Probability density of the time of first introduction for each deme. Each dotted line represents the first date when cases where reported to ECDC by deme color. In the case of China, the distribution of the origin time is plotted, since in the analysis we defined Chine as the origin of the epidemic with probability 1. For the other five demes, the distribution of the time of first migration into the deme is shown. \textbf{B} Stacked probability density of the destination of first introduction into Europe coloured by the destination deme. This first case corresponds to the first migration event from China to any of the European countries. \textbf{C} Stacked probability density of the source of the first introduction for each deme coloured by the source deme of the introduction.}
+    \label{fig:firstEUcountry}
     \todo[inline]{ticks for every month}
 \end{figure}
 
@@ -17,11 +25,19 @@ Likewise, we analyze the first ten imported cases into Europe and obtain the pro
 \textbf{The early spread of SARS-CoV-2 among the European countries}
 
 
-Since in our model we consider the different European countries, we can also estimate from the infered epidemic trajectories the origin of the epidedmic in each particular country. In Figure we have the origin time for each country compared to the ddate of the first reporrted case to ECDC by that country. In average, we predict a delay in detection of x days for the Eurropean countries, out of the $95\% CCI$ for France, Germany and Italy. Origin in Spain close to the official detection day. We estimate that the epidemic in any of the European countries was seeded by an imported case from China as seen in Figurem with some small prrobability for Germany and Italy of having orriginatetdd from a case from each other, and mostly half of the rpobability in the case of Spain from the epidemdic started with a case imported from one of the others Euroopean countries. Same than before, we can look into the first 10 imported cases into each country and now we see that the transmission between european countries adquire much moer importance,  so once SARS-CoV-2 entered Europe, the transmission between european countrries were soon more important than the cases coming from China. This coulld relate also to the decrease in tthe trravel to and from China seen in figure.
+Since in our model we consider the different European countries, we can also estimate from the infered epidemic trajectories the origin of the epidedmic in each particular country. In Figure we have the origin time for each country compared to the ddate of the first reporrted case to ECDC by that country. In average, we predict a delay in detection of x days for the Eurropean countries, out of the $95\% CCI$ for France, Germany and Italy. Origin in Spain close to the official detection day. We estimate that the epidemic in any of the European countries was seeded by an imported case from China as seen in Figurem with some small prrobability for Germany and Italy of having orriginatetdd from a case from each other, and mostly half of the rpobability in the case of Spain from the epidemdic started with a case imported from one of the others Euroopean countries. Same than before, we can look into the first 10 imported cases into each country and now we see that the transmission between european countries adquire much moer importance,  so once SARS-CoV-2 entered Europe, the transmission between european countrries were soon more important than the cases coming from China. This could relate also to the decrease in tthe trravel to and from China seen in figure.
 
 Among the European countries, France and Germany have the earlier time of introduction, followed by Italy, Other European deme and Spain. We can compare this inferred dates of introduction with the day each country reported its first case to ECDC. In all cases, the reported day was later than the median of the inferred distribution, but it is inside the 95\% interval.\\
 
 The first case in each European country could have been imported from China or from other European country with an ongoing epidemic that started earlier. However, in our analysis we obtain a much higher support for China being the most probable source of the first case for all European demes, Figure \ref{fig:first} C.\\
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{210205_europe10_figtraj05.png}
+    \caption{First introductions of SARS-CoV-2. From the set of random subsampled trajectories, the first introduction time for each epidemic trajectory is recorded and the probability distribution over all these times is plotted. \textbf{A} Probability density of the time of first introduction for each deme. Each dotted line represents the first date when cases where reported to ECDC by deme color. In the case of China, the distribution of the origin time is plotted, since in the analysis we defined Chine as the origin of the epidemic with probability 1. For the other five demes, the distribution of the time of first migration into the deme is shown. \textbf{B} Stacked probability density of the destination of first introduction into Europe coloured by the destination deme. This first case corresponds to the first migration event from China to any of the European countries. \textbf{C} Stacked probability density of the source of the first introduction for each deme coloured by the source deme of the introduction.}
+    \label{fig:firstEUcountry}
+    \todo[inline]{ticks for every month}
+\end{figure}
 
 Even if the first case in each European country came from China, the timing of the introductions in the European countries relative to each other probablu expanded across several days, defining and order of countries with the time of their first case. 
 
@@ -63,7 +79,7 @@ The time between the first case in the country, i.e. first incoming migration ev
 
 \begin{figure}[p]
     \centering
-    \includegraphics[width=\textwidth]{210205_europe10_figtraj13.png}
+    \includegraphics[width=\textwidth]{210205_europe10_figtraj07.png}
     \caption{First introductions of SARS-CoV-2. From the set of random subsampled trajectories, the first introduction time for each epidemic trajectory is recorded and the probability distribution over all these times is plotted. \textbf{A} Probability density of the time of first introduction for each deme. Each dotted line represents the first date when cases where reported to ECDC by deme color. In the case of China, the distribution of the origin time is plotted, since in the analysis we defined Chine as the origin of the epidemic with probability 1. For the other five demes, the distribution of the time of first migration into the deme is shown. \textbf{B} Stacked probability density of the destination of first introduction into Europe coloured by the destination deme. This first case corresponds to the first migration event from China to any of the European countries. \textbf{C} Stacked probability density of the source of the first introduction for each deme coloured by the source deme of the introduction.}
     \label{fig:first}
     \todo[inline]{ticks for every month}
