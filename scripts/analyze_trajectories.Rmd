@@ -16,21 +16,20 @@ tables: yes
 ```{r parser, echo = FALSE}
 library(tidyverse)
 # Parser -----------------------------------------------------------------------
-# argsR <- commandArgs(TRUE)
-# args_list <- str_split(paste(argsR, collapse=""), pattern="--")
-# args_llist <- lapply(args_list, function(x) str_split(x, pattern="="))
-# argsDF <- as.data.frame(do.call("rbind", args_llist[[1]]))
-# args <- as.list(as.character(argsDF$V2))
-# names(args) <- argsDF$V1
-# args$burnin <- as.integer(args$burnin)
-# args$n <- as.integer(args$n)
-# title <- paste("Analysis", gsub("\\.", " ", gsub(".TL.traj", " particles", str_split(args$args, "/")[[1]][3])))
-# ---
-# subtitle: "`r title`"
-# ---
+argsR <- commandArgs(TRUE)
+args_list <- str_split(paste(argsR, collapse=""), pattern="--")
+args_llist <- lapply(args_list, function(x) str_split(x, pattern="="))
+argsDF <- as.data.frame(do.call("rbind", args_llist[[1]]))
+args <- as.list(as.character(argsDF$V2))
+names(args) <- argsDF$V1
+args$burnin <- as.integer(args$burnin)
+args$n <- as.integer(args$n)
+title <- paste("Analysis", gsub("\\.", " ", gsub(".TL.traj", " particles", str_split(args$args, "/")[[1]][3])))
 ```
 
-
+---
+subtitle: "`r title`"
+---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
@@ -66,15 +65,15 @@ source("./scripts/flight_data.R")
 
 ```{r debugging}
 # Debugging
-args = list()
-args$burnin = 0.1
-args$demes = read.csv("./files/demes_China.csv", stringsAsFactors = FALSE)
-args$args = "/Users/maceci/europe10last/210205_europe10.10000.TL.traj"
-args$metadata =  "./results/europeC/final_metadata.tsv"
-args$n = 10
-demes = args$demes
-demes$exclude_country[5] = "France,Germany,Italy,Spain"
-demes <- demes %>% arrange(deme)
+# args = list()
+# args$burnin = 0.1
+# args$demes = read.csv("./files/demes_China.csv", stringsAsFactors = FALSE)
+# args$args = "/Users/maceci/europe10last/210205_europe10.10000.TL.traj"
+# args$metadata =  "./results/europeC/final_metadata.tsv"
+# args$n = 10
+# demes = args$demes
+# demes$exclude_country[5] = "France,Germany,Italy,Spain"
+# demes <- demes %>% arrange(deme)
 ```
 
 
@@ -82,24 +81,22 @@ demes <- demes %>% arrange(deme)
 \tiny
 ```{r demeconfig}
 # Load demes configuration and sequence metadata -------------------------------
-# demes <- data.frame(deme = NA, region = NA, country = NA, division = NA,
-#                     exclude_country = NA, exclude_division = NA,
-#                     min_date = NA, max_date = NA, seq_per_deme = NA) %>%
-#   bind_rows(bind_rows(lapply(yaml::yaml.load(string = gsub(",", ", ", gsub(":", ": ", args$demes))),
-#                           data.frame, stringsAsFactors = FALSE), .id = "deme")) %>%
-#   group_by(deme) %>%
-#   mutate(exclude_country = ifelse(is.na(exclude_country), NA, paste0(exclude_country, collapse = ","))) %>%
-#   distinct() %>%
-#   filter_all(any_vars(!is.na(.))) %>%
-#   mutate(deme = str_to_title(deme)) %>%
-#   mutate(deme = ifelse(deme %in% c("Othereuropean", "OtherEuropean"), "Other European", deme)) %>%
-#   arrange(deme)
+demes <- data.frame(deme = NA, region = NA, country = NA, division = NA,
+                    exclude_country = NA, exclude_division = NA,
+                    min_date = NA, max_date = NA, seq_per_deme = NA) %>%
+  bind_rows(bind_rows(lapply(yaml::yaml.load(string = gsub(",", ", ", gsub(":", ": ", args$demes))),
+                          data.frame, stringsAsFactors = FALSE), .id = "deme")) %>%
+  group_by(deme) %>%
+  mutate(exclude_country = ifelse(is.na(exclude_country), NA, paste0(exclude_country, collapse = ","))) %>%
+  distinct() %>%
+  filter_all(any_vars(!is.na(.))) %>%
+  mutate(deme = str_to_title(deme)) %>%
+  mutate(deme = ifelse(deme %in% c("Othereuropean", "OtherEuropean"), "Other European", deme)) %>%
+  arrange(deme)
 
 china_deme <- demes$deme[demes$region == "Asia"]
 if (china_deme == "Hubei-China") china_deme = "China"
 ```
-
-
 
 ```{r plotopts}
 # Plot options -----------------------------------------------------------------------
@@ -390,6 +387,7 @@ knitr::kable(first_df1 %>%
 ```
 
 ## First introductions to each country, source
+
 ```{r first-bycountry, fig.height=4}
 # 2.2b First introduction into each country, distribution density destination
 m = 1
@@ -518,8 +516,9 @@ knitr::kable((first_10country %>%
 ::::
   
 :::
-  
-```{r first-times, fig.height=4}
+
+
+```{r first-times, fig.height=4, include=FALSE}
 # 2. First introduction distribution density by deme and time of first official reported case to ECDC
 first_times <- df_traj_cases %>%
   # 1. Prepare data
@@ -831,7 +830,7 @@ ggexport(ratiobm,
 ```{r bvsm-table, results = 'asis'}
 for (d in demes$deme) {
   cat("\n## Local transmission vs imported cases - ", d, "\n")
-  knitr::kable(hsummary %>% filter(deme == d))
+  print(hsummary %>% filter(deme == d))
   cat("\n")
 }
 ```
@@ -971,7 +970,11 @@ knitr::kable(mig2$df %>% filter(Nm != 0))
 :::
 
 ## Migrations - Period 3
-  
+
+::: {.columns}
+
+:::: {.column width="50%"}
+
 ```{r mig3, fig.height=2.5, fig.align='center'}
 # Period 3
 mig3 <- plot_chord(df_traj, ymd("2020-02-28"), ymd("2020-03-08"))
@@ -994,9 +997,10 @@ knitr::kable(mig3$df %>% filter(Nm != 0))
 ::::
   
 :::
-  
+
+
 ## Daily flight passengers vs daily imported cases
-  
+
 ```{r flight-cases, fig.height=4}
 demes1 <- c(China = "CN", France = "FR", Germany = "DE", Italy = "IT", OtherEuropean = "OE", Spain = "ES")
 flight_df <- get_flightData(countries = demes1) 
@@ -1137,10 +1141,9 @@ ggexport(inc_plot,
          width = 2000, height = 1200, res = 300)
 ```
 
-## Weekly incidence population %
+## Weekly incidence population percentage
 
 \small
 ```{r incidence-table}
 knitr::kable(df_inc %>% filter(date == max(date)))
 ```
-
