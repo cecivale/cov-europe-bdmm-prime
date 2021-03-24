@@ -452,17 +452,17 @@
     </logger>
 
     <!-- Typed tree log-->
-    <logger spec="Logger" fileName="$(filebase).typed.trees" logEvery="10000" mode="tree">
+    <logger spec="Logger" fileName="$(filebase)_1000.typed.trees" logEvery="10000" mode="tree">
         <log id="typeMappedTree" spec="TypeMappedTree" bdmmDistrib="@BDMMPrime" frequencies="@typeFrequencies" mapOnInit="false" remapOnLog="true" typeLabel="type" typeTraitSet="@typeTraitSet" untypedTree="@tree"/>
     </logger>
 
     <!-- Typed node tree log-->
-    <logger id="nodeTypedTreeLogger" spec="Logger" fileName="$(filebase).typed.node.trees" logEvery="10000" mode="tree">
+    <logger id="nodeTypedTreeLogger" spec="Logger" fileName="$(filebase)_1000.typed.node.trees" logEvery="10000" mode="tree">
       <log id="nodeTypedTree" spec="TypedNodeTreeLogger" typedTree="@typeMappedTree"/>
     </logger>
 
     <!-- Trajectories log-->
-    <logger spec="Logger" logEvery="10000" fileName="$(filebase).TL.traj">
+    <logger spec="Logger" logEvery="10000" fileName="$(filebase)_1000.TL.traj">
       <log id="typedTrajectoryTL" spec="bdmmprime.trajectories.SampledTrajectory"
            nParticles="1000"
            useTauLeaping="true"

@@ -24,7 +24,7 @@
   <distribution id="BDMMPrime" spec="BirthDeathMigrationDistribution" conditionOnSurvival="false" tree="@tree"> 
     <parameterization id="EpiBDMMPrimeParameterization" spec="EpiParameterization" origin="@origin">
       
-      <R0 spec="SkylineVectorParameter" typeSet="@typeSet">
+      <R0 spec="SkylineVectorParameter" typeSet="@typeSet" timesAreAges="true" origin="@origin">
         <skylineValues idref="R0"/>
         <parameter id="R0ChangeTimes" spec="TimeParameter" estimate="false" name="changeTimes" time="2020-02-16" mostRecentSampleTime="2020-03-07" timeFormat="yyyy-M-dd"/>
       </R0>
