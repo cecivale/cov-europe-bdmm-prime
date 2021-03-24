@@ -488,8 +488,8 @@ beast:
   min_ess: 50
   mcc_heights: "mean"
   # Trajectories
-  n_traj: 200
+  n_traj: 500
   resample: 10000
-  #n_particles: [300, 1000, 3000, 10000]
-  n_particles: [300]
+  n_particles: [300, 1000, 3000, 10000]
+  #n_particles: [300]
 
