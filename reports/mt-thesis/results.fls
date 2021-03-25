@@ -1,7 +1,0 @@
-PWD /Users/maceci/Documents/CBB Master/HS20/Master Thesis/sars-cov-2-eu-phylodynamics/reports/mt-thesis
-INPUT /Users/maceci/Library/TinyTeX/texmf.cnf
-INPUT /Users/maceci/Library/TinyTeX/texmf-dist/web2c/texmf.cnf
-INPUT /Users/maceci/Library/TinyTeX/texmf-var/web2c/pdftex/pdflatex.fmt
-INPUT results.tex
-OUTPUT results.log
-INPUT /Users/maceci/Library/TinyTeX/texmf-dist/fonts/tfm/public/cm/cmbx10.tfm

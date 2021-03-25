@@ -1,7 +1,0 @@
-demeID,deme,division,country,region,exclude_country,exclude_division,min_date,max_date,prob
-0,France,NA,France,Europe,NA,NA,2020-01-23,2020-03-08,cases
-1,Germany,NA,Germany,Europe,NA,NA,2020-01-28,2020-03-08,cases
-2,Hubei,Hubei,China,Asia,NA,NA,2019-12-24,2020-01-23,deaths
-3,Italy,NA,Italy,Europe,NA,NA,2020-01-29,2020-03-08,cases
-4,OtherEuropean,NA,NA,Europe,"France,Germany,Italy,Spain",NA,2020-01-29,2020-03-08,cases_and_location
-5,Spain,NA,Spain,Europe,NA,NA,2020-02-24,2020-03-08,cases

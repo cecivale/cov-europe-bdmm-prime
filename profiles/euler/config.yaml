@@ -1,5 +1,0 @@
-jobs: 100
-cluster: "bsub -W {resources.runtime} -n 2 -R 'rusage[mem={resources.mem_mb}]'"
-cores: 2
-printshellcmds: True
-default-resources: [cpus=1, mem_mb=4000, runtime=240]

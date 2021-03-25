@@ -1,7 +1,0 @@
-Country	First Reported Case ECDC	Median date (95% CCI) first introduction	Median start date (95% CCI) within region transmission	Median date (95% CCI) first outgoing migration	Days between introduction and first within region transmision	Days between introduction and first outgoing migration	Percentage of trajectories within region transmission when first reported case	Percentage of trajectories first migration after first reported case
-France	2020-01-25	2020-01-19 (2020-01-02, 2020-01-22)	2020-01-21 (2020-01-13, 2020-01-22)	2020-01-30 (2020-01-17, 2020-02-13)	2 (-6, 19)	12 (-2, 32)	100%	79.5%
-Germany	2020-01-28	2020-01-20 (2019-12-29, 2020-01-26)	2020-01-22 (2020-01-08, 2020-01-27)	2020-01-29 (2020-01-19, 2020-02-15)	3 (-12, 23)	11 (-3, 34)	100%	61.5%
-Hubei-China	2019-12-31	2019-11-14 (2019-10-06, 2019-12-04)	2019-11-19 (2019-10-13, 2019-12-07)	2020-01-14 (2019-12-11, 2020-01-21)	4 (-36, 47)	59 (26, 99)	100%	92.5%
-Italy	2020-01-31	2020-01-21 (2020-01-01, 2020-01-28)	2020-01-25 (2020-01-13, 2020-01-31)	2020-02-01 (2020-01-20, 2020-02-08)	3 (-9, 22)	11 (-3, 30)	98.5%	61.5%
-Other European	2020-01-30	2020-01-22 (2020-01-06, 2020-02-01)	2020-01-27 (2020-01-14, 2020-02-03)	2020-02-05 (2020-01-20, 2020-02-14)	4 (-12, 23)	13 (-6, 32)	74.5%	79%
-Spain	2020-02-01	2020-01-29 (2019-12-31, 2020-02-11)	2020-02-04 (2020-01-14, 2020-02-15)	2020-02-12 (2020-01-19, 2020-02-22)	6 (-18, 36)	14 (-11, 44)	40%	88.5%
