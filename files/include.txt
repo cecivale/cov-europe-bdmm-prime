@@ -1,0 +1,17 @@
+# Include first sequences of each deme
+Wuhan/IPBCAMS-WH-01/2019
+
+# France
+France/IDF-0372-isl/2020
+France/IDF-0571/2020
+
+# Italy
+Italy/LAZ-INMI-SPL1/2020
+Italy/LAZ-INMI1-B1/2020
+Italy/LOM-ASST-CDG1/2020
+
+# Germany
+Germany/BY-ChVir-929/2020
+
+# Spain
+Spain/CN-ISCIII-201048/2020
