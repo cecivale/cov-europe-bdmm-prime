@@ -1,4 +1,6 @@
-# Modified Nextrain workflow from 2020-09-11
+# Modified Nextrain workflow from 2020-09-11 by Cecilia Valenzuela
+# CBB Master's Thesis A comprehensive study of the earllly phylodynamics of SARS-CoV-2 in Europe
+# cEvo group DBSSE ETH 
 # MIT License
 # Copyright (c) 2020 Nextstrain, full text https://github.com/nextstrain/ncov/blob/master/LICENSE
 
